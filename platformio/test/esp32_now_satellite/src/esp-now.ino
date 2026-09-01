@@ -1,5 +1,55 @@
-// TODO gestire gli astati e quindi gli ACK
+// TODO
+// gestire gli stati e le queue
+// ottenere RSSI https://github.com/TenoTrash/ESP32_ESPNOW_RSSI/blob/main/Modulo_Receptor_OLED_SPI_RSSI.ino
+//pensare alla gestione dell'autodiagnostica tra cui il monitoraggio delle batterie https://github.com/tomgrant/esp32-battery-monitoring
+/*
+Con 2×AA e una misura una volta all'ora, puoi fare una soluzione molto
+parsimoniosa.
 
+Se le AA sono alcaline, hai circa 3,0 V a batterie nuove e puoi
+scendere progressivamente verso ~2,0–2,2 V.
+
+Non terrei il partitore sempre collegato. Lo alimenterei solo durante
+la misura.L'ESP32 si sveglia ogni ora dal deep sleep, abilita il
+partitore, aspetta qualche millisecondo, misura la tensione e poi lo
+disabilita.
+
+Con 100 kΩ + 100 kΩ, a 3 V il partitore assorbe:
+
+3 V / 200 kΩ = 15 µA
+
+Ma siccome lo attivi solo per, diciamo, 10 ms ogni ora, il consumo
+medio è praticamente trascurabile:
+
+15 µA × 10 ms / 3600 s ≈ 0,000042 µA
+
+Quindi il partitore non sarà praticamente lui a determinare la durata
+delle batterie.
+*/
+/*
+alimentazione a batteria
+ESP32-C deve essere alimentato tra 3.0V-3.6V
+le batterie alcaline AA sono scariche a 1.2V quindi due batterie no buono
+
+lo stabilizzatore usato da Wemos
+https://www.adrirobot.it/wp-content/uploads/2023/10/ME6211-High_Speed_LDO_Regulators.pdf
+Absolute Maximum Ratings Input Voltage VIN 6.5V
+Low Power Consumption: 30uA
+
+se il consumo totale in deep sleep è 100uA 3 batterie AA da 3Ah (le scadenti sono meno di 2Ah)
+dovrebbero durare 3,5 anni circa
+
+Batterie Alcaline Duracell AA LR6 MN1500 Plus Power Capacità	2,7Ah
+
+Regolatori di tensione consigliati
+
+    MCP1825 / MCP1802: Ottimi regolatori LDO con correnti di riposo bassissime (nell'ordine dei microampere).
+    HT7333: Un classico intramontabile per progetti a batteria, con un consumo a riposo di circa 4 µA.
+    TPS62740: Un convertitore DC-DC buck ad altissima efficienza per bassi carichi, ideale se parti da tensioni superiori (es. batterie litio o 5V) pur mantenendo correnti di riposo inferiori a 360 nA.
+
+TOGLIERE IL LED !
+https://esp32.com/viewtopic.php?t=30927
+*/
 
 /*
 idee per progettare un ipotetico sensore satellite da collegare via
@@ -59,6 +109,7 @@ verificare anche se l'orologio di arduino avanza in deepsleep
 
 #define SOFTWARE_VERSION "1.0"
 #define RESET_PAIR false
+#define TRANSACTION_TIMEOUT 1000
 
 /*!
 \def DISABLE_LOGGING
@@ -103,22 +154,34 @@ const uint8_t mio_lmk[16] = {
 //uint8_t broadcastAddress[] = {0x70,0x04,0x1d,0x22,0x73,0xe8};
 uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
-typedef struct struct_config {
+
+typedef enum {
+    STATE_NONE,
+    STATE_PAIR_RECEIVED,
+    STATE_PAIR_ACK_SENDED,
+    STATE_PAIR_DONE,
+    STATE_DATA_SENDED,
+    STATE_DATA_ACK_RECEIVED,
+    STATE_DATA_DONE
+} state_t;
+
+struct struct_config {
   bool accoppiato;
   uint8_t masterMac[6];
   uint8_t channel;
-} struct_config;
+};
 
 MutexStandard loggingmutex;
 
 //Structure to send data
 //Must match the receiver structure
 struct message_pair {
+  uint16_t type;
+  uint16_t seq;
   time_t datetime;
 };
 
 struct message_pair_crc {
-  int type;
   message_pair message;
   uint8_t crc;
 };
@@ -126,6 +189,8 @@ struct message_pair_crc {
 //Structure to send data
 //Must match the receiver structure
 struct message_data {
+  uint16_t type;
+  uint16_t seq;
   time_t datetime;
   float temp;
   float hum;
@@ -133,14 +198,16 @@ struct message_data {
 };
 
 struct message_data_crc {
-  int type;
   message_data message;
   uint8_t crc;
 };
 
-RTC_DATA_ATTR int bootCount = 0;
+RTC_DATA_ATTR int bootCount;
 RTC_DATA_ATTR struct_config config;
-RTC_DATA_ATTR uint8_t error_count=0;
+RTC_DATA_ATTR volatile uint8_t error_count;
+RTC_DATA_ATTR volatile unsigned int last_state_update;
+RTC_DATA_ATTR volatile state_t state;
+RTC_DATA_ATTR volatile uint16_t seq;
 
 // Flag per verificare se l'invio è completato
 volatile bool transmissionCompleted = false;
@@ -210,6 +277,8 @@ bool read_local_config() {
 	config.masterMac[4]= satellitemac[4]; // 5
 	config.masterMac[5]= satellitemac[5]; // 6
 	config.channel = doc["channel"];
+	
+	frtosLog.notice(F("Config read:"));
 	frtosLog.notice(F("accoppiato: %T"),config.accoppiato);
 	frtosLog.notice(F("MAC 0: %X"),config.masterMac[0]);
 	frtosLog.notice(F("MAC 1: %X"),config.masterMac[1]);
@@ -217,7 +286,8 @@ bool read_local_config() {
 	frtosLog.notice(F("MAC 3: %X"),config.masterMac[3]);
 	frtosLog.notice(F("MAC 4: %X"),config.masterMac[4]);
 	frtosLog.notice(F("MAC 5: %X"),config.masterMac[5]);
-	frtosLog.notice(F("channel %d"),config.channel);
+	frtosLog.notice(F("channel: %d"),config.channel);
+	frtosLog.notice(F("END config"));
 	
 	return true;
       } else {
@@ -296,17 +366,21 @@ void add_broadcast_peer(){
 
 // Callback when data is sent
 void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
+  frtosLog.notice(F("On data sent"));
+  frtosLog.notice(F("State: %d"),state);
+  frtosLog.notice(F("destination MAC: %X:%X:%X:%X:%X:%X"),
+		  des_addr[0], des_addr[1], des_addr[2],
+		  des_addr[3], des_addr[4], des_addr[5]);
   frtosLog.notice("Last Packet Send Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail"  );
+  last_state_update=millis();
   if (status != ESP_NOW_SEND_SUCCESS){
     error_count++;
+    state=STATE_NONE;
     frtosLog.error("Error sending");
   }else{
     error_count=0;
   }
-  
-  frtosLog.notice(F("destination MAC: %X:%X:%X:%X:%X:%X"),
-		  des_addr[0], des_addr[1], des_addr[2],
-		  des_addr[3], des_addr[4], des_addr[5]);
+  frtosLog.notice(F("State: %d"),state);
 }
 
 // Callback when data is received
@@ -334,15 +408,39 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       return;
     }
 
+    if (state != STATE_NONE){
+      frtosLog.error(F("STATE mismatch: %d, %d"),state, STATE_NONE);
+      state = STATE_NONE;
+      return;
+    }
+
+    if (config.accoppiato){
+      frtosLog.error("PAIR mismatch");
+      return;
+    }
+    
+    frtosLog.notice(F("SEQ: %d"),incomingMessage.message.seq);
+    seq=incomingMessage.message.seq;
+    last_state_update=millis();
+    state = STATE_PAIR_RECEIVED;
     // Risponde al trasmettitore per confermare il pairing
     // Create a struct_message called Readings to hold sensor readings
     message_pair_crc outgoingMessage;
-    outgoingMessage.type=1;
+    outgoingMessage.message.type=1;
+    outgoingMessage.message.seq=++seq;
     outgoingMessage.message.datetime=now();
     outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
 
     add_broadcast_peer();
-    esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+    if (result == ESP_OK) {
+      state=STATE_PAIR_ACK_SENDED;
+      frtosLog.notice("Sent with success");
+    } else {
+      state=STATE_NONE;
+      frtosLog.error("Sent with error");
+      return;
+    }
 
   } else if (type == 2 ) {
     frtosLog.notice("ACK al broadcast ricevuta");
@@ -351,6 +449,24 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message, sizeof(incomingMessage.message));
     if (crc != incomingMessage.crc){
       frtosLog.error("CRC mismatch");
+      return;
+    }
+
+    if ((millis() - last_state_update) > TRANSACTION_TIMEOUT){
+      frtosLog.error(F("Transaction timeout %d"),millis() - last_state_update);
+      state=STATE_NONE;
+    }
+    
+    if (state != STATE_PAIR_ACK_SENDED){
+      frtosLog.error(F("STATE mismatch: %d, %d"),state, STATE_PAIR_ACK_SENDED);
+      state = STATE_NONE;
+      return;
+    }
+
+    if (seq+1 == incomingMessage.message.seq){
+      frtosLog.notice(F("SEQ: %d"),incomingMessage.message.seq);
+    }else{
+      frtosLog.error(F("SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
       return;
     }
     
@@ -369,7 +485,6 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
 	frtosLog.notice("Master registrato come peer fisso.");      
 	frtosLog.notice("Accoppiamento riuscito!");
 	memcpy(config.masterMac, esp_now_info->src_addr, 6); // Salva il MAC reale del master
-	config.accoppiato=true;
 	error_count=0;
 	//Rimuove il peer broadcast generico
 	esp_now_del_peer(broadcastAddress);
@@ -378,6 +493,9 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
 	frtosLog.notice("Error adding peer");
       }
     }
+
+    state = STATE_PAIR_DONE;
+    
   } else if (type == 3 ) {
     frtosLog.notice("ACK ai dati ricevuta");
     message_pair_crc incomingMessage;
@@ -387,9 +505,29 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       frtosLog.error("CRC mismatch");
       return;
     }
+
+    if ((millis() - last_state_update) > TRANSACTION_TIMEOUT){
+      frtosLog.error(F("Transaction timeout %d"),millis() - last_state_update);
+      state=STATE_NONE;
+    }
+    
+    if (state != STATE_DATA_SENDED){
+      frtosLog.error(F("STATE mismatch: %d, %d"),state, STATE_DATA_SENDED);
+      state = STATE_NONE;
+      return;
+    }
+    
+    if (seq+1 == incomingMessage.message.seq){
+      frtosLog.notice(F("SEQ: %d"),incomingMessage.message.seq);
+      // TODO dequeue the message when we will have queue
+    }else{
+      frtosLog.error(F("SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
+    }
+
     // Sblocca il ciclo principale consentendo il deep sleep
     transmissionCompleted = true;
     setTime(incomingMessage.message.datetime);
+    state = STATE_DATA_DONE;
   }
 }
 
@@ -402,6 +540,15 @@ void setup() {
   frtosLog.setSuffix(logSuffix); // Uncomment to get newline as suffix
 
   if (bootCount == 0 ){
+
+    bootCount = 0;
+    config.channel=1;
+    config.accoppiato=false;
+    error_count=0;
+    last_state_update = 0;
+    state = STATE_NONE;
+    seq=0;
+
     delay(5000);
     frtosLog.notice(F("Started"));
     frtosLog.notice(F("Version: " SOFTWARE_VERSION));
@@ -506,9 +653,6 @@ void setup() {
       LittleFS.begin();
       LittleFS.format();
     }
-
-    config.channel=1;
-    config.accoppiato=false;
     
     frtosLog.notice(F("mounting FS..."));
     if (LittleFS.begin()) {
@@ -545,6 +689,7 @@ void setup() {
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
 	frtosLog.notice("boot Master registrato come peer fisso.");      
 	frtosLog.notice("boot Accoppiamento riuscito!");
+	config.accoppiato=true;
       }else{
 	frtosLog.error("boot Error adding peer");
 	config.accoppiato=false;
@@ -579,11 +724,10 @@ void setup() {
  
 void loop() {
 
-  // Create a struct_message called Readings to hold sensor readings
-  message_data_crc outgoingMessage;
-
+  if(state == STATE_PAIR_DONE) state = STATE_NONE;
+  
   if (!config.accoppiato or error_count > 10){
-    frtosLog.notice("accoppiato %T  error count %d",config.accoppiato, error_count);
+    frtosLog.notice(F("accoppiato %T  error count %d"),config.accoppiato, error_count);
 
     config.channel++;
     if (config.channel >4) config.channel=2;
@@ -592,61 +736,72 @@ void loop() {
     delay(3000);
   }  
   
-  if (config.accoppiato){
+  if (!config.accoppiato) return;
 
-    transmissionCompleted = false;    
-    outgoingMessage.type=99;
-    // Set values to send
+  if (state != STATE_NONE and state != STATE_DATA_DONE){
+    frtosLog.notice(F("STATE not ready: %d, %d"),state, STATE_NONE);
+    return;
+  }
 
-    if(timeStatus() == timeSet){
-      outgoingMessage.message.datetime = now();
-    }else{
-      outgoingMessage.message.datetime = 0;
-    }
-    outgoingMessage.message.temp = random(250,300);
-    outgoingMessage.message.hum = random(1,100);
-    outgoingMessage.message.pres = random(990,1030);
-    outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
+  // TODO peak message from queue when we will have queue
     
-    // Send message via ESP-NOW
-    esp_err_t result = esp_now_send(config.masterMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
-    
-    if (result == ESP_OK) {
-      frtosLog.notice("Queued for send with success");
-      //error_count=0;
+  transmissionCompleted = false;    
+  // Create a struct_message called Readings to hold sensor readings
+  message_data_crc outgoingMessage;
+  outgoingMessage.message.type=99;
+  outgoingMessage.message.seq = ++seq;
+  
+  // Set values to send
+  if(timeStatus() == timeSet){
+    outgoingMessage.message.datetime = now();
+  }else{
+    outgoingMessage.message.datetime = 0;
+  }
+  outgoingMessage.message.temp = random(250,300);
+  outgoingMessage.message.hum = random(1,100);
+  outgoingMessage.message.pres = random(990,1030);
+  outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
+  
+  // Send message via ESP-NOW
+  esp_err_t result = esp_now_send(config.masterMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+  if (result == ESP_OK) {
+    frtosLog.notice("Queued for send with success");
+    //error_count=0;
+    state = STATE_DATA_SENDED;
+  }
+  else {
+    frtosLog.notice("Error queueing the data");
+    error_count++;
+    state = STATE_NONE;      
+  }
+  
+  /*
+    Now that we have setup a wake cause and if needed setup the
+    peripherals state in deep sleep, we can now start going to
+    deep sleep.
+    In the case that no wake up sources were provided but deep
+    sleep was started, it will sleep forever unless hardware
+    reset occurs.
+  */
+  frtosLog.notice("Going to sleep now");
+  Serial.flush();
+  
+  //ATTESA CRITICA: Aspetta che la callback OnDataSent venga eseguita
+  unsigned long startTimeout = millis();
+  while (!transmissionCompleted) {
+    delay(10);
+    // Timeout di sicurezza (es. 500ms) per evitare che l'ESP resti acceso all'infinito se il destinatario è spento
+    if (millis() - startTimeout > 500) {
+      frtosLog.notice("Timeout invio superato!");
+      break;
     }
-    else {
-      frtosLog.notice("Error queueing the data");
-      error_count++;
-    }
+  }
 
-    /*
-      Now that we have setup a wake cause and if needed setup the
-      peripherals state in deep sleep, we can now start going to
-      deep sleep.
-      In the case that no wake up sources were provided but deep
-      sleep was started, it will sleep forever unless hardware
-      reset occurs.
-    */
-    frtosLog.notice("Going to sleep now");
-    Serial.flush();
-
-    //ATTESA CRITICA: Aspetta che la callback OnDataSent venga eseguita
-    unsigned long startTimeout = millis();
-    while (!transmissionCompleted) {
-      delay(10);
-      // Timeout di sicurezza (es. 500ms) per evitare che l'ESP resti acceso all'infinito se il destinatario è spento
-      if (millis() - startTimeout > 500) {
-	frtosLog.notice("Timeout invio superato!");
-	break;
-      }
-    }
-
-    esp_deep_sleep_start();
-    //delay(5000);
-    frtosLog.notice("This will never be printed");    
-
-    /*
+  esp_deep_sleep_start();
+  //delay(TIME_TO_SLEEP*1000);
+  frtosLog.notice("This will never be printed");    
+  
+  /*
     frtosLog.notice(F("RESTORE accoppiato: %T"),config.accoppiato);
     frtosLog.notice(F("RESTORE MAC 0: %X"),config.masterMac[0]);
     frtosLog.notice(F("RESTORE MAC 1: %X"),config.masterMac[1]);
@@ -676,6 +831,5 @@ void loop() {
 	config.accoppiato=false;
       }
     }
-    */
-  }
+  */
 }

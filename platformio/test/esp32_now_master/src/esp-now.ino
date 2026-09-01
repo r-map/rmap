@@ -30,6 +30,7 @@ LOG_LEVEL_VERBOSE
 */
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
 #define RESET_PAIR false
+#define TRANSACTION_TIMEOUT 1000
 
 // Definisci la PMK globale (esattamente 16 byte)
 // Deve essere IDENTICA su tutti i dispositivi che comunicano tra loro.
@@ -51,6 +52,20 @@ const uint8_t mio_lmk[16] = {
 //uint8_t broadcastAddress[] = {0x70,0x04,0x1d,0x22,0x73,0xe8};
 uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
+typedef enum {
+    STATE_NONE,
+    STATE_PAIR_SENDED,
+    STATE_PAIR_ACK_RECEIVED,
+    STATE_PAIR_DONE,
+    STATE_DATA_RECEIVED,
+    STATE_DATA_ACK_SENDED,
+    STATE_DATA_DONE
+} state_t;
+  
+unsigned int last_state_update =0;
+state_t state = STATE_NONE;
+uint16_t seq=0;
+
 struct struct_config {
   bool accoppiato = false;
   uint8_t satelliteMac[6];
@@ -63,11 +78,12 @@ MutexStandard loggingmutex;
 //Structure to send pair messages
 //Must match the receiver structure
 struct message_pair {
+  uint16_t type;
+  uint16_t seq;
   time_t datetime;
 };
 
 struct message_pair_crc {
-  int type;
   message_pair message;
   uint8_t crc;
 };
@@ -75,6 +91,8 @@ struct message_pair_crc {
 //Structure to send data
 //Must match the receiver structure
 struct message_data {
+  uint16_t type;
+  uint16_t seq;
   time_t datetime;
   float temp;
   float hum;
@@ -82,7 +100,6 @@ struct message_data {
 };
 
 struct message_data_crc {
-  int type;
   message_data message;
   uint8_t crc;
 };
@@ -228,11 +245,18 @@ void add_broadcast_peer(){
 
 // Callback when data is sent
 void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
-  frtosLog.notice("Last Packet Send Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail"  );
-  if (status != ESP_NOW_SEND_SUCCESS) frtosLog.error("Error sending");
+  frtosLog.notice(F("On data sent"));
+  frtosLog.notice(F("State: %d"),state);
   frtosLog.notice(F("destination MAC: %X:%X:%X:%X:%X:%X"),
 		  des_addr[0], des_addr[1], des_addr[2],
 		  des_addr[3], des_addr[4], des_addr[5]);
+  frtosLog.notice("Last Packet Send Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail"  );
+  last_state_update=millis();
+  if (status != ESP_NOW_SEND_SUCCESS){
+    state=STATE_NONE;
+    frtosLog.error("Error sending");
+  }
+  frtosLog.notice(F("State: %d"),state);
 }
 
 // Callback when data is received
@@ -241,14 +265,13 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
   frtosLog.notice(F("Pacchetto ricevuto da MAC: : %X:%X:%X:%X:%X:%X"),
 		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
 		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
-
   frtosLog.notice(F("Bytes received: %d"),len);
-  
-  // Controlla se è una richiesta di Pairing
+
+  // Controlla se è una risposta al Pairing
   uint16_t type;
   memcpy(&type, incomingData, sizeof(type));
   if (type == 1 ) {
-    frtosLog.notice("risposta al broadcast ricevuta");
+    frtosLog.notice("ack al broadcast ricevuta");
     message_pair_crc incomingMessage;
     memcpy(&incomingMessage, incomingData, len);
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message,sizeof(incomingMessage.message));
@@ -257,6 +280,32 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       frtosLog.error("CRC mismatch");
       return;
     }
+    
+    if (seq+1 == incomingMessage.message.seq){
+      frtosLog.notice(F("SEQ: %d"),incomingMessage.message.seq);
+    }else{
+      frtosLog.error(F("SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
+      return;
+    }
+
+    if (state != STATE_PAIR_SENDED){
+      state = STATE_NONE;
+      frtosLog.error(F("STATE mismatch: %d, %d"),state, STATE_PAIR_SENDED);
+      return;
+    }
+
+    if (config.accoppiato){
+      frtosLog.error("PAIR mismatch");
+      return;
+    }
+
+    if ((millis() - last_state_update) > TRANSACTION_TIMEOUT){
+      frtosLog.error(F("Transaction timeout %d"),millis() - last_state_update);
+      state=STATE_NONE;
+    }
+    
+    state=STATE_PAIR_ACK_RECEIVED;
+
     if (esp_now_is_peer_exist(esp_now_info->src_addr)){
       frtosLog.notice("peer già registrato");
     }else{    
@@ -276,10 +325,19 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
 	// Risponde al trasmettitore per confermare il pairing
 	// Create a message_pair called Readings to hold sensor readings
 	message_pair_crc outgoingMessage;
-	outgoingMessage.type=2;
+	outgoingMessage.message.type=2;
+	outgoingMessage.message.seq=incomingMessage.message.seq+1;
 	outgoingMessage.message.datetime=now();
 	outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
-	esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+	esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+	if (result == ESP_OK) {
+	  state=STATE_PAIR_DONE;
+	  frtosLog.notice("Sent with success");
+	} else {
+	  state=STATE_NONE;
+	  frtosLog.error("Sent with error");
+	  return;
+	}
 
 	config.accoppiato=true;
 	esp_now_del_peer(broadcastAddress);
@@ -298,6 +356,19 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       frtosLog.error("CRC mismatch");
       return;
     }
+
+    if (!config.accoppiato){
+      frtosLog.error("PAIR mismatch");
+      return;
+    }
+
+    if (state != STATE_NONE){
+      frtosLog.error(F("STATE mismatch: %d, %d"),state, STATE_NONE);
+      return;
+    }
+
+    state=STATE_DATA_RECEIVED;
+
     char dt[DATE_TIME_STRING_LENGTH];
     snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
 
@@ -307,11 +378,19 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
 		    ,incomingMessage.message.pres);
 
     message_pair_crc outgoingMessage;
-    outgoingMessage.type=3;                     // data ACK
+    outgoingMessage.message.type=3;                     // data ACK
+    outgoingMessage.message.seq=incomingMessage.message.seq+1;
     outgoingMessage.message.datetime=now();
     outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
     frtosLog.notice(F("computed CRC: %d"),outgoingMessage.crc);
-    esp_now_send(config.satelliteMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+    esp_err_t result = esp_now_send(config.satelliteMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+    if (result == ESP_OK) {
+      state=STATE_DATA_DONE;
+      frtosLog.notice("Sent with success");
+    } else {
+      state=STATE_NONE;
+      frtosLog.error("Sent with error");
+    }
   }
 }
 
@@ -425,20 +504,26 @@ void setup() {
 }
  
 void loop() {
+
+  delay(1000);
+  if(state == STATE_PAIR_DONE) state = STATE_NONE;
+
   if (!config.accoppiato){
     message_pair_crc outgoingMessage;
-    outgoingMessage.type=0;
+    outgoingMessage.message.type=0;
+    outgoingMessage.message.seq=++seq;
     outgoingMessage.message.datetime=now();
     outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
-    frtosLog.notice(F("computed CRC: %d"),outgoingMessage.crc);
+    frtosLog.notice(F("State: %d"),state);
     frtosLog.notice("Send broadcast message");
+    frtosLog.notice(F("computed CRC: %d"),outgoingMessage.crc);
     esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
     if (result == ESP_OK) {
+      state=STATE_PAIR_SENDED;
       frtosLog.notice("Sent with success");
-    }
-    else {
+    } else {
+      state=STATE_NONE;
       frtosLog.error("Error sending the data");
     }    
   }
-  delay(1000);
 }
