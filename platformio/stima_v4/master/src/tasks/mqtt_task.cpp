@@ -441,41 +441,43 @@ void MqttTask::Run()
       for(uint8_t byteIdx = 0; byteIdx < MQTT_PUB_MAX_BYTE_STATE; byteIdx++) {
         byteState[byteIdx] = 0;
       }
-      uint8_t modem_err_raw = 0;
-      if(param.system_status->modem.connection_attempted > MQTT_STATUS_MODEM_MIN_CONN) {
-        if(param.system_status->modem.perc_modem_connection_valid < 100) {
-          modem_err_raw = (uint8_t)(100 - param.system_status->modem.perc_modem_connection_valid);
-        }
-      }
-      param.system_status->connection.mqtt_modem_err_latched = stimaHysteresisPct(
-        modem_err_raw, param.system_status->connection.mqtt_modem_err_latched,
-        MQTT_STATUS_MODEM_SET_PCT, MQTT_STATUS_MODEM_CLR_PCT, MQTT_STATUS_PCT_STEP);
-      byteState[indexPosition++] = param.system_status->connection.mqtt_modem_err_latched;
-      byteState[indexPosition++] = param.boot_request->tot_reset;
-      byteState[indexPosition++] = param.boot_request->wdt_reset;
-      uint8_t mqtt_err_raw = 0;
-      if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT) {
-        if(param.system_status->connection.mqtt_data_exit_error >
-           param.system_status->connection.mqtt_exit_error_seen) {
-          mqtt_err_raw = 100;
-          param.system_status->connection.mqtt_ok_streak = 0;
-        } else {
-          if(param.system_status->connection.mqtt_ok_streak < 0xFF) {
-            param.system_status->connection.mqtt_ok_streak++;
+      {
+        uint8_t modem_err_raw = 0;
+        if(param.system_status->modem.connection_attempted > MQTT_STATUS_MODEM_MIN_CONN) {
+          if(param.system_status->modem.perc_modem_connection_valid < 100) {
+            modem_err_raw = (uint8_t)(100 - param.system_status->modem.perc_modem_connection_valid);
           }
-          if(param.system_status->connection.mqtt_ok_streak >= MQTT_STATUS_FLAG_CONFIRM) {
-            mqtt_err_raw = 0;
+        }
+        param.system_status->connection.mqtt_modem_err_latched = stimaHysteresisPct(
+          modem_err_raw, param.system_status->connection.mqtt_modem_err_latched,
+          MQTT_STATUS_MODEM_SET_PCT, MQTT_STATUS_MODEM_CLR_PCT, MQTT_STATUS_PCT_STEP);
+        byteState[indexPosition++] = param.system_status->connection.mqtt_modem_err_latched;
+        byteState[indexPosition++] = param.boot_request->tot_reset;
+        byteState[indexPosition++] = param.boot_request->wdt_reset;
+        uint8_t mqtt_err_raw = 0;
+        if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT) {
+          if(param.system_status->connection.mqtt_data_exit_error >
+             param.system_status->connection.mqtt_exit_error_seen) {
+            mqtt_err_raw = 100;
+            param.system_status->connection.mqtt_ok_streak = 0;
           } else {
-            mqtt_err_raw = param.system_status->connection.mqtt_mqtt_err_latched;
+            if(param.system_status->connection.mqtt_ok_streak < 0xFF) {
+              param.system_status->connection.mqtt_ok_streak++;
+            }
+            if(param.system_status->connection.mqtt_ok_streak >= MQTT_STATUS_FLAG_CONFIRM) {
+              mqtt_err_raw = 0;
+            } else {
+              mqtt_err_raw = param.system_status->connection.mqtt_mqtt_err_latched;
+            }
           }
+          param.system_status->connection.mqtt_exit_error_seen =
+            param.system_status->connection.mqtt_data_exit_error;
         }
-        param.system_status->connection.mqtt_exit_error_seen =
-          param.system_status->connection.mqtt_data_exit_error;
+        param.system_status->connection.mqtt_mqtt_err_latched = stimaHysteresisPct(
+          mqtt_err_raw, param.system_status->connection.mqtt_mqtt_err_latched,
+          MQTT_STATUS_CAN_SET_PCT, MQTT_STATUS_CAN_CLR_PCT, MQTT_STATUS_PCT_STEP);
+        byteState[indexPosition] = param.system_status->connection.mqtt_mqtt_err_latched;
       }
-      param.system_status->connection.mqtt_mqtt_err_latched = stimaHysteresisPct(
-        mqtt_err_raw, param.system_status->connection.mqtt_mqtt_err_latched,
-        MQTT_STATUS_CAN_SET_PCT, MQTT_STATUS_CAN_CLR_PCT, MQTT_STATUS_PCT_STEP);
-      byteState[indexPosition] = param.system_status->connection.mqtt_mqtt_err_latched;
 
       // publish connection message (Conn + Version and Revision)
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
