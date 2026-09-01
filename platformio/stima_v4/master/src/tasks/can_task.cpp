@@ -2142,7 +2142,10 @@ void CanTask::Run() {
                                         if(retTHData->is_redundant_error) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retTHData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retTHData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retTHData->perc_i2c_error;
@@ -2217,7 +2220,10 @@ void CanTask::Run() {
                                         if(retRainData->is_accelerometer_error) bit8Flag|=0x20;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRainData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRainData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2289,7 +2295,10 @@ void CanTask::Run() {
                                         if(retWindData->is_windsonic_crc_error) bit8Flag|=0x10;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retWindData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retWindData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retWindData->perc_rs232_error;
@@ -2358,7 +2367,10 @@ void CanTask::Run() {
                                         if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRadiationData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRadiationData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2427,7 +2439,10 @@ void CanTask::Run() {
                                         if(retLeafData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retLeafData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retLeafData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2496,7 +2511,10 @@ void CanTask::Run() {
                                         if(retLevelData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retLevelData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retLevelData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2575,7 +2593,10 @@ void CanTask::Run() {
                                         if((retPwrData->MPP.battery_charge.val.value == 0) || (retPwrData->MPP.battery_charge.val.value > rmap_tableb_B25192_1_0_MAX)) {
                                             param.system_status->flags.power_critical = false;
                                         }
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retPwrData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retPwrData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2646,7 +2667,10 @@ void CanTask::Run() {
                                         if(retVwcData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retVwcData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retVwcData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;

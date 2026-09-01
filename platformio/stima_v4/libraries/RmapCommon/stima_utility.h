@@ -90,4 +90,32 @@ bool checkStimaFirmwareType(char *file_name, uint8_t *type, uint8_t *version, ui
 */
 void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_t revision);
 
+/*!
+\brief Sticky percent for MQTT status: step up by `step`, do not step down until raw < clear_below.
+       While latched==0, start publishing only if raw > set_enter.
+*/
+uint8_t stimaHysteresisPct(uint8_t raw, uint8_t latched, uint8_t set_enter, uint8_t clear_below, uint8_t step);
+
+/*!
+\brief Like hysteresis percent but do not climb 25/50/75/100: publish 0 or `alarm_val` only.
+*/
+uint8_t stimaHysteresisPctSoft(uint8_t raw, uint8_t latched, uint8_t set_enter, uint8_t clear_below, uint8_t alarm_val);
+
+/*!
+\brief Debounce a boolean: N consecutive mismatches vs latched value to flip.
+*/
+void stimaDebounceBool(bool raw, uint8_t *latched, uint8_t *cnt, uint8_t n_confirm);
+
+/*!
+\brief Debounce each of 8 bits independently (N consecutive GetLast to set or clear).
+*/
+void stimaDebounceBit8(uint8_t raw, uint8_t *latched, uint8_t cnt[8], uint8_t n_confirm);
+
+/*!
+\brief RSSI alarm: enter if >= need samples in a window of win have rssi < enter_lt;
+       exit if latched and >= need samples have rssi > exit_gt. No change until window is full.
+*/
+void stimaHysteresisRssi(uint8_t rssi, uint8_t *hist, uint8_t *idx, uint8_t *nfilled,
+  uint8_t *alarm, uint8_t enter_lt, uint8_t exit_gt, uint8_t win, uint8_t need);
+
 #endif

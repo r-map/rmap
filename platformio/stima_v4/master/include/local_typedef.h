@@ -96,6 +96,23 @@ typedef struct
 /// @brief Enable Monitor MQTT Error exit server response
 #define NETWORK_FLAG_MONITOR_MQTT   0x01
 
+/// MQTT status vs ARPA mail: still send all fields, hysteresis so 1% / 1-sample flaps do not change payload
+#define MQTT_STATUS_PCT_STEP        (25u)   ///< published % steps 0,25,50,75,100
+#define MQTT_STATUS_MODEM_SET_PCT   (25u)   ///< start reporting modem error at this raw %
+#define MQTT_STATUS_MODEM_CLR_PCT   (15u)   ///< clear modem error latch only below this
+#define MQTT_STATUS_CAN_SET_PCT     (40u)   ///< station CAN bus: start alarm (max among online slaves)
+#define MQTT_STATUS_CAN_CLR_PCT     (5u)    ///< clear station CAN alarm only below this
+#define MQTT_STATUS_LINK_SET_PCT    (30u)   ///< I2C/RS232 start alarm
+#define MQTT_STATUS_LINK_CLR_PCT    (5u)    ///< clear I2C/RS232 only below this
+#define MQTT_STATUS_PCT_ALARM       (25u)   ///< published CAN/I2C % while latched (no 50/75/100 climb)
+#define MQTT_STATUS_OFFLINE_CONFIRM (3u)    ///< MQTT status publishes to set/clear slave offline bit
+#define MQTT_STATUS_FLAG_CONFIRM    (5u)    ///< slave HW bits: N consecutive GetLast to set or clear
+#define MQTT_STATUS_MODEM_MIN_CONN  (5u)    ///< ignore modem error % until this many connects after reboot
+#define MQTT_STATUS_RSSI_ENTER      (9u)    ///< RSSI alarm enter if CSQ < this
+#define MQTT_STATUS_RSSI_EXIT       (12u)   ///< RSSI alarm exit if CSQ > this
+#define MQTT_STATUS_RSSI_WIN        (5u)    ///< sliding window of MQTT status publishes
+#define MQTT_STATUS_RSSI_NEED       (3u)    ///< samples in window that must sit on enter/exit side
+
 /// @brief configuration_t General StimaV4 system Configuration
 typedef struct
 {
@@ -241,6 +258,15 @@ typedef struct
 
       uint32_t mqtt_data_published;          ///< Amount of MQTT Data published
       uint8_t  mqtt_data_exit_error;         ///< Index of MQTT Data procedure published with exit error code
+      uint8_t  mqtt_modem_err_latched;       ///< Last published modem error % (hysteresis)
+      uint8_t  mqtt_mqtt_err_latched;        ///< Last published MQTT error % (hysteresis)
+      uint8_t  mqtt_exit_error_seen;         ///< Snap of mqtt_data_exit_error after last status publish
+      uint8_t  mqtt_ok_streak;               ///< Consecutive MQTT sessions without new exit error
+      uint8_t  mqtt_rssi_hist[MQTT_STATUS_RSSI_WIN]; ///< CSQ samples for RSSI hysteresis
+      uint8_t  mqtt_rssi_hist_idx;
+      uint8_t  mqtt_rssi_hist_n;
+      uint8_t  mqtt_rssi_alarm;              ///< 0/1 published RSSI-low bit
+      uint8_t  mqtt_can_bus_latched;         ///< Station CAN error % (max of online slaves, soft)
    } connection;
 
    ///< Command Flag to Task NET connection
@@ -300,6 +326,11 @@ typedef struct
       // BitField Error or State
       uint8_t bit8StateFlag;        ///< Bit State Remote module Error
       uint8_t byteStateFlag[3];     ///< Byte State Remote module Error
+      uint8_t can_err_latched;      ///< unused (CAN is station-level mqtt_can_bus_latched)
+      uint8_t link_err_latched;     ///< Last published I2C/RS232 error % (soft)
+      uint8_t bit8_deb_cnt[8];      ///< Per-bit consecutive GetLast vs latched bit8StateFlag
+      uint8_t is_offline_mqtt;      ///< 0/1 published offline bit after confirm
+      uint8_t is_offline_cnt;       ///< Consecutive MQTT status vs latched offline
    } data_slave[BOARDS_COUNT_MAX];
 
    ///< Hw/Sw Flags

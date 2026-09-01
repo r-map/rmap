@@ -425,3 +425,116 @@ void setStimaFirmwareName(char *file_name, uint8_t type, uint8_t version, uint8_
   sprintf(suffix, "-%d.%d.app.hex", version, revision);
   strcat(file_name, suffix);
 }
+
+uint8_t stimaHysteresisPct(uint8_t raw, uint8_t latched, uint8_t set_enter, uint8_t clear_below, uint8_t step)
+{
+  if (step == 0) {
+    step = 25;
+  }
+  if (latched == 0) {
+    if (raw <= set_enter) {
+      return 0;
+    }
+    uint8_t q = (uint8_t)((raw / step) * step);
+    if (q < step) {
+      q = step;
+    }
+    if (q > 100) {
+      q = 100;
+    }
+    return q;
+  }
+  if (raw < clear_below) {
+    return 0;
+  }
+  uint8_t q = (uint8_t)((raw / step) * step);
+  if (q > 100) {
+    q = 100;
+  }
+  if (q > latched) {
+    return q;
+  }
+  return latched;
+}
+
+uint8_t stimaHysteresisPctSoft(uint8_t raw, uint8_t latched, uint8_t set_enter, uint8_t clear_below, uint8_t alarm_val)
+{
+  if (alarm_val == 0) {
+    alarm_val = 25;
+  }
+  if (latched == 0) {
+    if (raw <= set_enter) {
+      return 0;
+    }
+    return alarm_val;
+  }
+  if (raw < clear_below) {
+    return 0;
+  }
+  return latched;
+}
+
+void stimaDebounceBool(bool raw, uint8_t *latched, uint8_t *cnt, uint8_t n_confirm)
+{
+  if ((latched == NULL) || (cnt == NULL) || (n_confirm == 0)) {
+    return;
+  }
+  const uint8_t want = raw ? 1u : 0u;
+  if (want == *latched) {
+    *cnt = 0;
+    return;
+  }
+  if (++(*cnt) >= n_confirm) {
+    *latched = want;
+    *cnt = 0;
+  }
+}
+
+void stimaDebounceBit8(uint8_t raw, uint8_t *latched, uint8_t cnt[8], uint8_t n_confirm)
+{
+  if ((latched == NULL) || (cnt == NULL)) {
+    return;
+  }
+  for (uint8_t b = 0; b < 8; b++) {
+    uint8_t bitlat = (uint8_t)((*latched >> b) & 1u);
+    stimaDebounceBool(((raw >> b) & 1u) != 0, &bitlat, &cnt[b], n_confirm);
+    if (bitlat) {
+      *latched = (uint8_t)(*latched | (1u << b));
+    } else {
+      *latched = (uint8_t)(*latched & (uint8_t)~(1u << b));
+    }
+  }
+}
+
+void stimaHysteresisRssi(uint8_t rssi, uint8_t *hist, uint8_t *idx, uint8_t *nfilled,
+  uint8_t *alarm, uint8_t enter_lt, uint8_t exit_gt, uint8_t win, uint8_t need)
+{
+  if ((hist == NULL) || (idx == NULL) || (nfilled == NULL) || (alarm == NULL) || (win == 0) || (need == 0)) {
+    return;
+  }
+  hist[*idx] = rssi;
+  *idx = (uint8_t)((*idx + 1) % win);
+  if (*nfilled < win) {
+    (*nfilled)++;
+  }
+  if (*nfilled < win) {
+    return;
+  }
+  uint8_t nlow = 0;
+  uint8_t nhigh = 0;
+  for (uint8_t i = 0; i < win; i++) {
+    if (hist[i] < enter_lt) {
+      nlow++;
+    }
+    if (hist[i] > exit_gt) {
+      nhigh++;
+    }
+  }
+  if (*alarm == 0) {
+    if (nlow >= need) {
+      *alarm = 1;
+    }
+  } else if (nhigh >= need) {
+    *alarm = 0;
+  }
+}
