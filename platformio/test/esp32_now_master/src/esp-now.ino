@@ -32,22 +32,6 @@ LOG_LEVEL_VERBOSE
 #define RESET_PAIR false
 #define TRANSACTION_TIMEOUT 1000
 
-// Definisci la PMK globale (esattamente 16 byte)
-// Deve essere IDENTICA su tutti i dispositivi che comunicano tra loro.
-const uint8_t mia_pmk[16] = {
-    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x08,
-    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11
-};
-
-// Definisci la chiave LMK (esattamente 16 byte)
-// Puoi usare valori esadecimali a tua scelta. Entrambi i dispositivi devono avere la stessa chiave.
-const uint8_t mio_lmk[16] = {
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
-};
-
-const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
-
 typedef enum {
     STATE_NONE,
     STATE_PAIR_SENDED,
@@ -57,19 +41,12 @@ typedef enum {
     STATE_DATA_ACK_SENDED,
     STATE_DATA_DONE
 } state_t;
-  
-volatile unsigned int last_state_update =0;
-volatile state_t state = STATE_NONE;
-volatile uint16_t seq=0;
 
 struct struct_config {
   bool accoppiato = false;
   uint8_t satelliteMac[6];
   uint8_t channel = 3;
 };
-struct_config config;
-
-MutexStandard loggingmutex;
 
 //Structure to send pair messages
 //Must match the receiver structure
@@ -100,11 +77,38 @@ struct message_data_crc {
   uint8_t crc;
 };
 
+/*
+// Definisci la PMK globale (esattamente 16 byte)
+// Deve essere IDENTICA su tutti i dispositivi che comunicano tra loro.
+const uint8_t mia_pmk[16] = {
+    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x08,
+    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11
+};
+
+// Definisci la chiave LMK (esattamente 16 byte)
+// Puoi usare valori esadecimali a tua scelta. Entrambi i dispositivi devono avere la stessa chiave.
+const uint8_t mio_lmk[16] = {
+    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
+};
+*/
+
+struct_config config;
+MutexStandard loggingmutex;
+const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+volatile unsigned int last_state_update =0;
+volatile state_t state = STATE_NONE;
+volatile uint16_t seq=0;
+
+
 // prefix for logging system
 void logPrefix(Print* _logOutput) {
 #define DATE_TIME_STRING_LENGTH                       (25)
   char dt[DATE_TIME_STRING_LENGTH];
-  snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
+  snprintf(dt
+	   , DATE_TIME_STRING_LENGTH
+	   , "%04u-%02u-%02uT%02u:%02u:%02u"
+	   , year(), month(), day(), hour(), minute(), second());
   _logOutput->print("#");
   _logOutput->print(dt);
   _logOutput->print(" ");
@@ -315,7 +319,7 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       peerInfo.channel = 0;
       //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
       peerInfo.encrypt = false;         // enable with pioarduino only! tasmota configurated with no encryption
-      memcpy(peerInfo.lmk, mio_lmk, 16);
+      //memcpy(peerInfo.lmk, mio_lmk, 16);
       
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
 	frtosLog.notice("Satellite registered");      
@@ -396,6 +400,9 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
 
 void setup() {
 
+  // slow down
+  //setCpuFrequencyMhz(80);
+    
   if (RESET_PAIR){
     frtosLog.warning(F("Reset pair information"));
     LittleFS.begin();
@@ -425,16 +432,18 @@ void setup() {
     LittleFS.begin();    
     LittleFS.format();
   }
+
+  // Set device as a Wi-Fi Station
+  WiFi.mode(WIFI_STA);
+  //WiFi.STA.begin();
   
   // Change ESP32 Mac Address
   //  esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, &newMACAddress[0]);
   //if (err == ESP_OK) {
   //  Serial.println("Success changing Mac Address");
   //}
+  readMacAddress();
   
-  // Set device as a Wi-Fi Station
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
   frtosLog.notice("channel: %d",config.channel);
   esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
 
@@ -446,10 +455,7 @@ void setup() {
   } else {
     frtosLog.error("Failed to set protocol. Error code: %d", err);
   }
-  
-  //WiFi.STA.begin();
-  readMacAddress();
-  
+    
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
     frtosLog.notice("Error initializing ESP-NOW");
@@ -459,12 +465,14 @@ void setup() {
   // Imposta la PMK globale
   // Se questa funzione fallisce o non viene chiamata, ESP-NOW userà una PMK di default della mesh,
   // compromettendo la sicurezza dell'intero ecosistema.
+  /*
   if (esp_now_set_pmk(mia_pmk) == ESP_OK) {
     frtosLog.notice("PMK impostata con successo!");
   } else {
     frtosLog.error("Errore nell'impostazione della PMK");
     return;
   }
+  */
   
   // Once ESPNow is successfully Init, we will register for Send CB to
   // get the status of Trasnmitted packet
@@ -483,7 +491,7 @@ void setup() {
     peerInfo.channel = 0;
     //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
     peerInfo.encrypt = false;         // enable with pioarduino only! tasmota configurated with no encryption
-    memcpy(peerInfo.lmk, mio_lmk, 16);
+    //memcpy(peerInfo.lmk, mio_lmk, 16);
     
     if (esp_now_is_peer_exist(peerInfo.peer_addr)){
       frtosLog.notice("boot peer broadcast già registrato");
@@ -498,9 +506,7 @@ void setup() {
     }
   }else{
     add_broadcast_peer();
-  }
-
-  
+  }  
 }
  
 void loop() {

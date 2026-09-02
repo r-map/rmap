@@ -92,9 +92,6 @@ quindi logiche di funzionamento:
 * prevedere che il master dettato dal Wifi potrebbe cambiare canale
   quando vuole e il satellite deve in autonomia provare a rifare la
   sintonia
-
-verificare anche se l'orologio di arduino avanza in deepsleep
-
 */
 
 #include <esp_now.h>
@@ -109,6 +106,7 @@ verificare anche se l'orologio di arduino avanza in deepsleep
 #define SOFTWARE_VERSION "1.0"
 #define RESET_PAIR false
 #define TRANSACTION_TIMEOUT 1000
+#define TIME_TO_SLEEP  5          /* Time ESP32 will go to sleep (in seconds) */
 
 /*!
 \def DISABLE_LOGGING
@@ -132,23 +130,6 @@ LOG_LEVEL_VERBOSE
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
 
 #define S_TO_uS_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  5          /* Time ESP32 will go to sleep (in seconds) */
-
-// Definisci la PMK globale (esattamente 16 byte)
-// Deve essere IDENTICA su tutti i dispositivi che comunicano tra loro.
-const uint8_t mia_pmk[16] = {
-    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x08,
-    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11
-};
-
-// Definisci la chiave LMK (esattamente 16 byte)
-// Puoi usare valori esadecimali a tua scelta. Entrambi i dispositivi devono avere la stessa chiave.
-const uint8_t mio_lmk[16] = {
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
-};
-
-const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 typedef enum {
     STATE_NONE,
@@ -165,8 +146,6 @@ struct struct_config {
   uint8_t masterMac[6];
   uint8_t channel;
 };
-
-MutexStandard loggingmutex;
 
 //Structure to send data
 //Must match the receiver structure
@@ -204,6 +183,25 @@ RTC_DATA_ATTR volatile unsigned int last_state_update;
 RTC_DATA_ATTR volatile state_t state;
 RTC_DATA_ATTR volatile uint16_t seq;
 
+/*
+// Definisci la PMK globale (esattamente 16 byte)
+// Deve essere IDENTICA su tutti i dispositivi che comunicano tra loro.
+const uint8_t mia_pmk[16] = {
+    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x08,
+    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11
+};
+
+// Definisci la chiave LMK (esattamente 16 byte)
+// Puoi usare valori esadecimali a tua scelta. Entrambi i dispositivi devono avere la stessa chiave.
+const uint8_t mio_lmk[16] = {
+    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
+};
+*/
+
+const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+MutexStandard loggingmutex;
+
 // Flag per verificare se l'invio è completato
 volatile bool transmissionCompleted = false;
 
@@ -223,10 +221,8 @@ void logSuffix(Print* _logOutput) {
   _logOutput->flush();  // we use this to flush every log message
 }
 
-/*
-Method to print the reason by which ESP32
-has been awaken from sleep
-*/
+
+// Method to print the reason by which ESP32 has been awaken from sleep
 void print_wakeup_reason() {
   esp_sleep_wakeup_cause_t wakeup_reason;
 
@@ -474,7 +470,7 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       peerInfo.channel = 0;
       //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
       peerInfo.encrypt = false;        // enable with pioarduino only! tasmota configurated with no encryption
-      memcpy(peerInfo.lmk, mio_lmk, 16);
+      //memcpy(peerInfo.lmk, mio_lmk, 16);
       
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
 	frtosLog.notice("Master registrato come peer fisso.");      
@@ -526,6 +522,12 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
   }
 }
 
+
+extern "C" {
+  extern uint8_t _rtc_data_start;
+  extern uint8_t _rtc_data_end;
+}
+
 void setup() {
 
   // Init Serial Monitor
@@ -548,6 +550,9 @@ void setup() {
     frtosLog.notice(F("Started"));
     frtosLog.notice(F("Version: " SOFTWARE_VERSION));
     frtosLog.notice(F("Total PSRAM: %d"), ESP.getPsramSize());
+    uintptr_t start = (uintptr_t)&_rtc_data_start;
+    uintptr_t end   = (uintptr_t)&_rtc_data_end;
+    frtosLog.notice(F("RTC used data: %d bytes on 8192 total"), (unsigned)(end - start));
   }
   
   //Print the wakeup reason for ESP32
@@ -582,6 +587,7 @@ void setup() {
     return;
   }
 
+  /*
   // Imposta la PMK globale
   // Se questa funzione fallisce o non viene chiamata, ESP-NOW userà una PMK di default della mesh,
   // compromettendo la sicurezza dell'intero ecosistema.
@@ -591,6 +597,7 @@ void setup() {
     frtosLog.notice("Errore nell'impostazione della PMK");
     return;
   }
+  */
   
   // Once ESPNow is successfully Init, we will register for Send CB to
   // get the status of Trasnmitted packet
@@ -676,7 +683,7 @@ void setup() {
     peerInfo.channel = 0;
     //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
     peerInfo.encrypt = false;         // enable with pioarduino only! tasmota configurated with no encryption
-    memcpy(peerInfo.lmk, mio_lmk, 16);
+    //memcpy(peerInfo.lmk, mio_lmk, 16);
     
     if (esp_now_is_peer_exist(peerInfo.peer_addr)){
       frtosLog.notice("boot peer broadcast già registrato");
