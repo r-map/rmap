@@ -1,7 +1,6 @@
 // TODO
-// gestire gli stati e le queue
 // ottenere RSSI https://github.com/TenoTrash/ESP32_ESPNOW_RSSI/blob/main/Modulo_Receptor_OLED_SPI_RSSI.ino
-//pensare alla gestione dell'autodiagnostica tra cui il monitoraggio delle batterie https://github.com/tomgrant/esp32-battery-monitoring
+// pensare alla gestione dell'autodiagnostica tra cui il monitoraggio delle batterie https://github.com/tomgrant/esp32-battery-monitoring
 /*
 Con 2×AA e una misura una volta all'ora, puoi fare una soluzione molto
 parsimoniosa.
@@ -149,11 +148,7 @@ const uint8_t mio_lmk[16] = {
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
 };
 
-// REPLACE WITH THE MAC Address of your receiver 
-//uint8_t broadcastAddress[] = {0x18,0x8b,0x0e,0x04,0x2c,0x0c};
-//uint8_t broadcastAddress[] = {0x70,0x04,0x1d,0x22,0x73,0xe8};
-uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
-
+const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 typedef enum {
     STATE_NONE,
@@ -366,7 +361,7 @@ void add_broadcast_peer(){
 
 // Callback when data is sent
 void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
-  frtosLog.notice(F("On data sent"));
+  frtosLog.notice(F("OnDataSent"));
   frtosLog.notice(F("State: %d"),state);
   frtosLog.notice(F("destination MAC: %X:%X:%X:%X:%X:%X"),
 		  des_addr[0], des_addr[1], des_addr[2],
@@ -605,7 +600,7 @@ void setup() {
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
   
-/*
+/*        Soluzione non utilizzata
  // CONFIGURAZIONE LIGHT SLEEP AUTOMATICO (Power Saving)
   
   // Forza il risparmio energetico del modem Wi-Fi in modalità MIN_MODEM
@@ -623,7 +618,7 @@ void setup() {
   esp_wifi_connectionless_module_set_wake_interval(wake_interval);
 
   frtosLog.notice("Ricevitore ESP-NOW pronto in modalità Light Sleep Automatico.");
-
+  
   //Strategia del Trasmettitore: Il trasmettitore deve inviare lo
   //stesso pacchetto a raffica continua (in un ciclo for o while) per
   //una durata leggermente superiore al wake_interval del ricevitore
@@ -633,7 +628,7 @@ void setup() {
   */
 
 
-  /*
+  /*      Soluzione non utilizzata
   //Se il server è sempre acceso e alimentato a rete,
   //l'approccio migliore per risparmiare il massimo dell'energia sul
   //ricevitore a batteria è la tecnica del Polling in Deep Sleep. Dato
@@ -730,7 +725,7 @@ void loop() {
     frtosLog.notice(F("accoppiato %T  error count %d"),config.accoppiato, error_count);
 
     config.channel++;
-    if (config.channel >4) config.channel=2;
+    if (config.channel >13) config.channel=1;
     frtosLog.notice("channel: %d",config.channel);
     esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
     delay(3000);
@@ -783,7 +778,7 @@ void loop() {
     sleep was started, it will sleep forever unless hardware
     reset occurs.
   */
-  frtosLog.notice("Going to sleep now");
+  frtosLog.notice("I am going to sleep now");
   Serial.flush();
   
   //ATTESA CRITICA: Aspetta che la callback OnDataSent venga eseguita
@@ -792,44 +787,12 @@ void loop() {
     delay(10);
     // Timeout di sicurezza (es. 500ms) per evitare che l'ESP resti acceso all'infinito se il destinatario è spento
     if (millis() - startTimeout > 500) {
-      frtosLog.notice("Timeout invio superato!");
+      frtosLog.notice("Send timeout exceded!");
       break;
     }
   }
 
   esp_deep_sleep_start();
-  //delay(TIME_TO_SLEEP*1000);
+  //delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
   frtosLog.notice("This will never be printed");    
-  
-  /*
-    frtosLog.notice(F("RESTORE accoppiato: %T"),config.accoppiato);
-    frtosLog.notice(F("RESTORE MAC 0: %X"),config.masterMac[0]);
-    frtosLog.notice(F("RESTORE MAC 1: %X"),config.masterMac[1]);
-    frtosLog.notice(F("RESTORE MAC 2: %X"),config.masterMac[2]);
-    frtosLog.notice(F("RESTORE MAC 3: %X"),config.masterMac[3]);
-    frtosLog.notice(F("RESTORE MAC 4: %X"),config.masterMac[4]);
-    frtosLog.notice(F("RESTORE MAC 5: %X"),config.masterMac[5]);
-    frtosLog.notice(F("RESTORE channel %d"),config.channel);
-    
-    esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
-    // Aggiunge il master come peer specifico
-    esp_now_peer_info_t peerInfo = {};
-    memcpy(peerInfo.peer_addr, config.masterMac, 6);
-    peerInfo.channel = 0;
-    //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
-    peerInfo.encrypt = false;         // enable with pioarduino only! tasmota configurated with no encryption
-    memcpy(peerInfo.lmk, mio_lmk, 16);
-    
-    if (esp_now_is_peer_exist(peerInfo.peer_addr)){
-      frtosLog.notice("peer broadcast già registrato");
-    }else{    
-      if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-	frtosLog.notice("boot Master registrato come peer fisso.");      
-	frtosLog.notice("boot Accoppiamento riuscito!");
-      }else{
-	frtosLog.error("boot Error adding peer");
-	config.accoppiato=false;
-      }
-    }
-  */
 }

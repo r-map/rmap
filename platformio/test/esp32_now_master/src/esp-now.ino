@@ -46,11 +46,7 @@ const uint8_t mio_lmk[16] = {
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
 };
 
-
-// REPLACE WITH THE MAC Address of your receiver 
-//uint8_t broadcastAddress[] = {0x18,0x8b,0x0e,0x04,0x2c,0x0c};
-//uint8_t broadcastAddress[] = {0x70,0x04,0x1d,0x22,0x73,0xe8};
-uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 typedef enum {
     STATE_NONE,
@@ -62,9 +58,9 @@ typedef enum {
     STATE_DATA_DONE
 } state_t;
   
-unsigned int last_state_update =0;
-state_t state = STATE_NONE;
-uint16_t seq=0;
+volatile unsigned int last_state_update =0;
+volatile state_t state = STATE_NONE;
+volatile uint16_t seq=0;
 
 struct struct_config {
   bool accoppiato = false;
@@ -150,6 +146,8 @@ bool read_local_config() {
 	config.satelliteMac[4]= satellitemac[4]; // 5
 	config.satelliteMac[5]= satellitemac[5]; // 6
 	config.channel = doc["channel"];
+
+	frtosLog.notice(F("Config read:"));
 	frtosLog.notice(F("accoppiato: %T"),config.accoppiato);
 	frtosLog.notice(F("MAC 0: %X"),config.satelliteMac[0]);
 	frtosLog.notice(F("MAC 1: %X"),config.satelliteMac[1]);
@@ -157,7 +155,8 @@ bool read_local_config() {
 	frtosLog.notice(F("MAC 3: %X"),config.satelliteMac[3]);
 	frtosLog.notice(F("MAC 4: %X"),config.satelliteMac[4]);
 	frtosLog.notice(F("MAC 5: %X"),config.satelliteMac[5]);
-	frtosLog.notice(F("channel %d"),config.channel);
+	frtosLog.notice(F("channel: %d"),config.channel);
+	frtosLog.notice(F("END config"));
 	
 	return true;
       } else {
@@ -233,7 +232,7 @@ void add_broadcast_peer(){
   peerInfo.encrypt = false;
 
   if (esp_now_is_peer_exist(peerInfo.peer_addr)){
-    frtosLog.notice("peer broadcast già registrato");
+    frtosLog.notice("peer broadcast already registered");
   }else{    
     // Add peer        
     if (esp_now_add_peer(&peerInfo) != ESP_OK){
@@ -245,7 +244,7 @@ void add_broadcast_peer(){
 
 // Callback when data is sent
 void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
-  frtosLog.notice(F("On data sent"));
+  frtosLog.notice(F("OnDataSent"));
   frtosLog.notice(F("State: %d"),state);
   frtosLog.notice(F("destination MAC: %X:%X:%X:%X:%X:%X"),
 		  des_addr[0], des_addr[1], des_addr[2],
@@ -262,7 +261,7 @@ void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
 // Callback when data is received
 void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
   // Create a message_pair to hold incoming sensor readings
-  frtosLog.notice(F("Pacchetto ricevuto da MAC: : %X:%X:%X:%X:%X:%X"),
+  frtosLog.notice(F("Packed received from MAC: : %X:%X:%X:%X:%X:%X"),
 		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
 		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
   frtosLog.notice(F("Bytes received: %d"),len);
@@ -271,7 +270,7 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
   uint16_t type;
   memcpy(&type, incomingData, sizeof(type));
   if (type == 1 ) {
-    frtosLog.notice("ack al broadcast ricevuta");
+    frtosLog.notice("broadcast ack received");
     message_pair_crc incomingMessage;
     memcpy(&incomingMessage, incomingData, len);
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message,sizeof(incomingMessage.message));
@@ -289,8 +288,8 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
     }
 
     if (state != STATE_PAIR_SENDED){
-      state = STATE_NONE;
       frtosLog.error(F("STATE mismatch: %d, %d"),state, STATE_PAIR_SENDED);
+      state = STATE_NONE;
       return;
     }
 
@@ -302,12 +301,13 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
     if ((millis() - last_state_update) > TRANSACTION_TIMEOUT){
       frtosLog.error(F("Transaction timeout %d"),millis() - last_state_update);
       state=STATE_NONE;
+      return;
     }
     
     state=STATE_PAIR_ACK_RECEIVED;
 
     if (esp_now_is_peer_exist(esp_now_info->src_addr)){
-      frtosLog.notice("peer già registrato");
+      frtosLog.notice("peer already registered");
     }else{    
       // Aggiunge il satellite come peer specifico
       esp_now_peer_info_t peerInfo = {};
@@ -318,8 +318,8 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       memcpy(peerInfo.lmk, mio_lmk, 16);
       
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-	frtosLog.notice("Satellite registrato come peer fisso.");      
-	frtosLog.notice("TU Accoppiamento riuscito!");
+	frtosLog.notice("Satellite registered");      
+	frtosLog.notice("Paired!");
 	memcpy(config.satelliteMac, esp_now_info->src_addr, 6); // Salva il MAC reale del satellite
 
 	// Risponde al trasmettitore per confermare il pairing
@@ -362,8 +362,8 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       return;
     }
 
-    if (state != STATE_NONE){
-      frtosLog.error(F("STATE mismatch: %d, %d"),state, STATE_NONE);
+    if (state != STATE_NONE and state != STATE_PAIR_DONE and state != STATE_DATA_DONE){
+      frtosLog.error(F("STATE mismatch: %d, %d/%d/%d"),state, STATE_NONE,STATE_PAIR_DONE,STATE_DATA_DONE);
       return;
     }
 
@@ -447,7 +447,7 @@ void setup() {
     frtosLog.error("Failed to set protocol. Error code: %d", err);
   }
   
-  WiFi.STA.begin();
+  //WiFi.STA.begin();
   readMacAddress();
   
   // Init ESP-NOW
@@ -506,9 +506,10 @@ void setup() {
 void loop() {
 
   delay(1000);
-  if(state == STATE_PAIR_DONE) state = STATE_NONE;
 
   if (!config.accoppiato){
+
+    // send pairing request
     message_pair_crc outgoingMessage;
     outgoingMessage.message.type=0;
     outgoingMessage.message.seq=++seq;
@@ -520,10 +521,10 @@ void loop() {
     esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
     if (result == ESP_OK) {
       state=STATE_PAIR_SENDED;
-      frtosLog.notice("Sent with success");
+      frtosLog.notice("Pairing request sent with success");
     } else {
       state=STATE_NONE;
-      frtosLog.error("Error sending the data");
+      frtosLog.error("Error sending pairing request");
     }    
   }
 }
