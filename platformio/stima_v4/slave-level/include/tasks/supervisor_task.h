@@ -100,6 +100,9 @@ private:
   void loadConfiguration();
   void saveConfiguration(bool is_default);
 
+  int current_init_pin = HIGH;
+  int previous_init_pin = HIGH;
+
   STM32RTC& rtc = STM32RTC::getInstance();
 
   SupervisorState_t state;

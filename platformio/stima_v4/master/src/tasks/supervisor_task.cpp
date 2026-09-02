@@ -187,8 +187,7 @@ void SupervisorTask::Run()
         #if (FIXED_CONFIGURATION)
         strSafeCopy(param.configuration->gsm_apn, GSM_APN_WIND, GSM_APN_LENGTH);
         strSafeCopy(param.configuration->gsm_number, GSM_NUMBER_WIND, GSM_NUMBER_LENGTH);
-        // Acquisition from module
-        param.configuration->report_s = 180;
+        param.configuration->report_s = (TEST_FORCE_REPORT_S > 0) ? TEST_FORCE_REPORT_S : 900;
         param.configuration->observation_s = 60;
         param.system_status->flags.config_empty = false;
         #endif
@@ -561,12 +560,14 @@ void SupervisorTask::Run()
       // not connected -> request connection.
       else
       {
+        memset(&connection_request, 0, sizeof(connection_request_t));
+        connection_request.do_connect = true;
+        connection_request.do_test = param.system_status->command.do_test_connection;
         param.systemStatusLock->Take();
         param.system_status->connection.is_connecting = true;
+        param.system_status->connection.is_test_connection = connection_request.do_test;
+        param.system_status->command.do_test_connection = false;
         param.systemStatusLock->Give();
-
-        memset(&connection_request, 0, sizeof(connection_request_t));
-        connection_request.do_connect = true;                
         param.connectionRequestQueue->Enqueue(&connection_request);
 
         TRACE_VERBOSE_F(F("SUPERVISOR_STATE_REQUEST_CONNECTION -> SUPERVISOR_STATE_CHECK_CONNECTION\r\n"));
@@ -588,6 +589,7 @@ void SupervisorTask::Run()
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = true;
           param.system_status->connection.is_connecting = false;
+          param.system_status->connection.is_test_connection = false;
           param.system_status->connection.is_disconnecting = false;
           param.system_status->connection.is_disconnected = false;
           param.systemStatusLock->Give();
@@ -603,6 +605,7 @@ void SupervisorTask::Run()
           param.systemStatusLock->Take();
           param.system_status->connection.is_connected = false;
           param.system_status->connection.is_connecting = false;
+          param.system_status->connection.is_test_connection = false;
           param.system_status->connection.is_disconnecting = false;
           param.system_status->connection.is_disconnected = true;
           param.systemStatusLock->Give();
@@ -908,6 +911,12 @@ bool SupervisorTask::loadConfiguration()
 
   // Update configuration required
   if(update_cfg) status = saveConfiguration(false);
+
+#if (TEST_FORCE_REPORT_S > 0)
+  param.configuration->report_s = TEST_FORCE_REPORT_S;
+  TRACE_INFO_F(F("TEST: report_s forced to %u s (acquire + connect)\r\n"),
+             (unsigned)TEST_FORCE_REPORT_S);
+#endif
 
   TRACE_INFO_F(F("Load configuration... [ %s ]\r\n"), status ? OK_STRING : ERROR_STRING);
   printConfiguration();

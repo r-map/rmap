@@ -49,6 +49,8 @@ typedef struct
 {
    float adc_offset;       //!< adc offset
    float adc_gain;         //!< adc gain
+   float offset;           //!< engineering offset (k+)
+   float gain;             //!< engineering gain (k*)
    float analog_min;       //!< min sensor analog value for selected range
    float analog_max;       //!< max sensor analog value for selòected range
    uint8_t is_active;      //!< Chanel active, for Radiation is selected first active (One chanel)

@@ -68,7 +68,6 @@ void setup() {
   static Queue *dataRmapPutQueue;               ///< RMAP Data native queue Send data
   static Queue *dataRmapGetRequestQueue;        ///< Data queue (Request / exchange data from Data Task)
   static Queue *dataRmapGetResponseQueue;       ///< Data queue (Response / exchange data from Data Task)
-  static Queue *dataRmapPutBackupQueue;         ///< RMAP Data backup queue Send data
   static Queue *dataFilePutRequestQueue;        ///< File put to SD queue (request)
   static Queue *dataFilePutResponseQueue;       ///< File put to SD queue (response)
   static Queue *dataFileGetRequestQueue;        ///< File get from SD queue (request)
@@ -150,7 +149,6 @@ void setup() {
   dataRmapPutQueue = new Queue(RMAP_PUT_DATA_QUEUE_LENGTH, sizeof(rmap_archive_data_t));
   dataRmapGetRequestQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_request_t));
   dataRmapGetResponseQueue = new Queue(RMAP_GET_DATA_QUEUE_LENGTH, sizeof(rmap_get_response_t));
-  dataRmapPutBackupQueue = new Queue(RMAP_BKP_DATA_QUEUE_LENGTH, sizeof(rmap_backup_data_t));
   dataLogPutQueue = new Queue(LOG_PUT_DATA_QUEUE_LENGTH, LOG_PUT_DATA_ELEMENT_SIZE);
   displayEventWakeUp = new Queue(DISPLAY_EVENT_QUEUE_LENGTH, sizeof(bool));
 
@@ -237,7 +235,6 @@ void setup() {
   sdParam.boot_request = &boot_check;
   sdParam.systemMessageQueue = systemMessageQueue;
   sdParam.dataRmapPutQueue = dataRmapPutQueue;
-  sdParam.dataRmapPutBackupQueue = dataRmapPutBackupQueue;
   sdParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
   sdParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   sdParam.dataLogPutQueue = dataLogPutQueue;
@@ -384,7 +381,6 @@ void setup() {
   mqttParam.dataRmapGetRequestQueue = dataRmapGetRequestQueue;
   mqttParam.dataRmapGetResponseQueue = dataRmapGetResponseQueue;
   mqttParam.dataRmapPutQueue = dataRmapPutQueue;
-  mqttParam.dataRmapPutBackupQueue = dataRmapPutBackupQueue;
   mqttParam.dataLogPutQueue = dataLogPutQueue;
   mqttParam.connectionRequestQueue = connectionRequestQueue;
   mqttParam.connectionResponseQueue = connectionResponseQueue;

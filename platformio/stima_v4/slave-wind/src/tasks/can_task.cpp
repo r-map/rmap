@@ -495,7 +495,7 @@ void CanTask::publish_rmap_data(canardClass &clCanard, CanParam_t *param) {
 
         // coda di attesa dati (attesa rmap_calc_data)
         param->reportDataQueue->Dequeue(&report_pub);
-        TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_pub.avg_speed, (rmapdata_t) report_pub.vavg_speed, (rmapdata_t) report_pub.vavg10_direction);
+        TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\r\n"), (rmapdata_t) report_pub.vavg10_speed, (rmapdata_t) report_pub.vavg10_direction);
 
         // Preparo i dati
         prepareSensorsDataValue(canardClass::Sensor_Type::dwa, &report_pub, &module_wind_msg);
@@ -805,7 +805,7 @@ rmap_service_module_Wind_Response_1_0 CanTask::processRequestGetModuleData(canar
           param->reportDataQueue->Dequeue(&report_srv);
           if(isRunIdleHookEnabled) LowPower.idleHookEnable();
 
-          TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\t%d\r\n"), (rmapdata_t) report_srv.avg_speed, (rmapdata_t) report_srv.vavg_speed, (rmapdata_t) report_srv.vavg10_direction);
+          TRACE_INFO_F(F("--> CAN wind report\t%d\t%d\r\n"), (rmapdata_t) report_srv.vavg10_speed, (rmapdata_t) report_srv.vavg10_direction);
 
           // Ritorno lo stato (Copia dal comando... con stato maintenence e versioni di modulo)
           resp.state = req->parameter.command;  // saturated 4BIT (3BITCommand + FlagMaintenance)

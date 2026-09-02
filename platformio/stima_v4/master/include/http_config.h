@@ -31,7 +31,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define HTTP_URI_LENGTH          (10 + MQTT_USERNAME_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH + 10)
 
 /// @brief HTTP buffer size
-#define HTTP_BUFFER_SIZE         (256)
+/// FW OTA: 256B/chunk + wait SD sincrono → peer chiude a metà.
+/// 1024B: ~4x meno roundtrip SD, download sotto timeout rete.
+#define HTTP_BUFFER_SIZE         (1024)
 
 /// @brief HTTP user agents length
 // #define HTTP_USER_AGENTS_LENGTH  (STIMA_MODULE_NAME_LENGTH + 10)

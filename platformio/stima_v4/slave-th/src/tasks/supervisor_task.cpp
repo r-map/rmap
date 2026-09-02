@@ -198,6 +198,31 @@ void SupervisorTask::Run()
         TRACE_ERROR_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
         Suspend();
       }
+      // ****************************************************************************************
+      // BEGIN HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
+      // ****************************************************************************************
+      // Factory reset: PH0 active-low, rising edge on release (internal pull-up in HAL).
+      // No action until BTN_FACTORY_RESET_ARM_MS after boot.
+      {
+        static bool btn_reset_armed = false;
+        if (!btn_reset_armed) {
+          if (millis() >= BTN_FACTORY_RESET_ARM_MS) {
+            btn_reset_armed = true;
+            previous_init_pin = digitalRead(PIN_BTN);
+          }
+        } else {
+          current_init_pin = digitalRead(PIN_BTN);
+          if (current_init_pin && !previous_init_pin) {
+            param.clRegister->doFactoryReset();
+            saveConfiguration(CONFIGURATION_DEFAULT);
+            NVIC_SystemReset();
+          }
+          previous_init_pin = current_init_pin;
+        }
+      }
+      // ****************************************************************************************
+      // END HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
+      // ****************************************************************************************
       break;
 
     case SUPERVISOR_STATE_END:

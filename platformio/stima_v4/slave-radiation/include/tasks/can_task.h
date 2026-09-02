@@ -176,6 +176,7 @@ private:
   inline static bootloader_t *boot_state;
   inline static EEprom *localEeprom;
   inline static cpp_freertos::Queue *localSystemMessageQueue;
+  inline static configuration_t *localConfiguration;
   inline static uint16_t last_req_rpt_time = (REPORTS_TIME_S);
   inline static uint16_t last_req_obs_time = (OBSERVATIONS_TIME_S);
   inline static CAN_ModePower canPower;
@@ -184,6 +185,7 @@ private:
   inline static EERegister *localRegister;
   inline static cpp_freertos::BinarySemaphore *localQspiLock;
   inline static cpp_freertos::BinarySemaphore *localRegisterAccessLock;
+  inline static cpp_freertos::BinarySemaphore *localConfigurationAccessLock;
   inline static Flash *localFlash;
   inline static uint64_t canFlashPtr = 0;
   inline static uint16_t canFlashBlock = 0;

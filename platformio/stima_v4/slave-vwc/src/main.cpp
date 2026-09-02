@@ -46,11 +46,8 @@ void setup() {
   SetupSystemPeripheral();
   init_debug(SERIAL_DEBUG_BAUD_RATE);
   init_wire();
-  init_pins();  
-  // Check Reset default PIN pression button if enabled
-#ifdef STIMAV4_SLAVE_HW_VER_01_01
-  if(!digitalRead(PIN_BTN)) init_parameter = true;
-#endif
+  init_pins();
+  // Factory reset: supervisor after BTN_FACTORY_RESET_ARM_MS (not at boot)
 
   // Init RTC
   init_rtc(init_parameter);

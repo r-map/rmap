@@ -121,8 +121,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_MODULE_TYPE_VWC                       (29)
 
 /*!
-\def STIMA_MODULE_TYPE_VWC
-\brief This module acquire soil sensor.
+\def STIMA_MODULE_TYPE_LEVEL
+\brief This module acquire water level.
 */
 #define STIMA_MODULE_TYPE_LEVEL                     (30)
 
@@ -195,7 +195,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 /*!
 \def STIMA_MODULE_NAME_LEVEL
-\brief The module'name for acquiring leaf wetness.
+\brief The module'name for acquiring water level.
 */
 #define STIMA_MODULE_NAME_LEVEL                     ("stima4.module_level")
 #define STIMA_MODULE_DESCRIPTION_LEVEL              ("Slave module level, CAN Cyphal V1.0")
@@ -268,9 +268,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define STIMA_LCD_DESCRIPTION_RAIN                  ("Rain")
 #define STIMA_LCD_DESCRIPTION_SOLAR_RADIATION       ("Solar radiation")
 #define STIMA_LCD_DESCRIPTION_TEMPERATURE           ("Temperature")
-#define STIMA_LCD_DESCRIPTION_VWC1                  ("Soil mosture 1")
-#define STIMA_LCD_DESCRIPTION_VWC2                  ("Soil mosture 2")
-#define STIMA_LCD_DESCRIPTION_VWC3                  ("Soil mosture 3")
+#define STIMA_LCD_DESCRIPTION_VWC1                  ("Soil moisture 1")
+#define STIMA_LCD_DESCRIPTION_VWC2                  ("Soil moisture 2")
+#define STIMA_LCD_DESCRIPTION_VWC3                  ("Soil moisture 3")
 #define STIMA_LCD_DESCRIPTION_WIND_DIRECTION        ("Wind direction")
 #define STIMA_LCD_DESCRIPTION_WIND_SPEED            ("Wind speed")
 

@@ -197,6 +197,31 @@ void SupervisorTask::Run()
         TRACE_ERROR_F(F("SUPERVISOR_STATE_CHECK_OPERATION -> ??? Condizione non gestita!!!\r\n"));
         Suspend();
       }
+      // ****************************************************************************************
+      // BEGIN HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
+      // ****************************************************************************************
+      // Factory reset: PH0 active-low, rising edge on release (internal pull-up in HAL).
+      // No action until BTN_FACTORY_RESET_ARM_MS after boot.
+      {
+        static bool btn_reset_armed = false;
+        if (!btn_reset_armed) {
+          if (millis() >= BTN_FACTORY_RESET_ARM_MS) {
+            btn_reset_armed = true;
+            previous_init_pin = digitalRead(PIN_BTN);
+          }
+        } else {
+          current_init_pin = digitalRead(PIN_BTN);
+          if (current_init_pin && !previous_init_pin) {
+            param.clRegister->doFactoryReset();
+            saveConfiguration(CONFIGURATION_DEFAULT);
+            NVIC_SystemReset();
+          }
+          previous_init_pin = current_init_pin;
+        }
+      }
+      // ****************************************************************************************
+      // END HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
+      // ****************************************************************************************
       break;
 
     case SUPERVISOR_STATE_END:
@@ -388,6 +413,44 @@ void SupervisorTask::loadConfiguration()
     }
   }
 
+  // Reading multiple Param (Gain Value)
+  if(register_config_valid) {
+    uavcan_register_Value_1_0_select_real32_(&val);
+    val.real32.value.count       = MAX_ADC_CHANELS;
+    for(idx=0; idx<MAX_ADC_CHANELS; idx++)
+      val.real32.value.elements[idx] = 1;
+    param.registerAccessLock->Take();
+    param.clRegister->read("rmap.module.sensor.gain", &val);
+    param.registerAccessLock->Give();
+    if(uavcan_register_Value_1_0_is_real32_(&val) && (val.real32.value.count != MAX_ADC_CHANELS)) {
+      register_config_valid = false;
+    } else {
+      param.configurationLock->Take();
+      for(idx=0; idx<MAX_ADC_CHANELS; idx++)
+        param.configuration->sensors[idx].gain = val.real32.value.elements[idx];
+      param.configurationLock->Give();
+    }
+  }
+
+  // Reading multiple Param (Offset Value)
+  if(register_config_valid) {
+    uavcan_register_Value_1_0_select_real32_(&val);
+    val.real32.value.count       = MAX_ADC_CHANELS;
+    for(idx=0; idx<MAX_ADC_CHANELS; idx++)
+      val.real32.value.elements[idx] = 0;
+    param.registerAccessLock->Take();
+    param.clRegister->read("rmap.module.sensor.offs", &val);
+    param.registerAccessLock->Give();
+    if(uavcan_register_Value_1_0_is_real32_(&val) && (val.real32.value.count != MAX_ADC_CHANELS)) {
+      register_config_valid = false;
+    } else {
+      param.configurationLock->Take();
+      for(idx=0; idx<MAX_ADC_CHANELS; idx++)
+        param.configuration->sensors[idx].offset = val.real32.value.elements[idx];
+      param.configurationLock->Give();
+    }
+  }
+
   // Reading multiple Param (Analog Min)
   if(register_config_valid) {
     // Select type register (real_32)
@@ -463,6 +526,8 @@ void SupervisorTask::saveConfiguration(bool is_default)
     for(idx=0; idx<MAX_ADC_CHANELS; idx++) {
       param.configuration->sensors[idx].adc_gain = 1;
       param.configuration->sensors[idx].adc_offset = 0;
+      param.configuration->sensors[idx].gain = 1;
+      param.configuration->sensors[idx].offset = 0;
       param.configuration->sensors[idx].adc_type = Adc_Mode::Volt;
       param.configuration->sensors[idx].analog_min = SOLAR_RADIATION_VOLTAGE_MIN;
       param.configuration->sensors[idx].analog_max = SOLAR_RADIATION_VOLTAGE_MAX;
@@ -549,6 +614,28 @@ void SupervisorTask::saveConfiguration(bool is_default)
   param.configurationLock->Give();
   param.registerAccessLock->Take();
   param.clRegister->write("rmap.module.sensor.adc.offs", &val);
+  param.registerAccessLock->Give();
+
+  // Writing RMAP Module sensor GAIN VALUE -> (READ/WRITE)
+  uavcan_register_Value_1_0_select_real32_(&val);
+  val.real32.value.count       = MAX_ADC_CHANELS;
+  param.configurationLock->Take();
+  for(idx=0; idx<MAX_ADC_CHANELS; idx++)
+    val.real32.value.elements[idx] = param.configuration->sensors[idx].gain;
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
+  param.clRegister->write("rmap.module.sensor.gain", &val);
+  param.registerAccessLock->Give();
+
+  // Writing RMAP Module sensor OFFSET VALUE -> (READ/WRITE)
+  uavcan_register_Value_1_0_select_real32_(&val);
+  val.real32.value.count       = MAX_ADC_CHANELS;
+  param.configurationLock->Take();
+  for(idx=0; idx<MAX_ADC_CHANELS; idx++)
+    val.real32.value.elements[idx] = param.configuration->sensors[idx].offset;
+  param.configurationLock->Give();
+  param.registerAccessLock->Take();
+  param.clRegister->write("rmap.module.sensor.offs", &val);
   param.registerAccessLock->Give();
 
   // Writing RMAP Module sensor adc GAIN -> (READ/WRITE)

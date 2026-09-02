@@ -209,7 +209,7 @@ void LevelSensorTask::Run() {
         value = getAdcAnalogValue(value, param.configuration->sensors[adc_channel].adc_type);
         TRACE_DEBUG_F(F("Sensor analog value %d.%02d (mA)\r\n"), (uint16_t)(value * 100) / 100, (uint16_t)(value * 100) % 100);
         // Read value into U.M. Real Level(Sample value)
-        value = getLevel(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow);
+        value = getLevel(value, param.configuration->sensors[adc_channel].analog_min, param.configuration->sensors[adc_channel].analog_max, &is_adc_overflow, param.configuration->sensors[adc_channel].offset, param.configuration->sensors[adc_channel].gain);
       }
 
       // Inform system state if ADC error event ( reading measure % error < MIN_VALID_PERCENTAGE )
@@ -429,7 +429,7 @@ float LevelSensorTask::getAdcAnalogValue(float adc_value, Adc_Mode adc_type)
 /// @param adc_current_max IMAX Ref range of sensor
 /// @param adc_overflow bool if ADC get an overflow range value (setted to true)
 /// @return Real scaled data Level from analog adc calibrated value
-float LevelSensorTask::getLevel(float adc_value, float adc_current_min, float adc_current_max, bool *adc_overflow)
+float LevelSensorTask::getLevel(float adc_value, float adc_current_min, float adc_current_max, bool *adc_overflow, float offset, float gain)
 {
   float value = adc_value;
   *adc_overflow = false;
@@ -445,6 +445,7 @@ float LevelSensorTask::getLevel(float adc_value, float adc_current_min, float ad
 
     if (value <= LEVEL_ERROR_MIN) value = LEVEL_MIN;
     if (value >= LEVEL_ERROR_MAX) value = LEVEL_MAX;
+    value = (value * gain) + (offset * 1000.0);
   }
 
   if((value >= LEVEL_MIN)&&(value <= LEVEL_SENSIBILITY)) {

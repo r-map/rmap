@@ -37,6 +37,28 @@
 
 using namespace cpp_freertos;
 
+/// @brief Persist RMAP read pointer on SD after all publishSensor* for one archive record succeed.
+static bool rmapSdSavePointer(MqttParam_t *p, bool confirmed)
+{
+  rmap_get_request_t req = {0};
+  req.command.do_save_ptr = true;
+  req.param = confirmed ? 1u : 0u;
+  p->dataRmapGetRequestQueue->Enqueue(&req);
+  rmap_get_response_t resp = {0};
+  return p->dataRmapGetResponseQueue->Dequeue(&resp, FILE_IO_DATA_QUEUE_TIMEOUT) &&
+         resp.result.done_synch;
+}
+
+/// @brief Roll back RMAP pointer to last committed position (SD read/MQTT failure).
+static void rmapSdRestorePointer(MqttParam_t *p)
+{
+  rmap_get_request_t req = {0};
+  req.command.do_previous_ptr = true;
+  p->dataRmapGetRequestQueue->Enqueue(&req);
+  rmap_get_response_t resp = {0};
+  p->dataRmapGetResponseQueue->Dequeue(&resp, FILE_IO_DATA_QUEUE_TIMEOUT);
+}
+
 /// @brief Construct a new Mqtt Task:: Mqtt Task object
 /// @param taskName name of the task
 /// @param stackSize size of the stack
@@ -400,10 +422,17 @@ void MqttTask::Run()
          bitState[indexPosition] = '1';
       }
       indexPosition--;
-      // RSSI Signal to low (<10)
-      // Copy connection RSSI flag value of last (current) connection
+      // RSSI: enter CSQ<9, exit CSQ>12, at least 3 of last 5 MQTT status samples
       param.system_status->flags.gsm_rssi = param.system_status->modem.rssi;
-      if(param.system_status->modem.rssi < 10) {
+      stimaHysteresisRssi(
+        param.system_status->modem.rssi,
+        param.system_status->connection.mqtt_rssi_hist,
+        &param.system_status->connection.mqtt_rssi_hist_idx,
+        &param.system_status->connection.mqtt_rssi_hist_n,
+        &param.system_status->connection.mqtt_rssi_alarm,
+        MQTT_STATUS_RSSI_ENTER, MQTT_STATUS_RSSI_EXIT,
+        MQTT_STATUS_RSSI_WIN, MQTT_STATUS_RSSI_NEED);
+      if(param.system_status->connection.mqtt_rssi_alarm) {
          bitState[indexPosition] = '1';
       }
 
@@ -412,20 +441,43 @@ void MqttTask::Run()
       for(uint8_t byteIdx = 0; byteIdx < MQTT_PUB_MAX_BYTE_STATE; byteIdx++) {
         byteState[byteIdx] = 0;
       }
-      // Invert OK with Error 100 - OK
-      if(param.system_status->modem.perc_modem_connection_valid >= MIN_ERR_REPORT_CONNECTION_VALID) {
-        byteState[indexPosition++] = 0;
-      } else {
-        // Flags step error only 10% value (10, 20, 30 .. 100 %) prevert small change error for flag byte index server
-        byteState[indexPosition++] = (uint8_t)((100.0 - (float)param.system_status->modem.perc_modem_connection_valid) / 10.0) * 10;
+      {
+        uint8_t modem_err_raw = 0;
+        if(param.system_status->modem.connection_attempted > MQTT_STATUS_MODEM_MIN_CONN) {
+          if(param.system_status->modem.perc_modem_connection_valid < 100) {
+            modem_err_raw = (uint8_t)(100 - param.system_status->modem.perc_modem_connection_valid);
+          }
+        }
+        param.system_status->connection.mqtt_modem_err_latched = stimaHysteresisPct(
+          modem_err_raw, param.system_status->connection.mqtt_modem_err_latched,
+          MQTT_STATUS_MODEM_SET_PCT, MQTT_STATUS_MODEM_CLR_PCT, MQTT_STATUS_PCT_STEP);
+        byteState[indexPosition++] = param.system_status->connection.mqtt_modem_err_latched;
+        byteState[indexPosition++] = param.boot_request->tot_reset;
+        byteState[indexPosition++] = param.boot_request->wdt_reset;
+        uint8_t mqtt_err_raw = 0;
+        if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT) {
+          if(param.system_status->connection.mqtt_data_exit_error >
+             param.system_status->connection.mqtt_exit_error_seen) {
+            mqtt_err_raw = 100;
+            param.system_status->connection.mqtt_ok_streak = 0;
+          } else {
+            if(param.system_status->connection.mqtt_ok_streak < 0xFF) {
+              param.system_status->connection.mqtt_ok_streak++;
+            }
+            if(param.system_status->connection.mqtt_ok_streak >= MQTT_STATUS_FLAG_CONFIRM) {
+              mqtt_err_raw = 0;
+            } else {
+              mqtt_err_raw = param.system_status->connection.mqtt_mqtt_err_latched;
+            }
+          }
+          param.system_status->connection.mqtt_exit_error_seen =
+            param.system_status->connection.mqtt_data_exit_error;
+        }
+        param.system_status->connection.mqtt_mqtt_err_latched = stimaHysteresisPct(
+          mqtt_err_raw, param.system_status->connection.mqtt_mqtt_err_latched,
+          MQTT_STATUS_CAN_SET_PCT, MQTT_STATUS_CAN_CLR_PCT, MQTT_STATUS_PCT_STEP);
+        byteState[indexPosition] = param.system_status->connection.mqtt_mqtt_err_latched;
       }
-      byteState[indexPosition++] = param.boot_request->tot_reset;
-      byteState[indexPosition++] = param.boot_request->wdt_reset;
-      // Log MQTT Error from server respoonse (if enabled on param 4th)
-      if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT)
-        byteState[indexPosition] = param.system_status->connection.mqtt_data_exit_error;
-      else
-        byteState[indexPosition] = 0;
 
       // publish connection message (Conn + Version and Revision)
       sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
@@ -438,6 +490,25 @@ void MqttTask::Run()
       // ******************************************************************
       // STATE: Publish Slave Info, Message Depending by Node Module Type
       // ******************************************************************
+      // One CAN bus: take max perc among slaves that are online now (offline must not drag all to 100%)
+      {
+        uint8_t can_bus_raw = 0;
+        for(uint8_t iNodeSlave = 0; iNodeSlave < MAX_NODE_CONNECT; iNodeSlave++) {
+          if(!param.configuration->board_slave[iNodeSlave].module_type) {
+            continue;
+          }
+          if(!param.system_status->data_slave[iNodeSlave].is_online) {
+            continue;
+          }
+          uint8_t p = param.system_status->data_slave[iNodeSlave].perc_can_comm_err;
+          if(p > can_bus_raw) {
+            can_bus_raw = p;
+          }
+        }
+        param.system_status->connection.mqtt_can_bus_latched = stimaHysteresisPctSoft(
+          can_bus_raw, param.system_status->connection.mqtt_can_bus_latched,
+          MQTT_STATUS_CAN_SET_PCT, MQTT_STATUS_CAN_CLR_PCT, MQTT_STATUS_PCT_ALARM);
+      }
       // For each Slave... Enabled and configured
       for(uint8_t iNodeSlave = 0; iNodeSlave < MAX_NODE_CONNECT; iNodeSlave++) {
         // SOlo per i moduli correttamente configurati
@@ -448,11 +519,12 @@ void MqttTask::Run()
           }
           bitState[MQTT_PUB_MAX_BIT_STATE] = 0;
           indexPosition = 15;
-          // Depending from type module (Message composition)
-          if(!param.system_status->data_slave[iNodeSlave].is_online) {
+          stimaDebounceBool(!param.system_status->data_slave[iNodeSlave].is_online,
+            &param.system_status->data_slave[iNodeSlave].is_offline_mqtt,
+            &param.system_status->data_slave[iNodeSlave].is_offline_cnt,
+            MQTT_STATUS_OFFLINE_CONFIRM);
+          if(param.system_status->data_slave[iNodeSlave].is_offline_mqtt) {
             bitState[indexPosition] = '1';
-            // Auto set 100 % Error CAN data if OffLine
-            byteState[0] = 100;
           }
           indexPosition--;
           if(param.system_status->data_slave[iNodeSlave].fw_upgradable) {
@@ -476,15 +548,14 @@ void MqttTask::Run()
             byteState[byteIdx] = 0;
           }
           indexPosition = 0;
-          // Report inverted OK (100- for Error...)
-          if(param.system_status->data_slave[iNodeSlave].perc_can_comm_err <= MIN_ERR_CAN_CHECK_FLAG_PERC) {
-            byteState[indexPosition++] = 0;
-          } else {
-            byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].perc_can_comm_err;
-          }
+          byteState[indexPosition++] = param.system_status->connection.mqtt_can_bus_latched;
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[0];
           byteState[indexPosition++] = param.system_status->data_slave[iNodeSlave].byteStateFlag[1];
-          byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].byteStateFlag[2];
+          param.system_status->data_slave[iNodeSlave].link_err_latched = stimaHysteresisPctSoft(
+            param.system_status->data_slave[iNodeSlave].byteStateFlag[2],
+            param.system_status->data_slave[iNodeSlave].link_err_latched,
+            MQTT_STATUS_LINK_SET_PCT, MQTT_STATUS_LINK_CLR_PCT, MQTT_STATUS_PCT_ALARM);
+          byteState[indexPosition] = param.system_status->data_slave[iNodeSlave].link_err_latched;
 
           // publish connection message (Conn + Version and Revision)
           sprintf(message, "{%s \"bs\":\"%s\", \"b\":\"0b%s\", \"c\":[%u,%u,%u,%u]}",
@@ -926,6 +997,17 @@ void MqttTask::Run()
 
                 break;
             }
+
+            // One SD pointer commit per archive record (after all publishSensor* for this block)
+            if (param.system_status->flags.sd_card_ready && !error &&
+                state != MQTT_STATE_DISCONNECT_LOST_DATA) {
+              TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+              if (!rmapSdSavePointer(&param, true)) {
+                TRACE_ERROR_F(F("MQTT: RMAP save pointer fail/timeout after record publish OK\r\n"));
+              } else {
+                TRACE_DEBUG_F(F("MQTT: RMAP save ptr confirmed=1 ok\r\n"));
+              }
+            }
           }
 
           // ? Connection to MQTT server lost data or update data Error, exit immediatly!
@@ -946,6 +1028,11 @@ void MqttTask::Run()
         // TRACE END Data response
         if(countData) {
           TRACE_INFO_F(F("Uploading data from RMAP Archive [ %s ]. Updated %d record\r\n"), rmap_eof ? OK_STRING : ERROR_STRING, countData);
+        }
+        if (param.system_status->flags.sd_card_ready && rmap_data_error) {
+          TRACE_DEBUG_F(F("MQTT: RMAP restore pointer after read error\r\n"));
+          TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
+          rmapSdRestorePointer(&param);
         }
       }
       // *****************************************
@@ -970,15 +1057,9 @@ void MqttTask::Run()
     case MQTT_STATE_DISCONNECT_LOST_DATA:
       // The operation state is performed only with ready SD Card
       if(param.system_status->flags.sd_card_ready) {
-        // Normal mode, get data from queue on SD CARD
-        memset(&rmap_get_request, 0, sizeof(rmap_get_request));
-        // Restore previous Data Pointer
-        rmap_get_request.command.do_previous_ptr = true;
-        param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request);
-        // Waiting response from SD with TimeOUT
-        memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+        TRACE_DEBUG_F(F("MQTT: RMAP restore pointer after publish error\r\n"));
         TaskWatchDog(FILE_IO_DATA_QUEUE_TIMEOUT);
-        param.dataRmapGetResponseQueue->Dequeue(&rmap_get_response, FILE_IO_DATA_QUEUE_TIMEOUT);      
+        rmapSdRestorePointer(&param);
       }
       // ? Enabled to save MQTT Server responding Error state
       if(param.configuration->monitor_flags & NETWORK_FLAG_MONITOR_MQTT) {
@@ -1037,17 +1118,10 @@ void MqttTask::Run()
       }
 
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      // Softly disconnect to MQTT Server
-      mqttClientDisconnect(&mqttClientContext);
-      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-      TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
-
-      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      // Close connection
+      // Skip mqttClientDisconnect(): graceful TLS/TCP shutdown can hang forever on PPP
       mqttClientClose(&mqttClientContext);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-
-      TRACE_INFO_F(F("%s Close connection\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+      TRACE_INFO_F(F("%s Closed mqtt connection %s:%d (hard close)\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       
       state = MQTT_STATE_END;
       TRACE_VERBOSE_F(F("MQTT_STATE_DISCONNECT -> MQTT_STATE_END\r\n"));
@@ -1251,16 +1325,9 @@ error_t MqttTask::makeDate(DateTime dateTime, char *message, size_t message_leng
 /// @param localMessage 
 void MqttTask::putRmapBackupArchiveData(DateTime dateTime, char *localTopic, char *localMessage)
 {
-  rmap_backup_data_t archive_backup_data_line = {0};
-  size_t lenTopic = strlen(localTopic);
-  size_t lenMessage = strlen(localMessage);
-  // Prepare message
-  archive_backup_data_line.date_time = convertDateToUnixTime(&dateTime);
-  // Check security Len Message before push queue message data
-  strcpy((char*)archive_backup_data_line.block, localTopic);
-  strcpy((char*)(archive_backup_data_line.block + RMAP_BACKUP_DATA_LEN_TOPIC_SIZE), localMessage);
-  // Send to queue with waiting Queue empty from SD Task if Full
-  param.dataRmapPutBackupQueue->Enqueue(&archive_backup_data_line, Ticks::MsToTicks(MQTT_PUT_QUEUE_BKP_TIMEOUT_MS));
+  (void)dateTime;
+  (void)localTopic;
+  (void)localMessage;
 }
 
 /// @brief Publish th sensor

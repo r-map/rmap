@@ -98,14 +98,6 @@ void WdtTask::Run() {
       }
     }
 
-    TRACE_INFO_F(F("%s: "), Thread::GetName().c_str());
-    // Trace DateTime with Semaphore
-    if(param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
-      TRACE_INFO_F(F("%02d/%02d/%02d "), rtc.getDay(), rtc.getMonth(), rtc.getYear());
-      TRACE_INFO_F(F("%02d:%02d:%02d.%03d\r\n"), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getSubSeconds());
-      param.rtcLock->Give();
-    }
-
     param.systemStatusLock->Take();
     // WDT Always Set
     param.system_status->tasks[WDT_TASK_ID].watch_dog = wdt_flag::set;
@@ -134,18 +126,98 @@ void WdtTask::Run() {
     }
     param.systemStatusLock->Give();
 
-    // Logging Stack (Only ready module task controlled)
     #if (ENABLE_STACK_USAGE)
-    // Update This Task
     stackUsage = (uint16_t)uxTaskGetStackHighWaterMark( NULL );
     if((stackUsage) && (stackUsage < param.system_status->tasks[WDT_TASK_ID].stack)) {
       param.systemStatusLock->Take();
       param.system_status->tasks[WDT_TASK_ID].stack = stackUsage;
       param.systemStatusLock->Give();
-    }    
+    }
     #if (configMEMMANG_HEAP_NB!=3)
-    // Not avaiable in Transparent heap access malloc/free Mode
-    TRACE_INFO_F(F("WDT: Stack Free monitor, Heap free: %lu\r\n"), (uint32_t)xPortGetFreeHeapSize());
+    const uint32_t heap_free = (uint32_t)xPortGetFreeHeapSize();
+    #endif
+    #endif
+
+    if (resetWdt) {
+      #if (ENABLE_WDT)
+      IWatchdog.reload();
+      #endif
+    }
+
+    {
+      uint8_t hh = 0, mm = 0, ss = 0;
+      if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+        hh = rtc.getHours();
+        mm = rtc.getMinutes();
+        ss = rtc.getSeconds();
+        param.rtcLock->Give();
+      }
+      uint8_t n_need = 0, n_ok = 0, miss_id = 0xFFu;
+      for (uint8_t id = 0; id < TOTAL_INFO_TASK; id++) {
+        if ((param.system_status->tasks[id].state == task_flag::suspended) ||
+            (param.system_status->tasks[id].running_pos == 0)) {
+          continue;
+        }
+        n_need++;
+        if (param.system_status->tasks[id].watch_dog != wdt_flag::clear) {
+          n_ok++;
+        } else if (miss_id == 0xFFu) {
+          miss_id = id;
+        }
+      }
+      #if (ENABLE_STACK_USAGE)
+      uint32_t stk_sum = 0;
+      uint16_t stk_min = 0xFFFFu;
+      for (uint8_t id = 0; id < TOTAL_INFO_TASK; id++) {
+        const uint16_t st = param.system_status->tasks[id].stack;
+        if (st != 0xFFFFu) {
+          stk_sum += st;
+          if (st < stk_min) {
+            stk_min = st;
+          }
+        }
+      }
+      const unsigned min_u = (unsigned)((stk_min == 0xFFFFu) ? 0u : stk_min);
+      #if (configMEMMANG_HEAP_NB!=3)
+      const uint32_t heap_free_now = (uint32_t)xPortGetFreeHeapSize();
+      if (resetWdt) {
+        TRACE_INFO_F(F("WDT: OK %02u:%02u:%02u heap=%lu min=%u sum=%lu kick=%u/%u\r\n"),
+                     hh, mm, ss, (unsigned long)heap_free_now, min_u,
+                     (unsigned long)stk_sum, n_ok, n_need);
+      } else {
+        TRACE_ERROR_F(F("WDT: FAIL %02u:%02u:%02u heap=%lu min=%u kick=%u/%u missId=%u\r\n"),
+                      hh, mm, ss, (unsigned long)heap_free_now, min_u,
+                      n_ok, n_need, miss_id);
+      }
+      #else
+      if (resetWdt) {
+        TRACE_INFO_F(F("WDT: OK %02u:%02u:%02u min=%u sum=%lu kick=%u/%u\r\n"),
+                     hh, mm, ss, min_u, (unsigned long)stk_sum, n_ok, n_need);
+      } else {
+        TRACE_ERROR_F(F("WDT: FAIL %02u:%02u:%02u min=%u kick=%u/%u missId=%u\r\n"),
+                      hh, mm, ss, min_u, n_ok, n_need, miss_id);
+      }
+      #endif
+      #else
+      if (resetWdt) {
+        TRACE_INFO_F(F("WDT: OK %02u:%02u:%02u kick=%u/%u\r\n"), hh, mm, ss, n_ok, n_need);
+      } else {
+        TRACE_ERROR_F(F("WDT: FAIL %02u:%02u:%02u kick=%u/%u missId=%u\r\n"),
+                      hh, mm, ss, n_ok, n_need, miss_id);
+      }
+      #endif
+    }
+
+    TRACE_VERBOSE_F(F("%s: "), Thread::GetName().c_str());
+    if(param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+      TRACE_VERBOSE_F(F("%02d/%02d/%02d "), rtc.getDay(), rtc.getMonth(), rtc.getYear());
+      TRACE_VERBOSE_F(F("%02d:%02d:%02d.%03d\r\n"), rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getSubSeconds());
+      param.rtcLock->Give();
+    }
+
+    #if (ENABLE_STACK_USAGE)
+    #if (configMEMMANG_HEAP_NB!=3)
+    TRACE_VERBOSE_F(F("WDT: Stack Free monitor, Heap free: %lu\r\n"), heap_free);
     #endif
     for(uint8_t id = 0; id < TOTAL_INFO_TASK; id++) {
       if(param.system_status->tasks[id].stack != 0xFFFFu) {
@@ -171,7 +243,7 @@ void WdtTask::Run() {
           case WDT_TASK_ID:
             strcpy (strTask, "WDT Info    "); break;
         }
-        TRACE_INFO_F(F("%s%s : %d\r\n"), strTask,
+        TRACE_VERBOSE_F(F("%s%s : %d\r\n"), strTask,
           (param.system_status->tasks[id].state == task_flag::suspended) ? SUSPEND_STRING :
           ((param.system_status->tasks[id].watch_dog == wdt_flag::clear) ? SPACE_STRING : FLAG_STRING),
           param.system_status->tasks[id].stack);
@@ -179,16 +251,8 @@ void WdtTask::Run() {
     }
     #endif
 
-    // Update TaskWatchDog (if all enabledModule setting local Flag)
-    // else... Can Flash Saving INFO on Task Not Responding after (XXX mS)
-    // For check TASK debugging Info
     if(resetWdt)
     {
-      #if (ENABLE_WDT)
-      TRACE_INFO_F(F("WDT: Reset WDT OK\r\n"));
-      IWatchdog.reload();
-      #endif
-      // Reset WDT Variables for TASK
       param.systemStatusLock->Take();
       // Check All Module Setting Flag WDT before reset Global WDT
       // WDT Are called from Task into TASK While(1) Generic...

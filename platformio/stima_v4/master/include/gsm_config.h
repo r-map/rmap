@@ -3,7 +3,7 @@
 /*********************************************************************
 <h2><center>&copy; Stimav4 is Copyright (C) 2023 ARPAE-SIMC urpsim@arpae.it</center></h2>
 authors:
-Paolo Patruno <p.patruno@iperbole.bologna.it>
+Moreno Gasperini <m.gasperini@digiteco.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
@@ -34,6 +34,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief APN for WIND.
 */
 #define GSM_APN_WIND                      ("internet.wind")
+
+/*!
+\def GSM_APN_IOT_WIND
+\brief APN for IOT_WIND.
+*/
+#define GSM_APN_IOT_WIND                  ("iot.windtre")
+
+/*!
+\def GSM_SIMWEB_M2M
+\brief APN for SIMWEB_M2M.
+*/
+#define GSM_APN_SIMWEB_M2M                ("simweb.m2m")
 
 /*!
 \def GSM_APN_VODAFONE

@@ -36,6 +36,32 @@
 
 using namespace cpp_freertos;
 
+/// @brief Refresh data_slave[].fw_upgradable from boards_update_avaiable (SD catalog).
+/// Call with systemStatusLock already taken.
+static void canRefreshSlaveFwUpgradable(system_status_t *st, uint8_t queueId, Module_Type mt, uint8_t ver, uint8_t rev)
+{
+  bool upgradable = false;
+  for (uint8_t checkId = 0; checkId < STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
+    if (st->boards_update_avaiable[checkId].module_type != mt) {
+      continue;
+    }
+    const uint8_t fv = st->boards_update_avaiable[checkId].version;
+    const uint8_t fr = st->boards_update_avaiable[checkId].revision;
+    if ((fv > ver) || ((fv == ver) && (fr > rev))) {
+      upgradable = true;
+    }
+    if (upgradable) {
+      TRACE_INFO_F(F("CAN: slave[%u] fw check run %u.%u vs SD %u.%u → UPGRADABLE\r\n"),
+        (unsigned)queueId, (unsigned)ver, (unsigned)rev, (unsigned)fv, (unsigned)fr);
+    } else {
+      TRACE_VERBOSE_F(F("CAN: slave[%u] fw check run %u.%u vs SD %u.%u → up-to-date\r\n"),
+        (unsigned)queueId, (unsigned)ver, (unsigned)rev, (unsigned)fv, (unsigned)fr);
+    }
+    break;
+  }
+  st->data_slave[queueId].fw_upgradable = upgradable;
+}
+
 // ***************************************************************************************************
 // **********             Funzioni ed utility generiche per gestione UAVCAN                 **********
 // ***************************************************************************************************
@@ -2074,28 +2100,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retTHData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retTHData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retTHData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retTHData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retTHData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retTHData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retTHData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retTHData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retTHData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retTHData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retTHData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retTHData->version, retTHData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2124,7 +2142,10 @@ void CanTask::Run() {
                                         if(retTHData->is_redundant_error) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retTHData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retTHData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retTHData->perc_i2c_error;
@@ -2138,7 +2159,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2151,28 +2172,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retRainData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retRainData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retRainData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retRainData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retRainData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retRainData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retRainData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retRainData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retRainData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retRainData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retRainData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retRainData->version, retRainData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2207,7 +2220,10 @@ void CanTask::Run() {
                                         if(retRainData->is_accelerometer_error) bit8Flag|=0x20;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRainData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRainData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2221,7 +2237,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2234,28 +2250,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retWindData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retWindData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retWindData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retWindData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retWindData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retWindData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retWindData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retWindData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retWindData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retWindData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retWindData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retWindData->version, retWindData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2287,7 +2295,10 @@ void CanTask::Run() {
                                         if(retWindData->is_windsonic_crc_error) bit8Flag|=0x10;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retWindData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retWindData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = retWindData->perc_rs232_error;
@@ -2301,7 +2312,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2314,28 +2325,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retRadiationData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retRadiationData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retRadiationData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retRadiationData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retRadiationData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retRadiationData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retRadiationData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retRadiationData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retRadiationData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retRadiationData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retRadiationData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retRadiationData->version, retRadiationData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2364,7 +2367,10 @@ void CanTask::Run() {
                                         if(retRadiationData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retRadiationData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retRadiationData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2378,7 +2384,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2391,28 +2397,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retLeafData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retLeafData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retLeafData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retLeafData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retLeafData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retLeafData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retLeafData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retLeafData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retLeafData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retLeafData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retLeafData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retLeafData->version, retLeafData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2441,7 +2439,10 @@ void CanTask::Run() {
                                         if(retLeafData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retLeafData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retLeafData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2455,7 +2456,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2468,28 +2469,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retLevelData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retLevelData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retLevelData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retLevelData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retLevelData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retLevelData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retLevelData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retLevelData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retLevelData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retLevelData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retLevelData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retLevelData->version, retLevelData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2518,7 +2511,10 @@ void CanTask::Run() {
                                         if(retLevelData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retLevelData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retLevelData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2532,7 +2528,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2545,28 +2541,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retPwrData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retPwrData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retPwrData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retPwrData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retPwrData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retPwrData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retPwrData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retPwrData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retPwrData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retPwrData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retPwrData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retPwrData->version, retPwrData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2605,7 +2593,10 @@ void CanTask::Run() {
                                         if((retPwrData->MPP.battery_charge.val.value == 0) || (retPwrData->MPP.battery_charge.val.value > rmap_tableb_B25192_1_0_MAX)) {
                                             param.system_status->flags.power_critical = false;
                                         }
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retPwrData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retPwrData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2619,7 +2610,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -2632,28 +2623,20 @@ void CanTask::Run() {
                                     #if TRACE_LEVEL >= TRACE_INFO
                                     getStimaNameByType(stimaName, clCanard.slave[queueId].get_module_type());
                                     #endif
-                                    // Put data in system_status with module_type and RMAP Ver.Rev if not equal (reload or updated)
-                                    if((param.system_status->data_slave[queueId].module_version!=retVwcData->version) ||
-                                       (param.system_status->data_slave[queueId].module_revision!=retVwcData->revision)) {
+                                    // Version/revision + fw_upgradable vs SD catalog (refresh every response)
+                                    {
+                                        const bool ver_changed =
+                                          (param.system_status->data_slave[queueId].module_version != retVwcData->version) ||
+                                          (param.system_status->data_slave[queueId].module_revision != retVwcData->revision);
                                         param.systemStatusLock->Take();
-                                        param.system_status->data_slave[queueId].module_version = retVwcData->version;
-                                        param.system_status->data_slave[queueId].module_revision = retVwcData->revision;
-                                        // Module type also setted on load config module CAN
-                                        param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
-                                        // Reset flag before recheck exixting firmware available
-                                        param.system_status->data_slave[queueId].fw_upgradable = false;
-                                        // Check if module can be updated
-                                        for(uint8_t checkId=0; checkId<STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
-                                            if(clCanard.slave[queueId].get_module_type() == param.system_status->boards_update_avaiable[checkId].module_type) {
-                                                if((param.system_status->boards_update_avaiable[checkId].version > retVwcData->version) ||
-                                                    ((param.system_status->boards_update_avaiable[checkId].version == retVwcData->version) && 
-                                                    (param.system_status->boards_update_avaiable[checkId].revision > retVwcData->revision))) {
-                                                    // Found an upgradable boards
-                                                    param.system_status->data_slave[queueId].fw_upgradable = true;
-                                                }
-                                                break;
-                                            }
+                                        if (ver_changed) {
+                                          param.system_status->data_slave[queueId].module_version = retVwcData->version;
+                                          param.system_status->data_slave[queueId].module_revision = retVwcData->revision;
+                                          param.system_status->data_slave[queueId].module_type = clCanard.slave[queueId].get_module_type();
                                         }
+                                        canRefreshSlaveFwUpgradable(param.system_status, queueId,
+                                          clCanard.slave[queueId].get_module_type(),
+                                          retVwcData->version, retVwcData->revision);
                                         param.systemStatusLock->Give();
                                     }
                                     // TRACE Info data
@@ -2684,7 +2667,10 @@ void CanTask::Run() {
                                         if(retVwcData->is_adc_unit_overflow) bit8Flag|=0x02;
                                         param.systemStatusLock->Take();
                                         param.system_status->flags.new_data_to_send = true;
-                                        param.system_status->data_slave[queueId].bit8StateFlag = bit8Flag;
+                                        stimaDebounceBit8(bit8Flag,
+                                          &param.system_status->data_slave[queueId].bit8StateFlag,
+                                          param.system_status->data_slave[queueId].bit8_deb_cnt,
+                                          MQTT_STATUS_FLAG_CONFIRM);
                                         param.system_status->data_slave[queueId].byteStateFlag[0] = retVwcData->rbt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[1] = retVwcData->wdt_event;
                                         param.system_status->data_slave[queueId].byteStateFlag[2] = 0;
@@ -2698,7 +2684,7 @@ void CanTask::Run() {
                                         // Send queue to SD for direct archive data
                                         // Queue is dimensioned to accept all Data for one step pushing array data (MAX_BOARDS)
                                         // Clean queue if is full to send alwayl the last data on getted value
-                                        if(param.dataRmapPutQueue->IsFull()) param.dataLogPutQueue->Dequeue(&rmap_archive_empty);
+                                        if(param.dataRmapPutQueue->IsFull()) param.dataRmapPutQueue->Dequeue(&rmap_archive_empty);
                                         param.dataRmapPutQueue->Enqueue(&rmap_archive_data, Ticks::MsToTicks(CAN_PUT_QUEUE_RMAP_TIMEOUT_MS));
                                     }
                                     break;
@@ -3406,13 +3392,18 @@ void CanTask::Run() {
                                         remote_configure_end_ms = millis() + 10000;
                                         // Try end of all event recheck control
                                         reCheckEndEvent = true;
-                                        TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\r\n"), clCanard.slave[cfg_remote_queueId].get_node_id());
-                                        // *******************************************************************************
-                                        // Sending Reboot command to slave node remote CFG COMPLETE WITHOUT PENDING METHOD
-                                        // *******************************************************************************
-                                        // Direct command (without pending) must send with NodeId not with istance !!!
-                                        clCanard.send_command(clCanard.slave[cfg_remote_queueId].get_node_id(), NODE_COMMAND_TIMEOUT_US,                            
-                                            uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);       
+                                        {
+                                            const CanardNodeID contact_id = clCanard.slave[cfg_remote_queueId].get_node_id();
+                                            const CanardNodeID target_id = param.configuration->board_slave[cfg_remote_queueId].can_address;
+                                            TRACE_INFO_F(F("Register server: Send register configuration completed for Node: [ %d ]. Send reboot method to slave\r\n"), contact_id);
+                                            clCanard.send_command(contact_id, NODE_COMMAND_TIMEOUT_US,
+                                                uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART, NULL, 0);
+                                            if (target_id <= CANARD_NODE_ID_MAX && contact_id != target_id) {
+                                                clCanard.slave[cfg_remote_queueId].set_node_id(target_id);
+                                                TRACE_INFO_F(F("Register server: Node id will be [ %d ] after slave reboot (was [ %d ])\r\n"),
+                                                    target_id, contact_id);
+                                            }
+                                        }       
                                     default:
                                         // Riparto dal comando precedente precedente se nell'area di validità
                                         // Il comando in stato di attesa non ha avuto esito positivo

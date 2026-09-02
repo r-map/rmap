@@ -151,7 +151,7 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
       // download lastes configuration from http command after configurate TLS Key from serial
       if (it.value().as<bool>() == true)
       {
-        // Starting queue request truncate structure data on SD Card (Remote request)
+        // Starting queue request erase/format SD Card (Remote request)
         system_message.task_dest = SD_TASK_ID;
         system_message.command.do_trunc_sd = true;
         system_message.param = CMD_PARAM_REQUIRE_RESPONSE;

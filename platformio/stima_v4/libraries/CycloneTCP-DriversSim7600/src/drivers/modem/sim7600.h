@@ -25,8 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _SIM7600_H
 #define _SIM7600_H
 
-#define USE_FREERTOS
-
 #include "debug_config.h"
 #include "core/net.h"
 #include "drivers/uart/uart_driver.h"
@@ -37,6 +35,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief name of sim7600
 */
 #define SIM7600_NAME                                        ("SIM7600")
+
+/*!
+\def FTS_PRECISION
+\precision conversion NMEA GPS Fract real value coordinate
+*/
+#define FTS_PRECISION 6
 
 /*!
 \def SIM7600_AT_TX_CMD_DEBUG_PREFIX
@@ -55,6 +59,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \brief Length of sim7600 buffer.
 */
 #define SIM7600_BUFFER_LENGTH                               (150)
+
+/*!
+\def SIM7600_BUFFER_LENGTH
+\brief Length of sim7600 buffer.
+*/
+#define SIM7600_BUFFER_CMD_LENGTH                           (70)
 
 /*!
 \def SIM7600_DEFAULT_BAUDRATE
@@ -135,10 +145,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define SIM7600_GENERIC_WAIT_DELAY_MS                       (3000)
 
 /*!
-\def SIM7600_GENERIC_WAIT_DELAY_MS
-\brief Waiting time in milliseconds between two retry in milliseconds.
+\def SIM7600_COMMAND_MODE_WAIT_DELAY_MS
+\brief Guard time after +++ before probing AT (escape sequence).
 */
 #define SIM7600_COMMAND_MODE_WAIT_DELAY_MS                  (1000)
+
+/*!
+\def SIM7600_COMMAND_MODE_SWITCH_DELAY_MS
+\brief Guard time when skipping +++ (PPP already closed) before AT/ATH.
+*/
+#define SIM7600_COMMAND_MODE_SWITCH_DELAY_MS                (2500)
 
 /*!
 \def SIM7600_GENERIC_STATE_DELAY_MS
@@ -156,9 +172,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GSM GPRS EUTRAN
 \brief Max number of retry for checking network availability.
 */
-#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GSM        (20)
-#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GPRS       (10)
+#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GSM        (40)
+#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_GPRS       (20)
 #define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_EUTRAN     (5)
+#define SIM7600_WAIT_FOR_NETWORK_RETRY_COUNT_MAX_TEST       (80)
+/*!
+\def SIM7600_TEST_ANTENNA_REFRESH_COUNT_MAX
+\brief After registration OK in LCD test mode: CSQ/CNSMOD refresh cycles for antenna positioning, then start PPP.
+*/
+#define SIM7600_TEST_ANTENNA_REFRESH_COUNT_MAX              (10)
 
 /*!
 \def SIM7600_WAIT_FOR_UART_RECONFIGURE_DELAY_MS
@@ -236,13 +258,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 \def RSSI_MAX
 \brief Minimum value of RSSI (high signal).
 */
-#define RSSI_MAX                                            (199)
+#define RSSI_MAX                                            (31)
 
 /*!
 \def RSSI_UNKNOWN
 \brief Unknown value of RSSI.
 */
-#define RSSI_UNKNOWN                                        (199)
+#define RSSI_UNKNOWN                                        (99)
+
+/*!
+\def CNSMOD_UNKNOWN
+\brief Unknown value of CNSMOD.
+*/
+#define CNSMOD_UNKNOWN                                      (0)
 
 /*!
 \def CREG_N_UNKNOWN
@@ -295,24 +323,11 @@ typedef enum
    SIM7600_MODE_NETWORK_DEFAULT = 0,   ///< Use default assigned method form HW module
    SIM7600_MODE_NETWORK_AUTO = 2,      ///< Use method AUTO for network connection
    SIM7600_MODE_NETWORK_2G = 13,       ///< Use only method 2G for network connection
+   SIM7600_MODE_NETWORK_2G_3G = 19,    ///< Use either method 2G/3G for network connection
    SIM7600_MODE_NETWORK_3G = 14,       ///< Use only method 3G for network connection
-   SIM7600_MODE_NETWORK_4G = 38        ///< Use only method 4G for network connection
+   SIM7600_MODE_NETWORK_4G = 38,       ///< Use only method 4G for network connection
+   SIM7600_MODE_NETWORK_2G_4G = 51     ///< Use either method 2G/4G for network connection
 } sim7600_connection_network_mode_t;
-
-/*!
-\enum sim7600_connection_network_type_t
-\Network type for select prefered order list on selected network mode.
-*/
-typedef enum
-{
-   SIM7600_TYPE_NETWORK_DEFAULT = 0,   ///< Use trasmission signal default for network connection
-   SIM7600_TYPE_NETWORK_CDMA = 2,      ///< Use trasmission signal CDMA for network connection
-   SIM7600_TYPE_NETWORK_GSM = 3,       ///< Use trasmission signal GSM for network connection
-   SIM7600_TYPE_NETWORK_HDR = 4,       ///< Use trasmission signal HDR for network connection
-   SIM7600_TYPE_NETWORK_WCDMA = 5,     ///< Use trasmission signal WCDMA for network connection
-   SIM7600_TYPE_NETWORK_LTE = 9,       ///< Use trasmission signal LTE for network connection
-   SIM7600_TYPE_NETWORK_TDSCDMA = 11   ///< Use trasmission signal TDSCDMA for network connection
-} sim7600_connection_network_type_t;
 
 /*!
 \enum sim7600_type_network_registration_t
@@ -328,6 +343,32 @@ typedef enum
 } sim7600_type_network_registration_t;
 
 /*!
+\enum sim7600_type_network_mode_t
+\Network mode registration abilitate and verify (+CNSMOD).
+\Mode for GSM, GPRS, EUTRAN familiy band registration network
+*/
+typedef enum
+{
+   SIM7600_TYPE_NETWORK_NO_SERVICE,
+   SIM7600_TYPE_NETWORK_GSM,
+   SIM7600_TYPE_NETWORK_GPRS,
+   SIM7600_TYPE_NETWORK_EDGE,
+   SIM7600_TYPE_NETWORK_WCDMA,
+   SIM7600_TYPE_NETWORK_HSDPA,
+   SIM7600_TYPE_NETWORK_HSUPA,
+   SIM7600_TYPE_NETWORK_HSPA,
+   SIM7600_TYPE_NETWORK_LTE,
+   SIM7600_TYPE_NETWORK_TDS_CDMA,
+   SIM7600_TYPE_NETWORK_TDS_HSDPA,
+   SIM7600_TYPE_NETWORK_TDS_HSUPA,
+   SIM7600_TYPE_NETWORK_TDS_HSPA,
+   SIM7600_TYPE_NETWORK_CDMA,
+   SIM7600_TYPE_NETWORK_EVDO,
+   SIM7600_TYPE_NETWORK_CDMA_EVDO,
+   SIM7600_TYPE_NETWORK_CDMA_LTE
+} sim7600_type_network_mode_t;
+
+/*!
 \enum sim7600_power_state_t
 \brief Main loop finite state machine.
 */
@@ -338,10 +379,7 @@ typedef enum
    SIM7600_POWER_IMPULSE_UP,     ///< set sim7600 poweron/poweroff pin high
    SIM7600_POWER_IMPULSE_DOWN,   ///< set sim7600 poweron/poweroff pin high
    SIM7600_POWER_CHECK_STATUS,   ///< check if sim7600 is on or is off
-   SIM7600_POWER_END,            ///< performs end operations and deactivate task
-   #ifndef USE_FREERTOS
-   SIM7600_POWER_WAIT_STATE ///< non-blocking waiting time
-   #endif
+   SIM7600_POWER_END             ///< performs end operations and deactivate task
 } sim7600_power_state_t;
 
 /*!
@@ -351,11 +389,19 @@ typedef enum
 typedef enum
 {
    SIM7600_POWER_OFF_INIT,         ///< init task variables
-   SIM7600_POWER_OFF_END,          ///< performs end operations and deactivate task
-   #ifndef USE_FREERTOS
-   SIM7600_POWER_OFF_WAIT_STATE ///< non-blocking waiting time
-   #endif
+   SIM7600_POWER_OFF_END           ///< performs end operations and deactivate task
 } sim7600_power_off_state_t;
+
+/*!
+\def SIM7600_DISABLE_URC
+\brief Disable unsolicited +CREG/+CGREG/+CEREG/+CNSMOD after setup.
+\Queries AT+CNSMOD? / AT+CSQ / AT+CxREG? remain available (LCD / periodic poll).
+\Override from application config.h via STIMA_MODEM_DISABLE_URC.
+*/
+#ifndef STIMA_MODEM_DISABLE_URC
+#define STIMA_MODEM_DISABLE_URC                             (true)
+#endif
+#define SIM7600_DISABLE_URC                                 (STIMA_MODEM_DISABLE_URC)
 
 /*!
 \enum sim7600_setup_state_t
@@ -365,13 +411,16 @@ typedef enum {
    SIM7600_SETUP_INIT,                    ///< init task variables
    SIM7600_SETUP_RESET,                   ///< reset sim7600 to default state
    SIM7600_SETUP_ECHO_MODE,               ///< disable sim7600 echo mode
-   SIM7600_SETUP_GET_SIGNAL_QUALITY,      ///< get signal quality
+   SIM7600_SETUP_DISABLE_URC,             ///< disable CREG/CGREG/CEREG/CNSMOD unsolicited reports
+   SIM7600_SETUP_GET_SIGNAL_QUALITY,      ///< get signal quality (first attempt)
    SIM7600_SETUP_CHANGE_BAUD_RATE,        ///< switch baud from defualt to fast rs232 speed
    SIM7600_SETUP_SET_PHONE_FUNCTIONALITY, ///< set on off or partial functionally for modem
    SIM7600_SETUP_SET_MODE_NETWORK,        ///< set type network prefered
-   SIM7600_SETUP_SET_PRIORITY_NETWORK,    ///< set priority list type network (only if more than one enabled)
+   SIM7600_SETUP_SET_PRIORITY_NETWORK,    ///< set priority list type network (AT+CNAOP)
    SIM7600_SETUP_ENABLE_NETWORK,          ///< enable type of network required
    SIM7600_SETUP_WAIT_NETWORK,            ///< wait for network availability
+   SIM7600_SETUP_UPDATE_SIGNAL_QUALITY,   ///< update signal quality (update on registartion loop)
+   SIM7600_SETUP_UPDATE_NETWORK_MODE,     ///< update network registration mode (update on registartion loop)
    SIM7600_SETUP_END,                     ///< performs end operations and deactivate task
    SIM7600_SETUP_WAIT_STATE               ///< non-blocking waiting time
 } sim7600_setup_state_t;
@@ -386,10 +435,7 @@ typedef enum
    SIM7600_CONNECTION_START_PDP,       ///< check if sim7600 is attached to gprs
    SIM7600_CONNECTION_START_PDP_AUTH,  ///< starting up connection
    SIM7600_CONNECTION_START_CONNECT,   ///< starting up connection
-   SIM7600_CONNECTION_START_END,       ///< performs end operations and deactivate task
-   #ifndef USE_FREERTOS
-   SIM7600_CONNECTION_START_WAIT_STATE ///< non-blocking waiting time
-   #endif
+   SIM7600_CONNECTION_START_END        ///< performs end operations and deactivate task
 } sim7600_connection_start_state_t;
 
 /*!
@@ -399,13 +445,11 @@ typedef enum
 typedef enum
 {
    SIM7600_CONNECTION_STOP_INIT,                       ///< init task variables
-   SIM7600_CONNECTION_ENTER_COMMAND_MODE,              ///< enter command mode
-   SIM7600_CONNECTION_STOP_HANGUP,                     ///< close socket
+   SIM7600_CONNECTION_ENTER_COMMAND_MODE,              ///< send +++ escape (optional)
+   SIM7600_CHECK_ENTER_COMMAND_MODE,                   ///< verify AT command mode
+   SIM7600_CONNECTION_STOP_HANGUP,                     ///< ATH hangup
    SIM7600_CONNECTION_STOP_CLOSE_PDP,                  ///< close pdp context
-   SIM7600_CONNECTION_STOP_END,                        ///< performs end operations and deactivate task
-   #ifndef USE_FREERTOS
-   SIM7600_CONNECTION_STOP_WAIT_STATE                  ///< non-blocking waiting time
-   #endif
+   SIM7600_CONNECTION_STOP_END                         ///< performs end operations and deactivate task
 } sim7600_connection_stop_state_t;
 
 /*!
@@ -417,10 +461,7 @@ typedef enum
    SIM7600_STATE_NONE = 0b00000000,             ///< default state at power on
    SIM7600_STATE_ON = 0b00000001,               ///< module is on
    SIM7600_STATE_SETTED = 0b00000010,           ///< module is is setted
-   SIM7600_STATE_CONNECTED = 0b00000100,        ///< module is is connected
-   #ifndef USE_FREERTOS
-   SIM7600_AT_WAIT_STATE ///< non-blocking waiting time
-   #endif
+   SIM7600_STATE_CONNECTED = 0b00000100         ///< module is is connected
 } sim7600_state_t;
 
 /*!
@@ -432,10 +473,7 @@ typedef enum
    SIM7600_AT_INIT,    ///< init task variables
    SIM7600_AT_SEND,    ///< send AT command
    SIM7600_AT_RECEIVE, ///< wait for AT response
-   SIM7600_AT_END,     ///< performs end operations and deactivate task
-   #ifndef USE_FREERTOS
-   SIM7600_AT_WAIT_STATE ///< non-blocking waiting time
-   #endif
+   SIM7600_AT_END      ///< performs end operations and deactivate task
 } sim7600_at_state_t;
 
 /*!
@@ -457,13 +495,7 @@ class SIM7600
 public:
    SIM7600();
    
-#ifndef USE_FREERTOS
-   SIM7600(HardwareSerial *serial, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
-#endif
-
-#ifdef USE_FREERTOS
    SIM7600(NetInterface *_interface, uint32_t _low_baud_rate, uint32_t _high_baud_rate, uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_indicator_pin);
-#endif
 
    /*!
    \fn bool isOn()
@@ -487,26 +519,12 @@ public:
    bool isConnected();
 
    /*!
-   \fn void setSerial(HardwareSerial *serial, uin32_t _low_baud_rate, uin32_t _high_baud_rate)
-   \brief Set serial port for sim7600.
-   \param[in] *serial pointer to serial stream.
-   \param[in] _low_baud_rate baud rate for serial stream.
-   \param[in] _high_baud_rate baud rate for serial stream.
-   \return void.
-   */
-   #ifndef USE_FREERTOS
-   void setSerial(HardwareSerial *serial, uin32_t _low_baud_rate, uin32_t _high_baud_rate);
-   #endif
-
-   /*!
    \fn void setInterface(NetInterface *_interface)
    \brief Set cyclonetcp interface for sim7600.
    \param[in] *interface pointer to interface.
    \return void.
    */
-   #ifdef USE_FREERTOS
    void setInterface(NetInterface *_interface);
-   #endif
 
    /*!
    \fn void setPins(uint8_t _enable_power_pin, uint8_t _power_pin, uint8_t _ring_inicator_pin)
@@ -554,6 +572,12 @@ public:
    uint8_t getCregN();
 
    /*!
+    \fn uint8_t getCnsmod()
+    \brief get sim7600 Cnsmod of the active connection.
+    */
+   uint8_t getCnsmod();
+
+   /*!
     \fn uint8_t getCregStat()
     \brief get sim7600 creg stat of the active connection.
     */
@@ -599,6 +623,20 @@ public:
    */
    sim7600_status_t sendAtCsq();
 
+   /**
+    * @brief 
+    * 
+    * @return sim7600_status_t 
+    */
+   sim7600_status_t sendAtCnsmod();
+
+   /**
+    * @brief 
+    * 
+    * @return gps_info 
+    */
+   sim7600_status_t sendAtGpsInfo();
+
    /*!
    \fn sim7600_status_t switchOn()
    \brief Power on module.
@@ -617,14 +655,17 @@ public:
    /*!
    \fn sim7600_status_t setup()
    \brief Execute setup sequence.
-   \param[in] network_type type base network abilitation AUTO, 2G, 3G, 4G mode
+   \param[in] network_type type base network abilitation AUTO, 2G, 3G, 4G mode (AT+CNMP)
    \param[in] network_regver type of registration minimal metwork to get setup OK
-   \param[in] *network_order order list mode network access operation
+   \param[in] *network_order CNAOP preferred access order (existing CFG field)
+   \param[in] test_connection if only for check signal_status (not for standard connection)
+   \param[out] update_flags setted when update quality signal, cnsmod, registration newer value available
    \return sim7600 status on each call.
    */
    sim7600_status_t setup(sim7600_connection_network_mode_t network_type = SIM7600_MODE_NETWORK_DEFAULT,
                            sim7600_type_network_registration_t network_regver = sim7600_type_network_registration_t::SIM7600_REG_NETWORK_EUTRAN,
-                           char* network_order = "");
+                           char* network_order = "",
+                           bool test_connection = false, bool *update_flags = NULL);
    /*!
    \fn sim7600_status_t connect(const char *apn, const char *number)
    \brief Execute start connection sequence.
@@ -645,15 +686,17 @@ public:
    // sim7600_status_t connection(const char *tipo, const char *server, const int port);
 
    /*!
-   \fn sim7600_status_t disconnect()
-   \brief Execute stop connection sequence.
+   \fn sim7600_status_t disconnect(bool bUseEscapeSeq)
+   \brief Exit data mode and hangup.
+   \param[in] bUseEscapeSeq true = send +++ then AT then ATH (CSD/data modem);
+              false = after PPP close, wait then AT then ATH (no +++).
    \return sim7600 status on each call.
    */
-   sim7600_status_t disconnect();
+   sim7600_status_t disconnect(bool bUseEscapeSeq = false);
 
    /*!
    \fn void cleanInput()
-   \brief Clear read serial port stream.
+   \brief Clear PPP RX buffer before sending AT (discard URC/stale bytes).
    \return void.
    */
    void cleanInput();
@@ -671,15 +714,6 @@ public:
    */
    sim7600_status_t sendAtCommand(const char *command, char *response, size_t response_length, const char *at_ok_string = AT_OK_STRING, const char *at_error_string = AT_ERROR_STRING, uint32_t timeout_ms = SIM7600_AT_DEFAULT_TIMEOUT_MS);
 
-protected:
-   /*!
-   \var *modem
-   \brief pointer to modem serial stream.
-   */
-   #ifndef USE_FREERTOS
-   HardwareSerial *modem;
-   #endif
-
 private:
    /*!
    \var buffer_ext
@@ -688,10 +722,16 @@ private:
    char buffer_ext[SIM7600_BUFFER_LENGTH];
 
    /*!
-   \var buffer_ext2
+   \var buffer_ptr
+   \brief Buffer pointer for check part of AT command and receive response.
+   */
+   char *buffer_ptr;
+
+   /*!
+   \var buffer_cmd
    \brief Buffer for send AT command and receive response.
    */
-   char buffer_ext2[SIM7600_BUFFER_LENGTH];
+   char buffer_cmd[SIM7600_BUFFER_CMD_LENGTH];
 
    /*!
    \fn sim7600_status_t switchModem(bool is_switching_on)
@@ -700,6 +740,24 @@ private:
    \return sim7600 status on each call.
    */
    sim7600_status_t switchModem(bool is_switching_on);
+
+   /*!
+   \fn floatToString(float num, char *tOutStr)
+   \brief Convert float to string for local NMEA GPS Conversion
+   \param[in] num float to be converted.
+   \param[out] *tOutStr string float converted output.
+   */
+   void floatToString(float num, char *tOutStr);
+
+   /*!
+   \fn void Convert_NMEA_Decimal(char* tNmeaGPSInfo, char* tDecimalLat, char* tDecimalLon, char* tAltitude)
+   \brief Convert from NMEA Format to standard es. GoogleMaps GPS Coordinate format.
+   \param[in] tNmeaGPSInfo string containing NMEA Output string SIM7600 Module.
+   \param[out] tDecimalLat string containing latitude GPS format.
+   \param[out] tDecimalLon string containing longitudeGPS format.
+   \param[out] tAltitude string containing altitude in meters.
+   */
+   void convertGpsNMEADecimal(char* tNmeaGPSInfo, char* tDecimalLat, char* tDecimalLon, char* tAltitude);
 
    /*!
    \var low_baud_rate
@@ -717,9 +775,7 @@ private:
    \var interface
    \brief cylocnetcp interface for sim7600.
    */
-   #ifdef USE_FREERTOS
    NetInterface *interface;
-   #endif
 
    /*!
    \var delay_ms
@@ -788,52 +844,68 @@ private:
    sim7600_connection_stop_state_t sim7600_connection_stop_state;
 
    /*!
-   \var rssi
-   \brief sim7600 rssi of the active connection.
+      \var rssi
+      \brief sim7600 rssi of the active connection.
    */
-   uint8_t rssi;
+   uint8_t sim7600_rssi;
 
    /*!
-    \var ber
-    \brief sim7600 ber of the active connection.
-    */
-   uint8_t ber;
+      \var cnsmod
+      \brief sim7600 cnsmod of the active connection.
+   */
+   uint8_t sim7600_cnsmod;
 
    /*!
-    \var creg_n
-    \brief sim7600 creg_n of the active connection.
-    */
-   uint8_t creg_n;
+      \var ber
+      \brief sim7600 ber of the active connection.
+   */
+   uint8_t sim7600_ber;
 
    /*!
-    \var creg_stat
-    \brief sim7600 creg_stat of the active connection.
-    */
-   uint8_t creg_stat;
+      \var creg_n
+      \brief sim7600 creg_n of the active connection.
+   */
+   uint8_t sim7600_creg_n;
 
    /*!
-    \var cgreg_n
-    \brief sim7600 cgreg_n of the active connection.
-    */
-   uint8_t cgreg_n;
+      \var creg_stat
+      \brief sim7600 creg_stat of the active connection.
+   */
+   uint8_t sim7600_creg_stat;
 
    /*!
-    \var cgreg_stat
-    \brief sim7600 cgreg_stat of the active connection.
-    */
-   uint8_t cgreg_stat;
+      \var cgreg_n
+      \brief sim7600 cgreg_n of the active connection.
+   */
+   uint8_t sim7600_cgreg_n;
 
    /*!
-    \var cereg_n
-    \brief sim7600 cereg_n of the active connection.
-    */
-   uint8_t cereg_n;
+      \var cgreg_stat
+      \brief sim7600 cgreg_stat of the active connection.
+   */
+   uint8_t sim7600_cgreg_stat;
 
    /*!
-    \var cereg_stat
-    \brief sim7600 cereg_stat of the active connection.
-    */
-   uint8_t cereg_stat;
+      \var cereg_n
+      \brief sim7600 cereg_n of the active connection.
+   */
+   uint8_t sim7600_cereg_n;
+
+   /*!
+      \var cereg_stat
+      \brief sim7600 cereg_stat of the active connection.
+   */
+   uint8_t sim7600_cereg_stat;
+
+   /*!
+      \var gps_info
+      \brief sim7600 gps_info of the active session.
+   */
+   char sim7600_gps_lat_pos[11] = {0};
+   char sim7600_gps_lon_pos[12] = {0};
+   char sim7600_gps_alt[8] = {0};
+   bool sim7600_is_gps_ready = false;
+
 };
 
 #endif

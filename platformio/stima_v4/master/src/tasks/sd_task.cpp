@@ -296,6 +296,42 @@ bool SdTask::getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t 
     return fileReady;
 }
 
+bool SdTask::sdCardBegin(bool volume)
+{
+  #if (SD_SPI_PORT_ID == 1)
+  SdSpiConfig spiConfig(PIN_SPI1_SS, SD_SPI1_SS_USER_MODE, SPI_SPEED, &Spi1);
+  #else
+  SdSpiConfig spiConfig(PIN_SPI2_SS, DEDICATED_SPI, SPI_SPEED, &Spi2);
+  #endif
+  if (volume) {
+    return SD.begin(spiConfig);
+  }
+  return SD.cardBegin(spiConfig);
+}
+
+void SdTask::sdCardEnd()
+{
+  SD.end();
+}
+
+void SdTask::sdCloseAllFiles(File &logFile, File &rmapWrFile, File &rmapRdFile,
+                             File &putFile, File *getFile, uint8_t getFileCount,
+                             File &dir, File &entry, File &tmpFile)
+{
+  if (logFile) logFile.close();
+  if (rmapWrFile) rmapWrFile.close();
+  if (rmapRdFile) rmapRdFile.close();
+  if (putFile) putFile.close();
+  if (dir) dir.close();
+  if (entry) entry.close();
+  if (tmpFile) tmpFile.close();
+  if (getFile) {
+    for (uint8_t i = 0; i < getFileCount; i++) {
+      if (getFile[i]) getFile[i].close();
+    }
+  }
+}
+
 /// @brief RUN Task
 void SdTask::Run() 
 {
@@ -311,6 +347,8 @@ void SdTask::Run()
   // Generic retry
   uint8_t retry;
   bool message_traced = false;
+  bool sd_begin_pending = true;
+  uint32_t last_sd_begin_attempt_ms = 0;
   bool is_getted_rtc;
   // Queue buffer for logging
   char logBuffer[LOG_PUT_DATA_ELEMENT_SIZE];
@@ -319,14 +357,11 @@ void SdTask::Run()
   rmap_archive_data_t rmap_put_archive_data;
   rmap_get_request_t rmap_get_request;
   rmap_get_response_t rmap_get_response;
-  rmap_backup_data_t rmap_backup_archive_data;
   // Name file for data append es. /data/2023_01_30.dat (RMAP File data are stored by Day)
   char rmap_file_name_wr[DATA_FILENAME_LEN] = {0};      // Name current Write File Data RMAP
   char rmap_file_name_rd[DATA_FILENAME_LEN] = {0};      // Name Current Read File Data RMAP (Get queue from MQTT/Supervisor Request)
   char rmap_file_name_check[DATA_FILENAME_LEN] = {0};   // Check control Name VAR (RMAP Data Day changed?)
   char rmap_file_name_rd_bkp[DATA_FILENAME_LEN] = {0};  // Name Backup Read File Data RMAP for Recovery End of Time "dte" param
-  char rmap_file_name_bkp[DATA_FILENAME_LEN] = {0};     // Name current Backup Older File Data RMAP
-  char rmap_file_bkp_check[DATA_FILENAME_LEN] = {0};    // Check control Name VAR Backup (RMAP Data Day changed?)
   uint32_t rmap_pointer_seek;           // Seek Absolute Position Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_datetime;       // Date Time Pointer Read in File RMAP Queue Out
   uint32_t rmap_pointer_seek_prv;       // Seek Absolute Position Pointer Read in File RMAP Queue Out (Previous Position before OK confirm data recived)
@@ -355,12 +390,25 @@ void SdTask::Run()
   bool fw_reinit_struct = false;  // True if request reinit structure firmware and send queue response (complete clean directory)
   bool sd_reinit_data = false;    // True if request reinit sd data and send queue response
   File rmapWrFile, rmapRdFile;    // File (RMAP Write Data Append and Read Data from External Task request)
-  File rmapBkpFile;               // File (OLDER RMAP Backup Write Data Append from External Task request)
+  bool rmap_rd_file_open = false; // RD handle closed at EOF but File object may stay truthy
   File logFile, putFile;          // File Log and Firmware Write INTO SD (From Queue TASK Extern)
   File getFile[BOARDS_COUNT_MAX]; // File for remote boards Multi simultaneous file server Reading (For Queue Task Extern)
   File dir, entry, tmpFile;       // Only used for Temp(shared Open Close Single Operation) or Access directory List
   bool error_sd_card = false;     // Generic error Open/Other operation to SD require a new Synch Reset SD CARD
   bool is_real_time_task = false; // Request min delay (real time type for task) Need if queue file is opened direct to minimize external wait
+
+  auto sdPrepareRemount = [&]() {
+    sdCloseAllFiles(logFile, rmapWrFile, rmapRdFile, putFile, getFile, BOARDS_COUNT_MAX,
+                    dir, entry, tmpFile);
+    rmap_file_name_wr[0] = 0;
+    rmap_file_name_rd[0] = 0;
+    rmap_file_name_check[0] = 0;
+    rmap_file_name_rd_bkp[0] = 0;
+    rmap_rd_file_open = false;
+    param.systemStatusLock->Take();
+    param.system_status->flags.sd_card_ready = false;
+    param.systemStatusLock->Give();
+  };
 
   // Start Running Monitor and First WDT normal state
   #if (ENABLE_STACK_USAGE)
@@ -392,21 +440,27 @@ void SdTask::Run()
       digitalWrite(PIN_SD_LED, bLedLevel);
       led_counter = 0;
       #endif
+      param.systemStatusLock->Take();
+      param.system_status->flags.sd_card_ready = false;
+      param.systemStatusLock->Give();
+      sd_begin_pending = true;
       // break unused
     case SD_STATE_INIT_SD:
       state = SD_STATE_INIT_SD;
-      // Check SD or Resynch after Error
-      #if (SD_SPI_PORT_ID == 1)
-      if (SD.begin(SdSpiConfig(PIN_SPI1_SS, SD_SPI1_SS_USER_MODE, SPI_SPEED, &Spi1))) {
-      #else
-      if (SD.begin(SdSpiConfig(PIN_SPI2_SS, DEDICATED_SPI, SPI_SPEED, &Spi2))) {
-      #endif  
-        TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_STRUCTURE\r\n"));
-        message_traced = false;
-        state = SD_STATE_CHECK_STRUCTURE;
-        message_traced = false;
-      } else {
-        // Signal LED Blink every (500 mS) SD Not inizialized
+
+      if (!param.systemMessageQueue->IsEmpty()) {
+        system_message_t sd_cmd;
+        param.systemMessageQueue->Peek(&sd_cmd);
+        if ((sd_cmd.task_dest == LOCAL_TASK_ID) && sd_cmd.command.do_trunc_sd) {
+          param.systemMessageQueue->Dequeue(&sd_cmd);
+          if (sd_cmd.param == CMD_PARAM_REQUIRE_RESPONSE) sd_reinit_data = true;
+          state = SD_STATE_TRUNCATE_DATA;
+          break;
+        }
+      }
+
+      if (!sd_begin_pending &&
+          ((millis() - last_sd_begin_attempt_ms) < SD_TASK_NO_CARD_RETRY_DELAY_MS)) {
         #ifdef PIN_SD_LED
         led_counter++;
         if(led_counter > (500 / SD_TASK_WAIT_DELAY_MS)) {
@@ -415,125 +469,103 @@ void SdTask::Run()
           digitalWrite(PIN_SD_LED, bLedLevel);
         }
         #endif
-        // Only one TRACE message... SD Not present
+        break;
+      }
+      sd_begin_pending = false;
+      last_sd_begin_attempt_ms = millis();
+
+      sdCardEnd();
+      if (sdCardBegin(true)) {
+        TRACE_VERBOSE_F(F("SD Card slot ready -> SD_STATE_CHECK_STRUCTURE\r\n"));
+        message_traced = false;
+        state = SD_STATE_CHECK_STRUCTURE;
+      } else {
+        #ifdef PIN_SD_LED
+        led_counter++;
+        if(led_counter > (500 / SD_TASK_WAIT_DELAY_MS)) {
+          led_counter = 0;
+          bLedLevel = !bLedLevel;
+          digitalWrite(PIN_SD_LED, bLedLevel);
+        }
+        #endif
         if(!message_traced) {
-          // SD Was NOT Ready... for System
           param.systemStatusLock->Take();
           param.system_status->flags.sd_card_ready = false;
           param.systemStatusLock->Give();
-          TRACE_VERBOSE_F(F("SD Card waiting to begin\r\n"));
+          TRACE_VERBOSE_F(F("SD Card waiting to begin (retry every %u s)\r\n"),
+            (unsigned)(SD_TASK_NO_CARD_RETRY_DELAY_MS / 1000U));
           message_traced = true;
         }
       }
       break;
 
     case SD_STATE_TRUNCATE_DATA:
-      // Truncate SD Card data buffer for external Menu or SW Command Request      
-      // Data Directory...
-      dir = SD.open("/data");
-      if(!dir) {
-        // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
-        // Normally on request from RPC Before calling -> system_message.(do_function_respond)
-        // sd_reinit_data is true if must to respond queue to sender (RPC)
-        if(sd_reinit_data) {
+      TRACE_INFO_F(F("SD: Erase/format SD Card requested\r\n"));
+      sdPrepareRemount();
+      sdCardEnd();
+
+      if (!sdCardBegin(false)) {
+        TRACE_ERROR_F(F("SD: Erase failed, card not responding\r\n"));
+        if (sd_reinit_data) {
           sd_reinit_data = false;
           system_message_t system_message = {0};
           system_message.task_dest = ALL_TASK_ID;
           system_message.command.done_trunc_sd = true;
           param.systemMessageQueue->Enqueue(&system_message);
         }
-        // Exit Error and Reset
         state = SD_STATE_INIT;
         break;
-      }
-      // Open File High LED
-      #ifdef PIN_SD_LED
-      digitalWrite(PIN_SD_LED, HIGH);
-      #endif
-      if(dir.isDir()) {
-        // Delete all file into firmware directory (reinit...)
-        while(true) {
-          entry = dir.openNextFile();
-          if(!entry) break;
-          entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
-          entry.close();
-          strcpy(firmware_file_name, "/data/");
-          strcat(firmware_file_name, local_file_name);
-          SD.remove(firmware_file_name);
-          // Long Operation perform non blocking TASK
-          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
-          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
-          #if (ENABLE_STACK_USAGE)
-          TaskMonitorStack();
-          #endif
-        }
-        dir.close();
-      } else {
-        // data is a file (error on SD structure)
-        SD.remove("/data");
-      }
-      
-      // Firmware Directory...
-      dir = SD.open("/firmware");
-      if(!dir) {
-        // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
-        // Normally on request from RPC Before calling -> system_message.(do_function_respond)
-        // sd_reinit_data is true if must to respond queue to sender (RPC)
-        if(sd_reinit_data) {
-          sd_reinit_data = false;
-          system_message_t system_message = {0};
-          system_message.task_dest = ALL_TASK_ID;
-          system_message.command.done_trunc_sd = true;
-          param.systemMessageQueue->Enqueue(&system_message);
-        }
-        // Exit Error and Reset
-        state = SD_STATE_INIT;
-        break;
-      }
-      // Open File High LED
-      #ifdef PIN_SD_LED
-      digitalWrite(PIN_SD_LED, HIGH);
-      #endif
-      if(dir.isDir()) {
-        // Delete all file into firmware directory (reinit...)
-        while(true) {
-          entry = dir.openNextFile();
-          if(!entry) break;
-          entry.getName(local_file_name, FILE_NAME_MAX_LENGHT);
-          entry.close();
-          strcpy(firmware_file_name, "/firmware/");
-          strcat(firmware_file_name, local_file_name);
-          SD.remove(firmware_file_name);
-          // Long Operation perform non blocking TASK
-          TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
-          Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
-          #if (ENABLE_STACK_USAGE)
-          TaskMonitorStack();
-          #endif
-        }
-        dir.close();
-      } else {
-        // firmware is a file (error on SD structure)
-        SD.remove("/firmware");
       }
 
-      // Force init array structure SD Card firmware present (RESETTED to initial void value, without Firmware files)
+      TaskWatchDog(SD_TASK_FORMAT_WDT_MS);
+      #ifdef PIN_SD_LED
+      digitalWrite(PIN_SD_LED, HIGH);
+      #endif
+      if (!SD.format()) {
+        #ifdef PIN_SD_LED
+        digitalWrite(PIN_SD_LED, LOW);
+        #endif
+        TRACE_ERROR_F(F("SD: Format failed\r\n"));
+        if (sd_reinit_data) {
+          sd_reinit_data = false;
+          system_message_t system_message = {0};
+          system_message.task_dest = ALL_TASK_ID;
+          system_message.command.done_trunc_sd = true;
+          param.systemMessageQueue->Enqueue(&system_message);
+        }
+        state = SD_STATE_INIT;
+        break;
+      }
+      #ifdef PIN_SD_LED
+      digitalWrite(PIN_SD_LED, LOW);
+      #endif
+      TRACE_INFO_F(F("SD: Format OK, remounting\r\n"));
+
+      if (!sdCardBegin(true)) {
+        TRACE_ERROR_F(F("SD: Remount after format failed\r\n"));
+        if (sd_reinit_data) {
+          sd_reinit_data = false;
+          system_message_t system_message = {0};
+          system_message.task_dest = ALL_TASK_ID;
+          system_message.command.done_trunc_sd = true;
+          param.systemMessageQueue->Enqueue(&system_message);
+        }
+        state = SD_STATE_INIT;
+        break;
+      }
+
       param.systemStatusLock->Take();
       for(uint8_t brd=0; brd<STIMA_MODULE_TYPE_MAX_AVAIABLE; brd++) {
         param.system_status->boards_update_avaiable[brd].module_type = Module_Type::undefined;
         param.system_status->boards_update_avaiable[brd].version = 0;
         param.system_status->boards_update_avaiable[brd].revision = 0;
       }
-      // Force init flags structure SD Card firmware ready (SETTED on get data connection Cyphal)
       param.system_status->data_master.fw_upgradable = false;
       for(uint8_t queueId=0; queueId<BOARDS_COUNT_MAX; queueId++) {
         param.system_status->data_slave[queueId].fw_upgradable = false;
       }
       param.systemStatusLock->Give();
 
-      // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
-      // Normally on request from RPC Before calling -> system_message.(do_function_respond)
-      // sd_reinit_data is true if must to respond queue to sender (RPC)
       if(sd_reinit_data) {
         sd_reinit_data = false;
         system_message_t system_message = {0};
@@ -543,7 +575,6 @@ void SdTask::Run()
       }
 
       TRACE_VERBOSE_F(F("SD_STATE_TRUNCATE_DATA -> SD_STATE_CHECK_STRUCTURE\r\n"));
-
       state = SD_STATE_CHECK_STRUCTURE;
       break;
 
@@ -619,59 +650,6 @@ void SdTask::Run()
       }
       dir.close();
 
-      // Create archive backup ditectory
-      if(!SD.exists("/bkp")) {
-        if(!SD.mkdir("/bkp")) {
-          state = SD_STATE_INIT;
-          break;
-        }
-        TRACE_INFO_F(F("SD: created base structure dir bkp\r\n"));
-      }
-      dir = SD.open("/bkp");
-      if(!dir.isDir()) {
-        // bkp is a file (error on SD structure), restart this switch to create good structure
-        SD.remove("/bkp");
-        TRACE_INFO_F(F("SD: removed file bkp from structure\r\n"));
-        break;
-      }
-      dir.close();
-
-      // Create Info Dat File (Crteated at startup Info on BKP\SD)
-      tmpFile = SD.open("/bkp/info.dat", O_RDWR | O_CREAT);
-      if(tmpFile) {
-        // Open File High LED
-        #ifdef PIN_SD_LED
-        digitalWrite(PIN_SD_LED, HIGH);
-        #endif
-        bWriteErr = false;
-        // Create Default Base Topic from E2Prom archived configuration (Rewrite at startup, changed firmware, configuration, ecc...)
-        memset(logBuffer, 0, sizeof(logBuffer));
-        snprintf(logBuffer, sizeof(logBuffer), "%s/%s/%s/%d,%d/%s/", param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network);
-        bWriteErr |= !tmpFile.println(param.configuration->stationslug);
-        bWriteErr |= !tmpFile.println(param.configuration->module_main_version);
-        bWriteErr |= !tmpFile.println(param.configuration->module_minor_version);
-        bWriteErr |= !tmpFile.println(logBuffer);
-        bWriteErr |= !tmpFile.println(RMAP_BACKUP_DATA_LEN_TOPIC_SIZE);
-        bWriteErr |= !tmpFile.println(RMAP_BACKUP_DATA_LEN_MESSAGE_SIZE);
-        tmpFile.close();
-        // Close File Low LED
-        #ifdef PIN_SD_LED
-        digitalWrite(PIN_SD_LED, LOW);
-        #endif
-        if (bWriteErr) {
-          // SD Pointer Error, general Write on first File...
-          // Error. Send to system_state and retry OPEN INIT SD
-          state = SD_STATE_INIT;
-          break;
-        }
-        TRACE_INFO_F(F("SD: created file info.dat record structure data bkp\r\n"));
-      } else {
-        // SD Pointer Error, general Open on first File...
-        // Error. Send to system_state and retry OPEN INIT SD
-        state = SD_STATE_INIT;
-        break;
-      }
-
       // ***************************************************
       // SD Was Ready... for System Structure and Pointer OK
       // ***************************************************
@@ -713,14 +691,20 @@ void SdTask::Run()
           #endif
           // At First Get Data Set Sync Pointer position with loaded param
           namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_rd);
-          // Check file
-          if(SD.exists(rmap_file_name_rd)) {
-            // Set Current Pointer Position (Error can checked on WaitingEvent State)
+          if (rmap_pointer_seek == UNKNOWN_POINTER_POSITION) {
+            TRACE_INFO_F(F("SD: RMAP pointer seek UNKNOWN — defer open until reset_ptr\r\n"));
+          } else if(SD.exists(rmap_file_name_rd)) {
             rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
             if(rmapRdFile) {
+              rmap_rd_file_open = true;
               rmapRdFile.seek(rmap_pointer_seek);
               rmap_pointer_seek_bkp = rmap_pointer_seek;
-              TRACE_INFO_F(F("SD: load current data position at [ %d ], bytes avaible to read [ %d ]\r\n"), rmap_pointer_seek, rmapRdFile.available());
+              const int avail_boot = rmapRdFile.available();
+              TRACE_INFO_F(F("SD: load current data position at [ %d ], bytes avaible to read [ %d ]\r\n"), rmap_pointer_seek, avail_boot);
+              if (avail_boot == 0) {
+                rmapRdFile.close();
+                rmap_rd_file_open = false;
+              }
             }
           } else {
             // Pointer file not coerent, Remove and new creation starting
@@ -964,6 +948,40 @@ void SdTask::Run()
       #endif
       // **********************************************************************************
 
+      // LCD / fupdate use data_slave[].fw_upgradable (not only boards_update_avaiable).
+      // Do not mark UPGRADABLE while run is still 0.0 (CAN has not reported rev yet).
+      param.systemStatusLock->Take();
+      for (uint8_t queueId = 0; queueId < BOARDS_COUNT_MAX; queueId++) {
+        const Module_Type mt = param.configuration->board_slave[queueId].module_type;
+        if (mt == Module_Type::undefined) {
+          continue;
+        }
+        bool upgradable = false;
+        const uint8_t run_ver = param.system_status->data_slave[queueId].module_version;
+        const uint8_t run_rev = param.system_status->data_slave[queueId].module_revision;
+        for (uint8_t checkId = 0; checkId < STIMA_MODULE_TYPE_MAX_AVAIABLE; checkId++) {
+          if (param.system_status->boards_update_avaiable[checkId].module_type != mt) {
+            continue;
+          }
+          const uint8_t fv = param.system_status->boards_update_avaiable[checkId].version;
+          const uint8_t fr = param.system_status->boards_update_avaiable[checkId].revision;
+          if ((run_ver != 0) || (run_rev != 0)) {
+            if ((fv > run_ver) || ((fv == run_ver) && (fr > run_rev))) {
+              upgradable = true;
+            }
+            TRACE_INFO_F(F("SD: slave[%u] fw check run %u.%u vs SD %u.%u → %s\r\n"),
+              (unsigned)queueId, (unsigned)run_ver, (unsigned)run_rev,
+              (unsigned)fv, (unsigned)fr, upgradable ? "UPGRADABLE" : "up-to-date");
+          } else {
+            TRACE_INFO_F(F("SD: slave[%u] fw on SD %u.%u (run unknown — wait CAN)\r\n"),
+              (unsigned)queueId, (unsigned)fv, (unsigned)fr);
+          }
+          break;
+        }
+        param.system_status->data_slave[queueId].fw_upgradable = upgradable;
+      }
+      param.systemStatusLock->Give();
+
       // ? Need to send response to sender (Not at startup -> fw_reload_struct = false)
       // Normally on request from RPC Before calling -> system_message.(do_function_respond)
       // fw_reload_struct is true if must to respond queue to sender (RPC)
@@ -1103,59 +1121,6 @@ void SdTask::Run()
       // *********************************************************
 
       // *********************************************************
-      // Perform DATA RMAP BACKUP DATA WRITE Older Format message 
-      // *********************************************************
-      // If element get all element from the queue and Put to SD
-      // Typical Put of Older Data Block transparent MQTT Data
-      // Older File is Fixed lenght Type. DateTime Name is also used.
-      // File are always opened if Append for fast Access Operation
-      while(!param.dataRmapPutBackupQueue->IsEmpty()) {
-        // Exit while on Error
-        if(error_sd_card) break;
-        // Get message from queue
-        if(param.dataRmapPutBackupQueue->Dequeue(&rmap_backup_archive_data)) {
-          // Put to SD ( APPEND to File in Native Format. Check naming file )
-          namingFileData(rmap_backup_archive_data.date_time, "/bkp", rmap_file_bkp_check);
-          // Day Name File Changed (Data is to save in New File?) or Not Open...
-          if((strcmp(rmap_file_name_bkp, rmap_file_bkp_check)) || (!rmapBkpFile)) {
-            // Save new file_name for next control
-            strcpy(rmap_file_name_bkp, rmap_file_bkp_check);
-            // Not opened? Open... in append
-            if(rmapBkpFile) rmapBkpFile.close();
-            rmapBkpFile = SD.open(rmap_file_name_bkp, O_RDWR | O_CREAT | O_AT_END);
-            // Open File High LED
-            #ifdef PIN_SD_LED
-            digitalWrite(PIN_SD_LED, HIGH);
-            #endif
-          }
-          // All correct... Write Block of data
-
-          // Put to SD ( APPEND File Always Opened with Flush Data )
-          if(rmapBkpFile) {
-            // Open File High LED
-            #ifdef PIN_SD_LED
-            digitalWrite(PIN_SD_LED, HIGH);
-            #endif
-            // Fixed Lenght File type
-            bWriteErr = false;
-            bWriteErr |= !rmapBkpFile.write((char*)rmap_backup_archive_data.block, RMAP_BACKUP_DATA_MAX_ELEMENT_SIZE);
-            rmapBkpFile.flush();
-            // Close File Low LED
-            #ifdef PIN_SD_LED
-            digitalWrite(PIN_SD_LED, LOW);
-            #endif
-            if(bWriteErr) error_sd_card = true;
-          } else {
-            // Generic open file Error
-            error_sd_card = true;
-          }
-        }
-      }
-      // *********************************************************
-      // End OF perform DATA RMAP BACKUP DATA WRITE Older message
-      // *********************************************************
-
-      // *********************************************************
       //       Perform RMAP Write Data append get message
       // *********************************************************
       // If element get all element from the queue and Put to SD
@@ -1217,7 +1182,7 @@ void SdTask::Run()
         memset(&rmap_get_request, 0, sizeof(rmap_get_request));
         rmap_get_request.command.do_reset_ptr = true;
         // Go to last data 
-        rmap_get_request.param = rmap_pointer_datetime - param.configuration->report_s;
+        rmap_get_request.param = (rmap_pointer_datetime / SECS_DAY) * SECS_DAY;
         param.dataRmapGetRequestQueue->Enqueue(&rmap_get_request, Ticks::MsToTicks(FILE_IO_PTR_QUEUE_TIMEOUT));
       }
 
@@ -1248,11 +1213,14 @@ void SdTask::Run()
             bool is_found = false;
             char rmap_file_name_new[DATA_FILENAME_LEN]; // Work with temp Name file (SET in Pointer only if all right)
             uint32_t dateTimeSearch = rmap_get_request.param;
-            // Backup Current REAL Pointer (if requested and Start/End Pointer Function SET)
-            // In This case after END Pointer or END Data Event, BKP Pointer is restored automatically
+            if (rmapRdFile) {
+              rmapRdFile.close();
+              rmap_rd_file_open = false;
+            }
             rmap_pointer_datetime_bkp = rmap_pointer_datetime;
             rmap_pointer_seek_bkp = rmap_pointer_seek;
             strcpy(rmap_file_name_rd_bkp, rmap_file_name_rd);
+            rmap_file_name_rd[0] = 0;
             // Trace INFO Queue Request SET Pointer TO->
             DateTime rmap_date_time_val;
             convertUnixTimeToDate(dateTimeSearch, &rmap_date_time_val);
@@ -1397,9 +1365,13 @@ void SdTask::Run()
             }
             // All OK?
             if(rmap_get_response.result.done_synch) {
-              // Force closing RDFile for ResSynch pointer in security mode
-              if(rmapRdFile) rmapRdFile.close();
-              // System status enter in data ready for SENT (new data present)
+              if(rmap_rd_file_open) {
+                rmapRdFile.close();
+                rmap_rd_file_open = false;
+              }
+              if (rmap_get_request.command.do_reset_ptr) {
+                rmap_get_request.command.do_save_ptr = true;
+              }
               param.systemStatusLock->Take();
               param.system_status->flags.new_data_to_send = true;
               param.systemStatusLock->Give();
@@ -1433,12 +1405,15 @@ void SdTask::Run()
             namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
             // Day Name File Changed or Not, required reSynch PTR with previous position
             strcpy(rmap_file_name_rd, rmap_file_name_check);
-            // Not opened? open... in append
-            // Resynch if file is close and (file_name not changed... Closed By End Of Data, new data in this day)
-            rmapRdFile.close();
+            if(rmap_rd_file_open) {
+              rmapRdFile.close();
+              rmap_rd_file_open = false;
+            }
             rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
-            // Resync Position Before Last Data Read OtherWise Other File (SeekPosition = 0)
-            rmapRdFile.seek(rmap_pointer_seek);
+            if (rmapRdFile) {
+              rmap_rd_file_open = true;
+              rmapRdFile.seek(rmap_pointer_seek);
+            }
             // Open File High LED
             #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
@@ -1456,17 +1431,18 @@ void SdTask::Run()
           else if(rmap_get_request.command.do_get_data) {
             namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
             // Day Name File Changed (Data is to save in New File? Or Not Realy Open...)
-            if((strcmp(rmap_file_name_rd, rmap_file_name_check)) || (!rmapRdFile)) {
-              // Save new file_name for next control
+            if((strcmp(rmap_file_name_rd, rmap_file_name_check)) || (!rmap_rd_file_open)) {
               strcpy(rmap_file_name_rd, rmap_file_name_check);
-              // Not opened? open... in append
-              // Resynch if file is close and (file_name not changed... Closed By End Of Data, new data in this day)
               bool reSyncPtr;
-              reSyncPtr = (!rmapRdFile);
-              if(rmapRdFile) rmapRdFile.close();
+              reSyncPtr = (!rmap_rd_file_open);
+              if(rmap_rd_file_open) {
+                rmapRdFile.close();
+                rmap_rd_file_open = false;
+              }
               rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+              if (rmapRdFile) rmap_rd_file_open = true;
               // Resync Position Before Last Data Read OtherWise Other File (SeekPosition = 0)
-              if (reSyncPtr) rmapRdFile.seek(rmap_pointer_seek);
+              if (reSyncPtr && rmap_rd_file_open) rmapRdFile.seek(rmap_pointer_seek);
               else rmap_pointer_seek = 0;
               // Open File High LED
               #ifdef PIN_SD_LED
@@ -1474,7 +1450,7 @@ void SdTask::Run()
               #endif
             }
             memset(&rmap_get_response, 0, sizeof(rmap_get_response));
-            if(rmapRdFile) {
+            if(rmap_rd_file_open) {
               // Not avaiable, EOF...
               if(rmapRdFile.available()) {
                 // Not read size correct block?... Error
@@ -1506,8 +1482,12 @@ void SdTask::Run()
                       // Save new file_name for next control
                       strcpy(rmap_file_name_rd, rmap_file_name_check);
                       // Not opened? Open... in readonly
-                      if(rmapRdFile) rmapRdFile.close();
+                      if(rmap_rd_file_open) {
+                        rmapRdFile.close();
+                        rmap_rd_file_open = false;
+                      }
                       rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+                      if (rmapRdFile) rmap_rd_file_open = true;
                       // Not required Save pointer, data can be continued (rmap_pointer_seek is resetted to 0)
                       // Open File High LED
                       #ifdef PIN_SD_LED
@@ -1546,8 +1526,12 @@ void SdTask::Run()
                     // Save new file_name for next control
                     strcpy(rmap_file_name_rd, rmap_file_name_check);
                     // Not opened? Open... in read only
-                    if(rmapRdFile) rmapRdFile.close();
+                    if(rmap_rd_file_open) {
+                      rmapRdFile.close();
+                      rmap_rd_file_open = false;
+                    }
                     rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+                    if (rmapRdFile) rmap_rd_file_open = true;
                     // Open File High LED
                     #ifdef PIN_SD_LED
                     digitalWrite(PIN_SD_LED, HIGH);
@@ -1599,7 +1583,10 @@ void SdTask::Run()
                   rmap_pointer_seek = rmap_pointer_seek_bkp;
                   strcpy(rmap_file_name_rd, rmap_file_name_rd_bkp);
                   // Need to close file to check next block if external write. No more data if not reclose/reopen File
-                  if(rmapRdFile) rmapRdFile.close();
+                  if(rmap_rd_file_open) {
+                    rmapRdFile.close();
+                    rmap_rd_file_open = false;
+                  }
                 }
               }
             } else {
@@ -1607,7 +1594,10 @@ void SdTask::Run()
               if(rmap_get_response.result.end_of_data) {
                 rmap_get_request.command.do_save_ptr = true;
                 // Need to close file to check next block if external write. No more data if not reclose/reopen File
-                if(rmapRdFile) rmapRdFile.close();
+                if(rmap_rd_file_open) {
+                  rmapRdFile.close();
+                  rmap_rd_file_open = false;
+                }
               }
             }
             // ***** Send response to request *****
@@ -1624,26 +1614,79 @@ void SdTask::Run()
           // But for Fast Speed we can Call this function on End of Data Transmit
           // Or if call down and data cannot end process upload (From extern)
           if(rmap_get_request.command.do_save_ptr) {
+            bool rmap_save_ok = false;
             // Rewrite Pointer Data File (Open only at startup for Set Position)
             tmpFile = SD.open("/data/pointer.dat", O_RDWR | O_CREAT);
             if(tmpFile) {
-              if(rmap_pointer_seek == UNKNOWN_POINTER_POSITION) rmap_pointer_seek = 0;
-              // Open File High LED
-              #ifdef PIN_SD_LED
-              digitalWrite(PIN_SD_LED, HIGH);
-              #endif
-              bWriteErr = false;
-              bWriteErr |= !tmpFile.write(&rmap_pointer_datetime, sizeof(rmap_pointer_datetime));
-              bWriteErr |= !tmpFile.write(&rmap_pointer_seek, sizeof(rmap_pointer_seek));
-              tmpFile.close();
-              // Close File Low LED
-              #ifdef PIN_SD_LED
-              digitalWrite(PIN_SD_LED, LOW);
-              #endif
-              if (bWriteErr) error_sd_card = true;
+              uint32_t save_datetime = rmap_pointer_datetime;
+              uint32_t save_seek = rmap_pointer_seek;
+              // param==1: save pre-read position (_prv) = last fully published MQTT block
+              if (rmap_get_request.param == 1u) {
+                save_datetime = rmap_pointer_datetime_prv;
+                save_seek = rmap_pointer_seek_prv;
+              }
+              if(save_seek == UNKNOWN_POINTER_POSITION) save_seek = 0;
+              uint32_t now_ep = 0;
+              if (param.rtcLock->Take(Ticks::MsToTicks(RTC_WAIT_DELAY_MS))) {
+                now_ep = rtc.getEpoch();
+                param.rtcLock->Give();
+              }
+              const uint32_t future_margin = (uint32_t)param.configuration->report_s * 2u;
+              const bool future_ptr = param.system_status->connection.is_ntp_synchronized &&
+                                      (now_ep > 0) &&
+                                      (save_datetime > (now_ep + future_margin));
+              if (future_ptr) {
+                TRACE_INFO_F(F("SD: rmap skip save pointer in future (%lu > now %lu)\r\n"),
+                             (unsigned long)save_datetime, (unsigned long)now_ep);
+                rmap_pointer_datetime = rmap_pointer_datetime_bkp;
+                rmap_pointer_seek = rmap_pointer_seek_bkp;
+                tmpFile.close();
+              } else {
+                // Open File High LED
+                #ifdef PIN_SD_LED
+                digitalWrite(PIN_SD_LED, HIGH);
+                #endif
+                bWriteErr = false;
+                bWriteErr |= !tmpFile.write(&save_datetime, sizeof(save_datetime));
+                bWriteErr |= !tmpFile.write(&save_seek, sizeof(save_seek));
+                tmpFile.close();
+                // Close File Low LED
+                #ifdef PIN_SD_LED
+                digitalWrite(PIN_SD_LED, LOW);
+                #endif
+                if (!bWriteErr) {
+                  rmap_pointer_datetime_bkp = save_datetime;
+                  rmap_pointer_seek_bkp = save_seek;
+                  rmap_pointer_datetime_prv = save_datetime;
+                  rmap_pointer_seek_prv = save_seek;
+                  if (rmap_get_request.param != 1u) {
+                    rmap_pointer_datetime = save_datetime;
+                    rmap_pointer_seek = save_seek;
+                  }
+                  DateTime ptrOk;
+                  convertUnixTimeToDate(save_datetime, &ptrOk);
+                  TRACE_INFO_F(F("SD: rmap save pointer OK at [ %s ] seek %lu (confirmed=%u)\r\n"),
+                               formatDate(&ptrOk, NULL), (unsigned long)save_seek,
+                               (unsigned)(rmap_get_request.param == 1u ? 1u : 0u));
+                  rmap_save_ok = true;
+                } else {
+                  error_sd_card = true;
+                  TRACE_ERROR_F(F("SD: rmap save pointer write failed\r\n"));
+                }
+              }
             } else {
-              // Generic open file Error
               error_sd_card = true;
+              TRACE_ERROR_F(F("SD: rmap save pointer open failed\r\n"));
+            }
+            if (rmap_get_request.command.do_save_ptr &&
+                !rmap_get_request.command.do_get_data &&
+                !rmap_get_request.command.do_synch_ptr &&
+                !rmap_get_request.command.do_reset_ptr &&
+                !rmap_get_request.command.do_previous_ptr &&
+                !rmap_get_request.command.do_end_ptr) {
+              memset(&rmap_get_response, 0, sizeof(rmap_get_response));
+              rmap_get_response.result.done_synch = rmap_save_ok;
+              param.dataRmapGetResponseQueue->Enqueue(&rmap_get_response);
             }
           }
         }
@@ -1851,8 +1894,8 @@ void SdTask::Run()
       // Generic open or Other Operation file Error... Restart Synch
       // ***********************************************************
       if(error_sd_card) {
-        // Remove error and Try Reset
         error_sd_card = false;
+        sdPrepareRemount();
         state = SD_STATE_INIT;
       }
 

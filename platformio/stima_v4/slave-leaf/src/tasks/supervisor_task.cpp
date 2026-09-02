@@ -200,24 +200,25 @@ void SupervisorTask::Run()
       // ****************************************************************************************
       // BEGIN HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
       // ****************************************************************************************
-      // Read init button state
-      current_init_pin = digitalRead(PIN_BTN);
-      // Check if the rising edge of button is done
-      if (current_init_pin && !previous_init_pin) {
-        // Reset to defaults?
-        // #if (ENABLE_I2C1)
-        //   param.boot_request->app_executed_ok = true;
-        //   param.eeprom->Write(BOOT_LOADER_STRUCT_ADDR, (uint8_t *) &param.boot_request, sizeof(param.boot_request));
-        // #endif
-        // Reset Factory register value
-        param.clRegister->doFactoryReset();
-        // Reinit Configuration with default classic value
-        saveConfiguration(CONFIGURATION_DEFAULT);
-        // Reboot
-        NVIC_SystemReset();   
+      // Factory reset: PH0 active-low, rising edge on release (internal pull-up in HAL).
+      // No action until BTN_FACTORY_RESET_ARM_MS after boot.
+      {
+        static bool btn_reset_armed = false;
+        if (!btn_reset_armed) {
+          if (millis() >= BTN_FACTORY_RESET_ARM_MS) {
+            btn_reset_armed = true;
+            previous_init_pin = digitalRead(PIN_BTN);
+          }
+        } else {
+          current_init_pin = digitalRead(PIN_BTN);
+          if (current_init_pin && !previous_init_pin) {
+            param.clRegister->doFactoryReset();
+            saveConfiguration(CONFIGURATION_DEFAULT);
+            NVIC_SystemReset();
+          }
+          previous_init_pin = current_init_pin;
+        }
       }
-      // Update flags
-      previous_init_pin = current_init_pin;
       // ****************************************************************************************
       // END HANDLER FOR INIT PARAMETERS WITH BUTTON PRESSION
       // ****************************************************************************************
