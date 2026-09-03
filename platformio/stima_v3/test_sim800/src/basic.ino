@@ -35,7 +35,7 @@ uint8_t ready_tasks_count;
 gsm_state_t gsm_state;
 
 #ifndef ARDUINO_ARCH_AVR
-HardwareSerial Serial1(PB11, PB10);
+Uart Serial1(PB11, PB10);
 #endif
 
 
