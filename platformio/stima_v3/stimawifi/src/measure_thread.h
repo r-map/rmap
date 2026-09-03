@@ -18,10 +18,6 @@ struct measure_data_t {    // thread communication data
   uint8_t sensors_count;
 };
 
-void enqueueMqttMessage(const char* values, const char* timerange, const char* level, measure_data_t& data );
-void doMeasure( measure_data_t& data );
-void web_values(const char* values);
-
 using namespace cpp_freertos;
 
 class measureThread : public Thread {

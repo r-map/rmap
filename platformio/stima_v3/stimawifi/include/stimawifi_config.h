@@ -252,6 +252,9 @@
 
 #define TASK_BASE_PRIORITY          1
 
+#define TASK_NOW_PRIORITY           TASK_BASE_PRIORITY+1
+#define TASK_NOW_STACK_SIZE         2000
+
 #define TASK_UDP_PRIORITY           TASK_BASE_PRIORITY+3
 #define TASK_UDP_STACK_SIZE         2000
 

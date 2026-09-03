@@ -121,6 +121,9 @@ measureThread threadMeasure(&measure_data);
 publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&rpcRecoveryQueue,&rpcCalibrateQueue,&stimawifiStatus,&station};
 publishThread threadPublish(&publish_data);
 
+now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue};
+nowThread threadNow(&now_data);
+
 #if defined(ARDUINO_LOLIN_C3_MINI)
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 #else
