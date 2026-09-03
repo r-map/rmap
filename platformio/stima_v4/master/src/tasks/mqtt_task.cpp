@@ -1117,11 +1117,23 @@ void MqttTask::Run()
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_DISCONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
       }
 
+      // Unsubscribe from each subscribed topic
+      memset(topic, 0, sizeof(topic));
+      snprintf(topic, sizeof(topic), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      // Skip mqttClientDisconnect(): graceful TLS/TCP shutdown can hang forever on PPP
+      mqttClientUnsubscribe(&mqttClientContext, topic, NULL);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+      TRACE_VERBOSE_F(F("%s Unsubscribe from mqtt server %s on %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic);
+
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
+      mqttClientDisconnect(&mqttClientContext);
+      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
+      TRACE_INFO_F(F("%s Disconnected from mqtt server %s on port %d\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+
+      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       mqttClientClose(&mqttClientContext);
       TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-      TRACE_INFO_F(F("%s Closed mqtt connection %s:%d (hard close)\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
+      TRACE_INFO_F(F("%s Close connection\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, param.configuration->mqtt_port);
       
       state = MQTT_STATE_END;
       TRACE_VERBOSE_F(F("MQTT_STATE_DISCONNECT -> MQTT_STATE_END\r\n"));

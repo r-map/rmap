@@ -132,6 +132,121 @@ void SdTask::namingFileData(uint32_t time, char *dirPrefix, char* nameFile)
   sprintf(nameFile, "%s/%04d_%02d_%02d.dat", dirPrefix, year, ++month, ++dayno);
 }
 
+/// @brief If /data has more than SD_DATA_KEEP_FILES day files, remove the oldest .dat (not pointer, not open wr/rd).
+/// @param protect_path_a Path or basename of a file that must not be deleted (write file, may be empty).
+/// @param protect_path_b Path or basename of a file that must not be deleted (MQTT read file, may be empty). 
+void SdTask::pruneOldestDataFile(const char *protect_path_a, const char *protect_path_b)
+{
+#if (SD_DATA_KEEP_FILES > 0)
+  File dir = SD.open("/data");
+  if (!dir || !dir.isDir()) {
+    if (dir) dir.close();
+    return;
+  }
+
+  const char *skip_a = protect_path_a;
+  const char *skip_b = protect_path_b;
+  if (skip_a && skip_a[0]) {
+    const char *slash = strrchr(skip_a, '/');
+    if (slash) skip_a = slash + 1;
+  } else {
+    skip_a = NULL;
+  }
+  if (skip_b && skip_b[0]) {
+    const char *slash = strrchr(skip_b, '/');
+    if (slash) skip_b = slash + 1;
+  } else {
+    skip_b = NULL;
+  }
+
+  uint16_t n_dat = 0;
+  char oldest[DATA_FILENAME_LEN];
+  oldest[0] = 0;
+  char name[FILE_NAME_MAX_LENGHT];
+
+  while (true) {
+    TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+    File entry = dir.openNextFile();
+    if (!entry) break;
+    entry.getName(name, sizeof(name));
+    entry.close();
+    if (strcmp(name, "pointer.dat") == 0) continue;
+    size_t nlen = strlen(name);
+    if (nlen < 5) continue;
+    if (strcmp(name + nlen - 4, ".dat") != 0) continue;
+    n_dat++;
+    if (skip_a && strcmp(name, skip_a) == 0) continue;
+    if (skip_b && strcmp(name, skip_b) == 0) continue;
+    if ((oldest[0] == 0) || (strcmp(name, oldest) < 0)) {
+      strncpy(oldest, name, sizeof(oldest) - 1);
+      oldest[sizeof(oldest) - 1] = 0;
+    }
+  }
+  dir.close();
+
+  if ((n_dat <= SD_DATA_KEEP_FILES) || (oldest[0] == 0)) return;
+
+  char path[DATA_FILENAME_LEN];
+  snprintf(path, sizeof(path), "/data/%s", oldest);
+  TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+  if (SD.remove(path)) {
+    TRACE_INFO_F(F("SD: prune %s (%u files, keep %u)\r\n"), path, (unsigned)n_dat, (unsigned)SD_DATA_KEEP_FILES);
+  }
+#endif
+}
+
+/// @brief Drop legacy /bkp from old FW (no longer used). Safe for remote FW upgrade without SD format.
+void SdTask::dropLegacyBkpDir(void)
+{
+  if (!SD.exists("/bkp")) {
+    return;
+  }
+
+  File dir = SD.open("/bkp");
+  if (!dir) {
+    return;
+  }
+
+  if (!dir.isDir()) {
+    dir.close();
+    if (SD.remove("/bkp")) {
+      TRACE_INFO_F(F("SD: removed legacy file /bkp\r\n"));
+    }
+    return;
+  }
+
+  char name[FILE_NAME_MAX_LENGHT];
+  char path[FILE_NAME_MAX_LENGHT];
+  uint16_t n_removed = 0;
+
+  while (true) {
+    File entry = dir.openNextFile();
+    if (!entry) break;
+    entry.getName(name, sizeof(name));
+    const bool is_subdir = entry.isDir();
+    entry.close();
+    if ((name[0] == '.') && ((name[1] == 0) || ((name[1] == '.') && (name[2] == 0)))) {
+      continue;
+    }
+    snprintf(path, sizeof(path), "/bkp/%s", name);
+    if (is_subdir) {
+      // Old layout was flat; nested leftovers: leave for next boot after files cleared.
+      continue;
+    }
+    if (SD.remove(path)) {
+      n_removed++;
+    }
+    TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+    Delay(Ticks::MsToTicks(TASK_WAIT_REALTIME_DELAY_MS));
+  }
+  dir.close();
+
+  if (SD.rmdir("/bkp")) {
+    TRACE_INFO_F(F("SD: dropped legacy /bkp (%u files)\r\n"), (unsigned)n_removed);
+  } else if (n_removed > 0) {
+    TRACE_INFO_F(F("SD: /bkp cleanup partial (%u removed), retry next boot\r\n"), (unsigned)n_removed);
+  }
+}
 
 /// @brief Scrive dati in append su Flash per scrittura sequenziale file data remoto
 /// @param file_name nome del file UAVCAN
@@ -349,6 +464,7 @@ void SdTask::Run()
   bool message_traced = false;
   bool sd_begin_pending = true;
   uint32_t last_sd_begin_attempt_ms = 0;
+  uint32_t last_data_prune_ms = 0;
   bool is_getted_rtc;
   // Queue buffer for logging
   char logBuffer[LOG_PUT_DATA_ELEMENT_SIZE];
@@ -650,6 +766,10 @@ void SdTask::Run()
       }
       dir.close();
 
+      // Old FW wrote /bkp; new FW does not. Drop on structure check so remote upgrade
+      // frees dir slots / space without lab SD wipe. No-op if absent.
+      dropLegacyBkpDir();
+
       // ***************************************************
       // SD Was Ready... for System Structure and Pointer OK
       // ***************************************************
@@ -707,11 +827,7 @@ void SdTask::Run()
               }
             }
           } else {
-            // Pointer file not coerent, Remove and new creation starting
-            SD.remove("/data/pointer.dat");
-            // SD Pointer Error, general Open on first File...
-            // Error. Send to system_state and retry OPEN INIT SD (Exit and restart UP...)
-            break;
+            TRACE_INFO_F(F("SD: pointer day file missing, keep pointer (EOF)\r\n"));
           }
         } else {
           // SD Pointer Error, general Open on first File...
@@ -1000,6 +1116,14 @@ void SdTask::Run()
 
     case SD_STATE_WAITING_EVENT:
 
+      // Sliding window: skip while MQTT/SD read is in flight (queue timeout 2.5 s)
+      if ((millis() - last_data_prune_ms) >= 2000) {
+        if (param.dataRmapGetRequestQueue->IsEmpty()) {
+          last_data_prune_ms = millis();
+          pruneOldestDataFile(rmap_file_name_wr, rmap_file_name_rd);
+        }
+      }
+
       // ********* SYSTEM QUEUE MESSAGE ***********
       // *** If System SLEEP... SD Sleep WAIT *****
       // enqueud system message from caller task
@@ -1144,6 +1268,9 @@ void SdTask::Run()
             // Not opened? Open... in append
             if(rmapWrFile) rmapWrFile.close();
             rmapWrFile = SD.open(rmap_file_name_wr, O_RDWR | O_CREAT | O_AT_END);
+            if (rmapWrFile) {
+              pruneOldestDataFile(rmap_file_name_wr, rmap_file_name_rd);
+            }
             // Open File High LED
             #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);
@@ -1508,48 +1635,27 @@ void SdTask::Run()
                   error_sd_card = true;
                 }
               } else {
-                // Test from last data to now() for synch pointer data
-                uint32_t now_dt = rtc.getEpoch();
-                // Loop while find dataPointer or DateTime > now()
-                while(true) {
-                  // Full search from last data send to now() If day not present test next Day File...
+                // Next calendar day only (do not exists() every day until now() — WDT on long gaps)
+                namingFileData(rmap_pointer_datetime + SECS_DAY, "/data", rmap_file_name_check);
+                if (SD.exists(rmap_file_name_check)) {
                   rmap_pointer_datetime += SECS_DAY;
-                  // Check if another Day (Next) is present before sending End Of Data
-                  // If Exist The Seek Pointer Have to be resetted to Init Value (First Data of New File)
-                  namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
-                  // Not Exist? End Of Data, Otherwise next request in New Day Direct open Day File without other operation
-                  if(SD.exists(rmap_file_name_check)) {
-                    // Reopen Operation can be Start Immediatly.
-                    // Set SEEK Position to Start File and DateTime to hh:nn:ss at 0.0.0 Begin of Day
-                    rmap_pointer_seek = 0;
-                    rmap_pointer_datetime = (rmap_pointer_datetime / SECS_DAY) * SECS_DAY;
-                    // Save new file_name for next control
-                    strcpy(rmap_file_name_rd, rmap_file_name_check);
-                    // Not opened? Open... in read only
-                    if(rmap_rd_file_open) {
-                      rmapRdFile.close();
-                      rmap_rd_file_open = false;
-                    }
-                    rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
-                    if (rmapRdFile) rmap_rd_file_open = true;
-                    // Open File High LED
-                    #ifdef PIN_SD_LED
-                    digitalWrite(PIN_SD_LED, HIGH);
-                    #endif
-                    // EXIT DATA FOUND...!!!
-                    break;
-                  } else {
-                    // >= Current date time... End of Search...
-                    if(rmap_pointer_datetime >= now_dt) {
-                      rmap_get_response.result.end_of_data = true;
-                      // No more data avaiable
-                      param.systemStatusLock->Take();
-                      param.system_status->flags.new_data_to_send = false;
-                      param.systemStatusLock->Give();
-                      // EXIT DATA NOT FOUND...!!!
-                      break;
-                    }
+                  rmap_pointer_seek = 0;
+                  rmap_pointer_datetime = (rmap_pointer_datetime / SECS_DAY) * SECS_DAY;
+                  strcpy(rmap_file_name_rd, rmap_file_name_check);
+                  if (rmap_rd_file_open) {
+                    rmapRdFile.close();
+                    rmap_rd_file_open = false;
                   }
+                  rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+                  if (rmapRdFile) rmap_rd_file_open = true;
+                  #ifdef PIN_SD_LED
+                  digitalWrite(PIN_SD_LED, HIGH);
+                  #endif
+                } else {
+                  rmap_get_response.result.end_of_data = true;
+                  param.systemStatusLock->Take();
+                  param.system_status->flags.new_data_to_send = false;
+                  param.systemStatusLock->Give();
                 }
               }
             } else {

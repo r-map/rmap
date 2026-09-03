@@ -83,6 +83,9 @@
 
 #define UNKNOWN_POINTER_POSITION         (0xFFFFFFFFu)
 
+/// Max day files kept in /data (LFN). Sliding window; one delete at a time.
+#define SD_DATA_KEEP_FILES               (100)
+
 #include "debug_F.h"
 
 // TIME CONST and Define for Epoch function
@@ -155,6 +158,8 @@ private:
   bool getFlashFwInfoFile(uint8_t *module_type, uint8_t *version, uint8_t *revision, uint64_t *len);
 
   void namingFileData(uint32_t time, char *dirPrefix, char* nameFile);
+  void pruneOldestDataFile(const char *protect_path_a, const char *protect_path_b);
+  void dropLegacyBkpDir(void);
 
   bool sdCardBegin(bool volume = true);
   void sdCardEnd();

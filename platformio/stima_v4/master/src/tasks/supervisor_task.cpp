@@ -924,6 +924,24 @@ bool SupervisorTask::loadConfiguration()
   return status;
 }
 
+static bool secretBytesUnset(const uint8_t *key, size_t len)
+{
+  bool all_zero = true;
+  bool all_ff = true;
+  for (size_t i = 0; i < len; i++) {
+    if (key[i] != 0x00) all_zero = false;
+    if (key[i] != 0xFF) all_ff = false;
+  }
+  return all_zero || all_ff;
+}
+
+static const char *secretPasswordLabel(const char *pwd)
+{
+  if ((pwd == NULL) || (pwd[0] == '\0')) return "not set";
+  if (strcmp(pwd, "password") == 0) return "not set (placeholder)";
+  return "set";
+}
+
 /// @brief Trace print current configuration from param
 void SupervisorTask::printConfiguration()
 {
@@ -958,7 +976,7 @@ void SupervisorTask::printConfiguration()
     TRACE_INFO_F(F("-> gsm apn: %s\r\n"), param.configuration->gsm_apn);
     TRACE_INFO_F(F("-> gsm number: %s\r\n"), param.configuration->gsm_number);
     TRACE_INFO_F(F("-> gsm username: %s\r\n"), param.configuration->gsm_username);
-    TRACE_INFO_F(F("-> gsm password: %s\r\n"), param.configuration->gsm_password);
+    TRACE_INFO_F(F("-> gsm password: [%s]\r\n"), secretPasswordLabel(param.configuration->gsm_password));
     #endif
 
     #if (USE_NTP)
@@ -969,11 +987,11 @@ void SupervisorTask::printConfiguration()
     TRACE_INFO_F(F("-> mqtt server: %s\r\n"), param.configuration->mqtt_server);
     TRACE_INFO_F(F("-> mqtt port: %d\r\n"), param.configuration->mqtt_port);    
     TRACE_INFO_F(F("-> mqtt username: %s\r\n"), param.configuration->mqtt_username);
-    TRACE_INFO_F(F("-> mqtt password: %s\r\n"), param.configuration->mqtt_password);
+    TRACE_INFO_F(F("-> mqtt password: [%s]\r\n"), secretPasswordLabel(param.configuration->mqtt_password));
     TRACE_INFO_F(F("-> station slug: %s\r\n"), param.configuration->stationslug);
     TRACE_INFO_F(F("-> board slug: %s\r\n"), param.configuration->board_master.boardslug);
-    TRACE_INFO_F(F("-> client psk key "));
-    TRACE_INFO_ARRAY("", param.configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH);    
+    TRACE_INFO_F(F("-> client psk key: [%s]\r\n"),
+      secretBytesUnset(param.configuration->client_psk_key, CLIENT_PSK_KEY_LENGTH) ? "not set" : "set"); 
     TRACE_INFO_F(F("-> mqtt root topic: %s/%s/%s/%d,%d/%s/\r\n"), 
       param.configuration->mqtt_root_topic, param.configuration->mqtt_username, param.configuration->ident,
       param.configuration->longitude, param.configuration->latitude, param.configuration->network);
