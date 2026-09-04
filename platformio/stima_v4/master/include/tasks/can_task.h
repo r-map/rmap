@@ -195,6 +195,7 @@ private:
   // Param local and state
   State_t state;
   CanParam_t param;
+  canardClass clCanard;   // Libcanard + o1heap + ISR RX queue (BSS with this task out of stack)
 
   // Acces static memeber parameter of class
   inline static cpp_freertos::Queue *localSystemMessageQueue;

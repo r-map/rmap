@@ -1229,9 +1229,6 @@ void CanTask::TaskState(uint8_t state_position, uint8_t state_subposition, task_
 /// @brief RUN Task
 void CanTask::Run() {
 
-    // Data Local Task (Class + Registro)
-    // Avvia l'istanza alla classe State_Canard ed inizializza Ram, Buffer e variabili base
-    canardClass clCanard;
     uavcan_register_Value_1_0 val = {0};
 
     // System message data queue structured

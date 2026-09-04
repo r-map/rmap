@@ -49,12 +49,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /// @brief USB Serial task trace level for debug
 #define USBSERIAL_TASK_TRACE_LEVEL     TRACE_LEVEL_INFO
 /// @brief WhatchDog task trace level for debug
-#define WDT_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
+#define WDT_TASK_TRACE_LEVEL           TRACE_LEVEL_INFO
 /// @brief SIM7600 trace level for debug
 #define SIM7600_TRACE_LEVEL            TRACE_LEVEL_VERBOSE
 
 #else
 
+/// Production-like STOP2: no USE_DEBUG → SLEEP_STOP2; traces off (USB Serial load can disturb sleep)
 #define STIMA_TRACE_LEVEL              TRACE_LEVEL_OFF
 #define ETHERNET_TASK_TRACE_LEVEL      TRACE_LEVEL_OFF
 #define MODEM_TASK_TRACE_LEVEL         TRACE_LEVEL_OFF
@@ -63,7 +64,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define HTTP_TASK_TRACE_LEVEL          TRACE_LEVEL_OFF
 #define SUPERVISOR_TASK_TRACE_LEVEL    TRACE_LEVEL_OFF
 #define CAN_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
-#define SD_TASK_TRACE_LEVEL            TRACE_LEVEL_OFF
 #define SD_TASK_TRACE_LEVEL            TRACE_LEVEL_OFF
 #define LCD_TASK_TRACE_LEVEL           TRACE_LEVEL_OFF
 #define USBSERIAL_TASK_TRACE_LEVEL     TRACE_LEVEL_OFF

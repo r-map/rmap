@@ -160,6 +160,9 @@ private:
   void namingFileData(uint32_t time, char *dirPrefix, char* nameFile);
   void pruneOldestDataFile(const char *protect_path_a, const char *protect_path_b);
   void dropLegacyBkpDir(void);
+  /// Find next YYYY_MM_DD.dat after after_basename in dir (lexicographic). WDT while scanning.
+  bool findNextArchiveDat(const char *dir_prefix, const char *after_basename,
+                          char *out_path, size_t out_path_len, uint32_t *out_day_epoch);
 
   bool sdCardBegin(bool volume = true);
   void sdCardEnd();

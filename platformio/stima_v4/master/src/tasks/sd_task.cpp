@@ -248,6 +248,61 @@ void SdTask::dropLegacyBkpDir(void)
   }
 }
 
+/// @brief Next archive day file after after_basename (e.g. "2025_03_16.dat"), skipping gaps.
+/// One directory scan with WDT kicks — does not exists() every day until now().
+bool SdTask::findNextArchiveDat(const char *dir_prefix, const char *after_basename,
+                                char *out_path, size_t out_path_len, uint32_t *out_day_epoch)
+{
+  if ((dir_prefix == NULL) || (after_basename == NULL) || (out_path == NULL) || (out_path_len < 8) ||
+      (out_day_epoch == NULL)) {
+    return false;
+  }
+
+  File dir = SD.open(dir_prefix);
+  if (!dir || !dir.isDir()) {
+    if (dir) dir.close();
+    return false;
+  }
+
+  char name[FILE_NAME_MAX_LENGHT];
+  char best[DATA_FILENAME_LEN];
+  best[0] = 0;
+
+  while (true) {
+    TaskWatchDog(TASK_WAIT_REALTIME_DELAY_MS);
+    File entry = dir.openNextFile();
+    if (!entry) break;
+    entry.getName(name, sizeof(name));
+    entry.close();
+    if (strcmp(name, "pointer.dat") == 0) continue;
+    size_t nlen = strlen(name);
+    if (nlen < 14) continue;
+    if (strcmp(name + nlen - 4, ".dat") != 0) continue;
+    if (strcmp(name, after_basename) <= 0) continue;
+    if ((best[0] == 0) || (strcmp(name, best) < 0)) {
+      strncpy(best, name, sizeof(best) - 1);
+      best[sizeof(best) - 1] = 0;
+    }
+  }
+  dir.close();
+
+  if (best[0] == 0) {
+    return false;
+  }
+
+  unsigned y = 0, mo = 0, d = 0;
+  if (sscanf(best, "%u_%u_%u.dat", &y, &mo, &d) != 3) {
+    return false;
+  }
+  DateTime day = {0};
+  day.year = (uint16_t)y;
+  day.month = (uint8_t)mo;
+  day.day = (uint8_t)d;
+  *out_day_epoch = (uint32_t)convertDateToUnixTime(&day);
+  snprintf(out_path, out_path_len, "%s/%s", dir_prefix, best);
+  return true;
+}
+
 /// @brief Scrive dati in append su Flash per scrittura sequenziale file data remoto
 /// @param file_name nome del file UAVCAN
 /// @param is_firmware true se il file +-è di tipo firmware
@@ -828,6 +883,27 @@ void SdTask::Run()
             }
           } else {
             TRACE_INFO_F(F("SD: pointer day file missing, keep pointer (EOF)\r\n"));
+          }
+          // Arm upload if unread bytes remain or a newer day file exists past a gap
+          {
+            bool have_backlog = (rmap_rd_file_open && rmapRdFile && (rmapRdFile.available() > 0));
+            if (!have_backlog && (rmap_pointer_seek != UNKNOWN_POINTER_POSITION)) {
+              char after_base[DATA_FILENAME_LEN] = {0};
+              namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
+              const char *slash = strrchr(rmap_file_name_check, '/');
+              strncpy(after_base, slash ? (slash + 1) : rmap_file_name_check, sizeof(after_base) - 1);
+              char next_path[DATA_FILENAME_LEN];
+              uint32_t next_ep = 0;
+              if (findNextArchiveDat("/data", after_base, next_path, sizeof(next_path), &next_ep)) {
+                have_backlog = true;
+              }
+            }
+            if (have_backlog) {
+              param.systemStatusLock->Take();
+              param.system_status->flags.new_data_to_send = true;
+              param.systemStatusLock->Give();
+              TRACE_INFO_F(F("SD: backlog after pointer, arm new_data_to_send\r\n"));
+            }
           }
         } else {
           // SD Pointer Error, general Open on first File...
@@ -1621,11 +1697,34 @@ void SdTask::Run()
                       digitalWrite(PIN_SD_LED, HIGH);
                       #endif
                     } else {
-                      rmap_get_response.result.end_of_data = true;
-                      // No more data avaiable
-                      param.systemStatusLock->Take();
-                      param.system_status->flags.new_data_to_send = false;
-                      param.systemStatusLock->Give();
+                      // Gap (missing day): jump to next existing YYYY_MM_DD.dat if any
+                      char after_base[DATA_FILENAME_LEN] = {0};
+                      const char *slash = strrchr(rmap_file_name_rd, '/');
+                      strncpy(after_base, slash ? (slash + 1) : rmap_file_name_rd, sizeof(after_base) - 1);
+                      uint32_t next_ep = 0;
+                      if (findNextArchiveDat("/data", after_base, rmap_file_name_check,
+                                             sizeof(rmap_file_name_check), &next_ep)) {
+                        const char *to_base = strrchr(rmap_file_name_check, '/');
+                        TRACE_INFO_F(F("SD: rmap gap jump %s -> %s\r\n"), after_base,
+                                     to_base ? (to_base + 1) : rmap_file_name_check);
+                        rmap_pointer_seek = 0;
+                        rmap_pointer_datetime = next_ep;
+                        strcpy(rmap_file_name_rd, rmap_file_name_check);
+                        if (rmap_rd_file_open) {
+                          rmapRdFile.close();
+                          rmap_rd_file_open = false;
+                        }
+                        rmapRdFile = SD.open(rmap_file_name_rd, O_RDONLY);
+                        if (rmapRdFile) rmap_rd_file_open = true;
+                        #ifdef PIN_SD_LED
+                        digitalWrite(PIN_SD_LED, HIGH);
+                        #endif
+                      } else {
+                        rmap_get_response.result.end_of_data = true;
+                        param.systemStatusLock->Take();
+                        param.system_status->flags.new_data_to_send = false;
+                        param.systemStatusLock->Give();
+                      }
                     }
                   }
                 } else {
@@ -1635,13 +1734,32 @@ void SdTask::Run()
                   error_sd_card = true;
                 }
               } else {
-                // Next calendar day only (do not exists() every day until now() — WDT on long gaps)
+                // Prefer next calendar day; on gap, jump to next existing archive .dat
                 namingFileData(rmap_pointer_datetime + SECS_DAY, "/data", rmap_file_name_check);
+                bool advanced = false;
                 if (SD.exists(rmap_file_name_check)) {
-                  rmap_pointer_datetime += SECS_DAY;
+                  rmap_pointer_datetime = ((rmap_pointer_datetime + SECS_DAY) / SECS_DAY) * SECS_DAY;
                   rmap_pointer_seek = 0;
-                  rmap_pointer_datetime = (rmap_pointer_datetime / SECS_DAY) * SECS_DAY;
                   strcpy(rmap_file_name_rd, rmap_file_name_check);
+                  advanced = true;
+                } else {
+                  char after_base[DATA_FILENAME_LEN] = {0};
+                  namingFileData(rmap_pointer_datetime, "/data", rmap_file_name_check);
+                  const char *slash = strrchr(rmap_file_name_check, '/');
+                  strncpy(after_base, slash ? (slash + 1) : rmap_file_name_check, sizeof(after_base) - 1);
+                  uint32_t next_ep = 0;
+                  if (findNextArchiveDat("/data", after_base, rmap_file_name_check,
+                                         sizeof(rmap_file_name_check), &next_ep)) {
+                    const char *to_base = strrchr(rmap_file_name_check, '/');
+                    TRACE_INFO_F(F("SD: rmap gap jump %s -> %s\r\n"), after_base,
+                                 to_base ? (to_base + 1) : rmap_file_name_check);
+                    rmap_pointer_datetime = next_ep;
+                    rmap_pointer_seek = 0;
+                    strcpy(rmap_file_name_rd, rmap_file_name_check);
+                    advanced = true;
+                  }
+                }
+                if (advanced) {
                   if (rmap_rd_file_open) {
                     rmapRdFile.close();
                     rmap_rd_file_open = false;

@@ -39,11 +39,6 @@ TwoWire Wire2 = TwoWire(PIN_I2C2_SDA, PIN_I2C2_SCL);
 SPIClass Spi2(PIN_SPI2_MOSI, PIN_SPI2_MISO, PIN_SPI2_SCK);
 #endif
 
-// Non utilizzo FreRTOS LOW_Power per il Debugging
-#ifdef _USE_FREERTOS_LOW_POWER
-#define _EXIT_SLEEP_FOR_DEBUGGING
-#endif
-
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 #if (ENABLE_CAN)
 CAN_HandleTypeDef hcan1;
