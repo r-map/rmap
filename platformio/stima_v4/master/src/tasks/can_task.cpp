@@ -3856,7 +3856,7 @@ void CanTask::Run() {
                         if(!bStartupCount) bStartupGetIstant = false;
                     }
                     // Publish HeartBeat
-                    TRACE_INFO_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
+                    TRACE_VERBOSE_F(F("Publish MASTER Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                     clCanard.master_heartbeat_send_message();
                     // Update next publisher
                     last_pub_heartbeat = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_HEARTBEAT;
@@ -3867,7 +3867,7 @@ void CanTask::Run() {
                     next_timesyncro_msg = clCanard.getMicros(clCanard.syncronized_time) + MEGA;
                     // Time syncro are sended only when full power is enabled
                     if(param.system_status->flags.power_state == Power_Mode::pwr_on) {
-                        TRACE_INFO_F(F("Publish MASTER Time Syncronization -->> [1 sec]\r\n"));
+                        TRACE_VERBOSE_F(F("Publish MASTER Time Syncronization -->> [1 sec]\r\n"));
                         clCanard.master_timestamp_send_syncronization();
                     }
                 }
@@ -3875,7 +3875,7 @@ void CanTask::Run() {
                 if (clCanard.flag.get_local_power_mode() == Power_Mode::pwr_on) {
                     if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
                         // Publish list service only if full power mode are selected
-                        TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
+                        TRACE_VERBOSE_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
                         last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
                         // Update publisher
                         clCanard.master_servicelist_send_message();

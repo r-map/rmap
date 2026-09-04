@@ -723,24 +723,45 @@ void LCDTask::display_print_main_interface(void) {
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 2 * LINE_BREAK);
   display.print(firmware_version);
 
-  // Print signal status (type + RSSI + bars from modem.cnsmod / modem.rssi)
+  // Signal: registration (CREG/CGREG/CEREG) first, then CNSMOD mode, then CSQ
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 3 * LINE_BREAK);
-  display.print(F("Signal "));
+  display.print(F("S "));
 
-  char tRegisterNetwork[5];
-  switch (param.system_status->modem.cnsmod) {
-    case 0: strcpy(tRegisterNetwork, "!OFF"); break;
-    case 1: strcpy(tRegisterNetwork, "!GSM"); break;
-    case 2: strcpy(tRegisterNetwork, "GPRS"); break;
-    case 3: strcpy(tRegisterNetwork, "EDGE"); break;
-    case 4: strcpy(tRegisterNetwork, "WCMA"); break;
-    case 5: strcpy(tRegisterNetwork, "HSDP"); break;
-    case 6: strcpy(tRegisterNetwork, "HSUP"); break;
-    case 7: strcpy(tRegisterNetwork, "HSPA"); break;
-    case 8: strcpy(tRegisterNetwork, "LTE4"); break;
-    default: strcpy(tRegisterNetwork, "!UNK"); break;
+  char tNet[5];
+  {
+    const uint8_t st[3] = {
+      param.system_status->modem.creg_stat,
+      param.system_status->modem.cgreg_stat,
+      param.system_status->modem.cereg_stat
+    };
+    bool reg_ok = false, searching = false, denied = false;
+    for (uint8_t i = 0; i < 3; i++) {
+      if ((st[i] == 1) || (st[i] == 5)) reg_ok = true;
+      else if (st[i] == 2) searching = true;
+      else if (st[i] == 3) denied = true;
+    }
+    if (reg_ok) {
+      switch (param.system_status->modem.cnsmod) {
+        case 0:  strcpy(tNet, "OK  "); break;  // registered, mode not ready yet
+        case 1:  strcpy(tNet, "GSM "); break;
+        case 2:  strcpy(tNet, "GPRS"); break;
+        case 3:  strcpy(tNet, "EDGE"); break;
+        case 4:  strcpy(tNet, "WCMA"); break;
+        case 5:  strcpy(tNet, "HSDP"); break;
+        case 6:  strcpy(tNet, "HSUP"); break;
+        case 7:  strcpy(tNet, "HSPA"); break;
+        case 8:  strcpy(tNet, "LTE4"); break;
+        default: strcpy(tNet, "OK  "); break;
+      }
+    } else if (searching) {
+      strcpy(tNet, "SRC ");
+    } else if (denied) {
+      strcpy(tNet, "DEN ");
+    } else {
+      strcpy(tNet, "!REG");
+    }
   }
-  display.print(tRegisterNetwork);
+  display.print(tNet);
 
   char tSignal[10];
   sprintf(tSignal, " [%02d/31]", param.system_status->modem.rssi);

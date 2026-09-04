@@ -1730,7 +1730,7 @@ void CanTask::Run() {
                         clCanard.slave_pnp_send_request(param.configuration->serial_number);
                         last_pub_heartbeat += random(MEGA * TIME_PUBLISH_PNP_REQUEST);
                     } else {
-                        TRACE_INFO_F(F("Publish SLAVE Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
+                        TRACE_VERBOSE_F(F("Publish SLAVE Heartbeat -->> [ %u sec]\r\n"), TIME_PUBLISH_HEARTBEAT);
                         clCanard.slave_heartbeat_send_message();
                         // Update publisher when real syncro onLine Master (Synch with master publish HeartBeat)
                         if(clCanard.master.heartbeat.is_online(true))
@@ -1744,7 +1744,7 @@ void CanTask::Run() {
                 if (clCanard.flag.get_local_power_mode() == Power_Mode::pwr_on) {
                     if (clCanard.getMicros(clCanard.syncronized_time) >= last_pub_port_list) {
                         // Publish list service only if full power mode are selected
-                        TRACE_INFO_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
+                        TRACE_VERBOSE_F(F("Publish Local PORT LIST -->> [ %u sec]\r\n"), TIME_PUBLISH_PORT_LIST);
                         last_pub_port_list = clCanard.getMicros(clCanard.syncronized_time) + MEGA * TIME_PUBLISH_PORT_LIST;
                         // Update publisher
                         clCanard.slave_servicelist_send_message();

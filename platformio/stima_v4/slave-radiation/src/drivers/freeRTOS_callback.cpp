@@ -44,20 +44,24 @@
 /// @brief Prepara il sistema allo Sleep (OFF Circuirterie ed entrata in PowerDown)
 /// @param xExpectedIdleTime Ticks RTOS (ms) attesi per la funzione di Sleep
 extern "C" void xTaskSleepPrivate(TickType_t *xExpectedIdleTime) {
+  // ms=0: STOP/sleep without RTC alarm. Wake is LPTIM (freeRTOS_lptimTick.c).
+  // Passing idle ticks here used to programRtcWakeUp and steal the station RTC alarm.
+  (void)xExpectedIdleTime;
   #if (LOWPOWER_MODE==SLEEP_IDLE)
-    LowPower.idle(*xExpectedIdleTime);
+    LowPower.idle(0);
   #elif (LOWPOWER_MODE==SLEEP_LOWPOWER)
-    LowPower.sleep(*xExpectedIdleTime - 10);
+    LowPower.sleep(0);
   #elif (LOWPOWER_MODE==SLEEP_STOP2)
-    LowPower.deepSleep(*xExpectedIdleTime - 10);
+    LowPower.deepSleep(0);
   #else
   *xExpectedIdleTime = 0;
   #endif
 }
 
-/// @brief Riattiva il sistema dopo lo Sleep (Riattivazione perifieriche, Clock ecc...)
-/// @param xExpectedIdleTime Ticks RTOS (ms) effettivamente eseguiti dalla funzione di Sleep
-extern "C" void xTaskWakeUpPrivate(TickType_t *xExpectedIdleTime) {
+/// @brief Riattiva il sistema dopo lo Sleep (clock già ripristinati in LowPower_stop)
+/// @param xExpectedIdleTime Ticks RTOS previsti (valore: Tenney passa un rvalue const)
+extern "C" void xTaskWakeUpPrivate(TickType_t xExpectedIdleTime) {
+  (void)xExpectedIdleTime;
 }
 
 // Remove Arduino OSSysTick for LPTIM(x) IRQ lptimTick.c Driver (AutoInc OsTick)
