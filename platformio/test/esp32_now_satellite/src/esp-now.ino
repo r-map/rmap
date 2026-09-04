@@ -182,6 +182,10 @@ RTC_DATA_ATTR volatile uint8_t error_count;
 RTC_DATA_ATTR volatile unsigned int last_state_update;
 RTC_DATA_ATTR volatile state_t state;
 RTC_DATA_ATTR volatile uint16_t seq;
+// Flag per verificare se l'invio è completato
+RTC_DATA_ATTR volatile bool transmissionCompleted ;
+// Flag per sapere se il canale è cambiato rispetto alla conf salvata
+RTC_DATA_ATTR volatile bool channelchanged;
 
 /*
 // Definisci la PMK globale (esattamente 16 byte)
@@ -201,9 +205,6 @@ const uint8_t mio_lmk[16] = {
 
 const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 MutexStandard loggingmutex;
-
-// Flag per verificare se l'invio è completato
-volatile bool transmissionCompleted = false;
 
 // prefix for logging system
 void logPrefix(Print* _logOutput) {
@@ -517,8 +518,15 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
 
     // Sblocca il ciclo principale consentendo il deep sleep
     transmissionCompleted = true;
+    if (channelchanged){
+      if (!write_local_config())frtosLog.error("Error writing config file");
+    }
+    channelchanged=false;
     setTime(incomingMessage.message.datetime);
     state = STATE_DATA_DONE;
+  } else {
+    frtosLog.error("message type unknown");
+    return;
   }
 }
 
@@ -545,7 +553,9 @@ void setup() {
     last_state_update = 0;
     state = STATE_NONE;
     seq=0;
-
+    transmissionCompleted = false ;
+    channelchanged = false;
+    
     delay(5000);
     frtosLog.notice(F("Started"));
     frtosLog.notice(F("Version: " SOFTWARE_VERSION));
@@ -732,16 +742,18 @@ void loop() {
     frtosLog.notice(F("accoppiato %T  error count %d"),config.accoppiato, error_count);
 
     config.channel++;
+    channelchanged=true;
     if (config.channel >13) config.channel=1;
     frtosLog.notice("channel: %d",config.channel);
     esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
-    delay(3000);
+    if (!config.accoppiato) delay(3000);
   }  
   
   if (!config.accoppiato) return;
 
   if (state != STATE_NONE and state != STATE_DATA_DONE){
     frtosLog.notice(F("STATE not ready: %d, %d"),state, STATE_NONE);
+    state != STATE_NONE;
     return;
   }
 
@@ -792,14 +804,14 @@ void loop() {
   unsigned long startTimeout = millis();
   while (!transmissionCompleted) {
     delay(10);
-    // Timeout di sicurezza (es. 500ms) per evitare che l'ESP resti acceso all'infinito se il destinatario è spento
-    if (millis() - startTimeout > 500) {
-      frtosLog.notice("Send timeout exceded!");
+    // Timeout di sicurezza (es. 1000ms) per evitare che l'ESP resti acceso all'infinito se il destinatario è spento
+    if (millis() - startTimeout > 1000) {
+      frtosLog.notice("Transaction timeout exceded!");
       break;
     }
   }
 
-  esp_deep_sleep_start();
-  //delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
-  frtosLog.notice("This will never be printed");    
+  // esp_deep_sleep_start();
+  delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
+  frtosLog.notice(F("This will never be printed in DEEP sleep mode"));    
 }
