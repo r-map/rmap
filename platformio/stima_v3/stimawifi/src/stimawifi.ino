@@ -1808,6 +1808,8 @@ void setup() {
   threadMeasure.Start();
   threadNow.Begin();
   threadNow.Start();
+  threadNowSat.Begin();
+  threadNowSat.Start();
   
   //esp_task_wdt_init(60, true);
   //enableLoopWDT();

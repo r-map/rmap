@@ -25,15 +25,14 @@ const uint8_t mio_lmk[16] = {
 };
 */
 
-struct_config config;
+now_config_t config;
 const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 volatile unsigned int last_state_update =0;
 volatile state_t state = STATE_NONE;
 volatile uint16_t seq=0;
 
-
 // read configuration from EEPROM
-bool read_local_config() {
+static bool read_local_config() {
 
   if (LittleFS.exists("/master.json")) {
     //file exists, read and load
@@ -54,23 +53,23 @@ bool read_local_config() {
       if (!error){
 	const char* ver = doc["ver"]; // "1.0"
 	config.accoppiato = doc["accoppiato"];
-	JsonArray satellitemac = doc["satellitemac"];
-	config.satelliteMac[0]= satellitemac[0]; // 1
-	config.satelliteMac[1]= satellitemac[1]; // 2
-	config.satelliteMac[2]= satellitemac[2]; // 3
-	config.satelliteMac[3]= satellitemac[3]; // 4
-	config.satelliteMac[4]= satellitemac[4]; // 5
-	config.satelliteMac[5]= satellitemac[5]; // 6
+	JsonArray mac = doc["satellitemac"];
+	config.peerMac[0]= mac[0]; // 1
+	config.peerMac[1]= mac[1]; // 2
+	config.peerMac[2]= mac[2]; // 3
+	config.peerMac[3]= mac[3]; // 4
+	config.peerMac[4]= mac[4]; // 5
+	config.peerMac[5]= mac[5]; // 6
 	config.channel = doc["channel"];
 
 	nowThread::global_data->logger->notice(F("now Config read:"));
 	nowThread::global_data->logger->notice(F("now accoppiato: %T"),config.accoppiato);
-	nowThread::global_data->logger->notice(F("now MAC 0: %X"),config.satelliteMac[0]);
-	nowThread::global_data->logger->notice(F("now MAC 1: %X"),config.satelliteMac[1]);
-	nowThread::global_data->logger->notice(F("now MAC 2: %X"),config.satelliteMac[2]);
-	nowThread::global_data->logger->notice(F("now MAC 3: %X"),config.satelliteMac[3]);
-	nowThread::global_data->logger->notice(F("now MAC 4: %X"),config.satelliteMac[4]);
-	nowThread::global_data->logger->notice(F("now MAC 5: %X"),config.satelliteMac[5]);
+	nowThread::global_data->logger->notice(F("now MAC 0: %X"),config.peerMac[0]);
+	nowThread::global_data->logger->notice(F("now MAC 1: %X"),config.peerMac[1]);
+	nowThread::global_data->logger->notice(F("now MAC 2: %X"),config.peerMac[2]);
+	nowThread::global_data->logger->notice(F("now MAC 3: %X"),config.peerMac[3]);
+	nowThread::global_data->logger->notice(F("now MAC 4: %X"),config.peerMac[4]);
+	nowThread::global_data->logger->notice(F("now MAC 5: %X"),config.peerMac[5]);
 	nowThread::global_data->logger->notice(F("now channel: %d"),config.channel);
 	nowThread::global_data->logger->notice(F("now END config"));
 	
@@ -86,7 +85,7 @@ bool read_local_config() {
 }
 
 // write configuration to EEPROM
-bool write_local_config() {
+static bool write_local_config() {
 
   //save the custom parameters to FS
   nowThread::global_data->logger->notice(F("now saving master config"));
@@ -100,22 +99,12 @@ bool write_local_config() {
   DynamicJsonDocument doc(200); 
   doc["ver"] = SOFTWARE_VERSION;
   doc["accoppiato"] = config.accoppiato;
-  doc["satellitemac"][0] = config.satelliteMac[0];
-  doc["satellitemac"][1] = config.satelliteMac[1];
-  doc["satellitemac"][2] = config.satelliteMac[2];
-  doc["satellitemac"][3] = config.satelliteMac[3];
-  doc["satellitemac"][4] = config.satelliteMac[4];
-  doc["satellitemac"][5] = config.satelliteMac[5];
-
-  /*
-  JsonArray satellitemac = doc["satellitemac"].to<JsonArray>();
-  satellitemac.add(config.satelliteMac[0]);
-  satellitemac.add(config.satelliteMac[1]);
-  satellitemac.add(config.satelliteMac[2]);
-  satellitemac.add(config.satelliteMac[3]);
-  satellitemac.add(config.satelliteMac[4]);
-  satellitemac.add(config.satelliteMac[5]);
-  */
+  doc["satellitemac"][0] = config.peerMac[0];
+  doc["satellitemac"][1] = config.peerMac[1];
+  doc["satellitemac"][2] = config.peerMac[2];
+  doc["satellitemac"][3] = config.peerMac[3];
+  doc["satellitemac"][4] = config.peerMac[4];
+  doc["satellitemac"][5] = config.peerMac[5];
   
   doc["channel"] = config.channel;
   char buffer[256];
@@ -147,7 +136,7 @@ void nowThread::add_broadcast_peer(){
 
 
 // Callback when data is sent
-void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
+static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
   nowThread::global_data->logger->notice(F("now OnDataSent"));
   nowThread::global_data->logger->notice(F("now State: %d"),state);
   nowThread::global_data->logger->notice(F("now destination MAC: %X:%X:%X:%X:%X:%X"),
@@ -163,7 +152,7 @@ void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
 }
 
 // Callback when data is received
-void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
+static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
   // Create a message_pair to hold incoming sensor readings
   nowThread::global_data->logger->notice(F("now Packed received from MAC: : %X:%X:%X:%X:%X:%X"),
 		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
@@ -224,7 +213,7 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
 	nowThread::global_data->logger->notice(F("now Satellite registered"));      
 	nowThread::global_data->logger->notice(F("now Paired!"));
-	memcpy(config.satelliteMac, esp_now_info->src_addr, 6); // Salva il MAC reale del satellite
+	memcpy(config.peerMac, esp_now_info->src_addr, 6); // Salva il MAC reale del satellite
 
 	// Risponde al trasmettitore per confermare il pairing
 	// Create a message_pair called Readings to hold sensor readings
@@ -286,7 +275,7 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
       outgoingMessage.message.datetime=now();
       outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
       nowThread::global_data->logger->notice(F("now computed CRC: %d"),outgoingMessage.crc);
-      esp_err_t result = esp_now_send(config.satelliteMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      esp_err_t result = esp_now_send(config.peerMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
       if (result == ESP_OK) {
 	state=STATE_DATA_DONE;
 	nowThread::global_data->logger->notice(F("now Sent with success"));
@@ -303,7 +292,7 @@ void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incoming
 }
 
 // encode and enqueue in a proper queue one message
-bool enqueueMqttMessage(const mqttMessage_t mqtt_message) {
+static bool enqueueMqttMessage(const mqttMessage_t mqtt_message) {
   
   bool rc=true;
   //mqtt_message.sent=0;
@@ -420,7 +409,7 @@ void nowThread::Begin()
     // Aggiunge il master come peer specifico
     
     esp_now_peer_info_t peerInfo = {};
-    memcpy(peerInfo.peer_addr, config.satelliteMac, 6);
+    memcpy(peerInfo.peer_addr, config.peerMac, 6);
     peerInfo.channel = 0;
     //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
     peerInfo.encrypt = false;         // enable with pioarduino only! tasmota configurated with no encryption

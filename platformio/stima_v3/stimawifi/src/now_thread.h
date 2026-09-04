@@ -14,7 +14,6 @@
 #define RESET_PAIR false
 #define TRANSACTION_TIMEOUT 1000
 
-
 struct now_data_t {    // thread communication data
   int id;
   frtosLogging* logger;
@@ -32,41 +31,12 @@ typedef enum {
     STATE_DATA_DONE
 } state_t;
 
-struct struct_config {
-  bool accoppiato = false;
-  uint8_t satelliteMac[6];
-  uint8_t channel = 3;
-};
 
-//Structure to send pair messages
-//Must match the receiver structure
-struct message_pair {
-  uint16_t type;
-  uint16_t seq;
-  time_t datetime;
-};
-
-struct message_pair_crc {
-  message_pair message;
-  uint8_t crc;
-};
-
-//Structure to send data
-//Must match the receiver structure
-// 5 + MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH + MQTT_MESSAGE_LENGTH] < 250 (max size of esp-now packet)
-
-struct message_data {
-  uint16_t type;
-  uint16_t seq;
-  mqttMessage_t mqttmessage;
-};
-
-struct message_data_crc {
-  message_data message;
-  uint8_t crc;
-};
-
-bool enqueueMqttMessage(const mqttMessage_t mqtt_message);
+static bool enqueueMqttMessage(const mqttMessage_t mqtt_message);
+static bool read_local_config();
+static bool write_local_config();
+static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status);
+static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len);
 
 using namespace cpp_freertos;
 

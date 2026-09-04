@@ -124,6 +124,9 @@ publishThread threadPublish(&publish_data);
 now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue};
 nowThread threadNow(&now_data);
 
+now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue};
+nowSatThread threadNowSat(&now_sat_data);
+
 #if defined(ARDUINO_LOLIN_C3_MINI)
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 #else

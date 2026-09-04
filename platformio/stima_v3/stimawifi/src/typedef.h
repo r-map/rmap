@@ -269,4 +269,37 @@ struct rpcCalibrate_t
   uint16_t value;
 };
 
+
+//Structure to send esp-now pair messages
+struct message_pair {
+  uint16_t type;
+  uint16_t seq;
+  time_t datetime;
+};
+
+struct message_pair_crc {
+  message_pair message;
+  uint8_t crc;
+};
+
+//Structure to send esp-now data messages
+// 5 + MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH + MQTT_MESSAGE_LENGTH] < 250 (max size of esp-now packet)
+
+struct message_data {
+  uint16_t type;
+  uint16_t seq;
+  mqttMessage_t mqttmessage;
+};
+
+struct message_data_crc {
+  message_data message;
+  uint8_t crc;
+};
+
+struct now_config_t {
+  bool accoppiato = false;
+  uint8_t peerMac[6];
+  uint8_t channel = 3;
+};
+
 #endif
