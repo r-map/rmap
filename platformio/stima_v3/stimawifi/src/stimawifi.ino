@@ -28,7 +28,7 @@ https://doc.rmap.cc/stima_wifi/stimawifi_v3/stima_wifi_howto.html#software
 */
 
 #include "stimawifi.h"
-
+#include "web_resources.h"
 
 void print_reset_reason() {
 
@@ -353,121 +353,84 @@ String Geo(){
   return "KO";
 }
 
-// function to prepare HTML response
-//https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
-
-String Data(){
-  String str ="<h1>StimaWifi Report</h1>\n"
-    "<div class=\"data\">\n"
-    "<div class=\"side-by-side temperature-icon\">\n"
-    "<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n"
-    "width=\"9.915px\" height=\"22px\" viewBox=\"0 0 9.915 22\" enable-background=\"new 0 0 9.915 22\" xml:space=\"preserve\">\n"
-    "<path fill=\"#FFFFFF\" d=\"M3.498,0.53c0.377-0.331,0.877-0.501,1.374-0.527C5.697-0.04,6.522,0.421,6.924,1.142\n"
-    "c0.237,0.399,0.315,0.871,0.311,1.33C7.229,5.856,7.245,9.24,7.227,12.625c1.019,0.539,1.855,1.424,2.301,2.491\n"
-    "c0.491,1.163,0.518,2.514,0.062,3.693c-0.414,1.102-1.24,2.038-2.276,2.594c-1.056,0.583-2.331,0.743-3.501,0.463\n"
-    "c-1.417-0.323-2.659-1.314-3.3-2.617C0.014,18.26-0.115,17.104,0.1,16.022c0.296-1.443,1.274-2.717,2.58-3.394\n"
-    "c0.013-3.44,0-6.881,0.007-10.322C2.674,1.634,2.974,0.955,3.498,0.53z\"></path>\n"
-    "</svg>\n"
-    "</div>\n"
-    "<div class=\"side-by-side temperature-text\">Temperature</div>\n"
-    "<div class=\"side-by-side temperature\">";
-  str +=summarydata.temperature;
-  str +="<span class=\"superscript\">°C</span></div>\n"
-    "</div>\n"
-    "<div class=\"data\">\n"
-    "<div class=\"side-by-side humidity-icon\">\n"
-    "<svg version=\"1.1\" id=\"Layer_2\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n"
-    "width=\"12px\" height=\"17.955px\" viewBox=\"0 0 13 17.955\" enable-background=\"new 0 0 13 17.955\" xml:space=\"preserve\">\n"
-    "<path fill=\"#FFFFFF\" d=\"M1.819,6.217C3.139,4.064,6.5,0,6.5,0s3.363,4.064,4.681,6.217c1.793,2.926,2.133,5.05,1.571,7.057\n"
-    "c-0.438,1.574-2.264,4.681-6.252,4.681c-3.988,0-5.813-3.107-6.252-4.681C-0.313,11.267,0.026,9.143,1.819,6.217\"></path>\n"
-    "</svg>\n"
-    "</div>\n"
-    "<div class=\"side-by-side humidity-text\">Humidity</div>\n"
-    "<div class=\"side-by-side humidity\">";
-  str +=summarydata.humidity;
-  str +="<span class=\"superscript\">%</span></div>\n"
-    "</div>\n"
-  
-    "<div class=\"data\">\n"
-    "<div class=\"side-by-side temperature-text\">PM2.5</div>\n"
-    "<div class=\"side-by-side temperature\">";
-  str +=summarydata.pm2;
-  str +="<span class=\"superscript\">ug/m3</span></div>\n"
-    "</div>\n"
-
-    "<div class=\"data\">\n"
-    "<div class=\"side-by-side temperature-text\">PM10</div>\n"
-    "<div class=\"side-by-side temperature\">";
-  str +=summarydata.pm10;
-  str +="<span class=\"superscript\">ug/m3</span></div>\n"
-    "</div>\n"
-    
-    "<div class=\"data\">\n"
-    "<div class=\"side-by-side temperature-text\">CO2</div>\n"
-    "<div class=\"side-by-side temperature\">";
-  str +=summarydata.co2;
-  str +="<span class=\"superscript\">ppm</span></div>\n"
-    "</div>\n";
-
-  return str;
-}
 
 // function to prepare HTML response main page
 // https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
-String FullPage(){
-  String ptr = "<!DOCTYPE html> <html>\n"
-    "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n"
-    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n"
-    "<title>StimaWiFI Report</title>\n"
-    "<style>html { display: block; margin: 0px auto; text-align: center;color: #333333;}\n"
-    "body{margin-top: 50px;}\n"
-    "h1 {margin: 50px auto 30px;}\n"
-    ".side-by-side{display: inline-block;vertical-align: middle;position: relative;}\n"
-    ".humidity-icon{background-color: #3498db;width: 30px;height: 30px;border-radius: 50%;line-height: 36px;}\n"
-    ".humidity-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n"
-    ".humidity{font-weight: 300;font-size: 60px;color: #3498db;}\n"
-    ".temperature-icon{background-color: #f39c12;width: 30px;height: 30px;border-radius: 50%;line-height: 40px;}\n"
-    ".temperature-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n"
-    ".temperature{font-weight: 300;font-size: 60px;color: #f39c12;}\n"
-    ".superscript{font-size: 17px;font-weight: 600;position: relative;right: -20px;top: -10px;}\n"
-    ".data{padding: 10px;}\n"
-    "</style>\n"
-    "<script>\n"
-    "setInterval(loadDoc,5000);\n"
-    "function loadDoc() {\n"
-    "var xhttp = new XMLHttpRequest();\n"
-    "xhttp.onreadystatechange = function() {\n"
-    "if (this.readyState == 4 && this.status == 200)\n"
-    "{document.getElementById(\"data\").innerHTML =this.responseText}\n"
-    "if (this.readyState == 4 && this.status != 200)\n"
-    "{document.getElementById(\"data\").innerHTML =\"not connected\"}\n"
-    "};\n"
-    "xhttp.open(\"GET\", \"/data\", true);\n"
-    "xhttp.send();\n"
-    "}\n"
-    "</script>\n"
-    "</head>\n"
-    "<body>\n"
-    
-    "<div id=\"data\">\n";
-
-  ptr +=Data();  
-  
-  ptr +="</div>\n"
-    "</body>\n"
-    "</html>\n";
-  return ptr;
+String FullPage() {
+  return F("<!DOCTYPE html><html lang='en'><head>\n"
+"  <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>\n"
+"  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>\n"
+"  <title>StimaWiFI Report</title><link rel='icon' href='data:,'>\n"
+"  <style>\n"
+"    html{ display: block; margin: 0px auto; text-align: center;color: #333333;}\n"
+"    body{margin-top: 50px; display:flex; flex-direction: column; justify-content: center; align-items: center;}\n"
+"    h1  {margin: 50px auto 30px;}\n"
+"    .data{padding: 2em; position: relative;display: flex;flex-direction: row;align-items: center;justify-content: start;justify-items: center;max-width: 40em; background-repeat: no-repeat; background-position: center; background-size: contain;}\n"
+"    .icon:before {width: 3rem;height: 3rem;box-sizing:border-box;border-radius: 50%;color: white;display: flex;align-items: center;justify-content: center;position: relative;top:0.33em;}\n"
+"    .icon-temp:before {background-color:#f39c12; content:' '; background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M10.72 2.82c.331-.29.77-.439 1.205-.462a1.99 1.99 0 0 1 1.8.999c.207.35.275.763.272 1.166-.005 2.967.009 5.934-.007 8.902a4.44 4.44 0 0 1 2.017 2.184 4.37 4.37 0 0 1 .055 3.237 4.34 4.34 0 0 1-1.996 2.275 4.353 4.353 0 0 1-5.963-1.889c-.437-.867-.55-1.88-.362-2.83a4.4 4.4 0 0 1 2.262-2.975c.012-3.016 0-6.033.006-9.05a1.98 1.98 0 0 1 .711-1.557' style='fill:%23fff;stroke:none;'/%3E%3C/svg%3E\");}\n"
+"    .icon-humi:before {background-color:#3498db; content:' '; background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M7.319 9.24c1.32-2.154 4.68-6.217 4.68-6.217s3.364 4.063 4.682 6.217c1.793 2.925 2.133 5.05 1.57 7.057-.437 1.574-2.263 4.68-6.251 4.68s-5.813-3.106-6.252-4.68c-.561-2.007-.222-4.131 1.57-7.057z'/%3E%3C/svg%3E\");}\n"
+"    .icon-pm10:before, .icon-pm25:before {content:' '; background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='6.137' cy='7.393' r='2.046' fill='%23FFF'/%3E%3Ccircle cx='12.405' cy='8.294' r='.901' fill='%23FFF'/%3E%3Ccircle cx='16.099' cy='15.295' r='2.292' fill='%23FFF'/%3E%3Ccircle cx='19.66' cy='11.266' r='.77' fill='%23FFF'/%3E%3Ccircle cx='9.526' cy='14.805' r='1' fill='%23FFF'/%3E%3Ccircle cx='4.786' cy='13.165' r='.851' fill='%23FFF'/%3E%3Ccircle cx='6.4' cy='17.357' r='.263' fill='%23FFF'/%3E%3Ccircle cx='15.76' cy='10.458' r='.263' fill='%23FFF'/%3E%3C/svg%3E\");}\n"
+"    .icon-co2:before {background-color:orangered; content:' '; background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M5.684 14.717a7.7 7.7 0 0 1-1.4-.106q-.563-.117-.914-.371a1.66 1.66 0 0 1-.53-.69 4 4 0 0 1-.234-1.062 15 15 0 0 1-.064-1.507q0-.87.064-1.497.064-.636.234-1.061.18-.435.53-.69.35-.265.913-.372.562-.116 1.401-.116.33 0 .68.032.36 .021.679.063.33.043.563.096v1.507l-.648-.053a22 22 0 0 0-.446-.032 5.4 5.4 0 0 0-1.008.032.9.9 0 0 0-.435.149.67.67 0 0 0-.234.35 3 3 0 0 0-.085.626q-.01.383-.01.966 0 .585 .01.977.021.382.085.615a.67.67 0 0 0 .234.35q.158.117.435.16.276.031.7.032.33 0 .733-.022.414-.031.711-.074v1.528q-.234.043-.573.085-.33.043-.69.064t-.7.021m6.082 0q-.944 0-1.55-.106-.594-.117-.933-.371-.34-.255-.489-.69t-.19-1.062a31 31 0 0 1-.032-1.507q0-.87.031-1.497.043-.636.191-1.072.15-.435.489-.69t.934-.36q.605-.117 1.55-.117.944 0 1.539.116.605.107.944.361.34.255.489.69t.19 1.072q.043.627.043 1.497t-.042 1.507a4.2 4.2 0 0 1-.191 1.062q-.15.435-.489.69-.34.254-.944.371-.595.105-1.54.106m0-1.602q.298 0 .478-.022a.6.6 0 0 0 .297-.127.6.6 0 0 0 .149-.33q.053-.233.064-.625.02-.404.02-1.03t-.02-1.019a3.2 3.2 0 0 0-.064-.626q-.042-.234-.149-.33a.48.48 0 0 0-.297-.127 3 3 0 0 0-.478-.032q-.296 0-.488.032a.47.47 0 0 0-.286.128q-.106.095-.16.329a4 4 0 0 0-.053.626q-.01.393-.01 1.019t.01 1.03q.01.392 .053.626a.7.7 0 0 0 .16.329q.106.096.286.127.192.021.488.022'/%3E%3Cpath fill='%23fff' d='M15.991 16.755v-1.061q0-.594.021-1.03.033-.446.138-.764.106-.319.34-.541.233-.233.647-.404l1.55-.626q.265-.105.393-.191a.36.36 0 0 0 .16-.212q.03-.128.031-.372 0-.265-.085-.382-.086-.127-.308-.16a3.6 3.6 0 0 0-.626-.042q-.234 0-.573.022-.34.02-.743.053-.393.031-.796.085V9.612q.36-.075 .817-.128.456-.052.934-.085.478-.03.892-.031.551 0 1.03.074.487.063.86.276.37.212.572.626.213.403.213 1.093t-.149 1.126a1.5 1.5 0 0 1-.403.668q-.266.244-.616.382l-1.74.68q-.182.063-.287.138-.106.063-.149.17-.032.106-.032.286v.234h3.376v1.634z'/%3E%3C/svg%3E\");}\n"
+"    .icon-pm10:before {background-color: #505060;} .icon-pm25:before {background-color: #606050;}\n"
+"    .unit .measure:after {font-size: 30px;font-weight: 600;display: inline-block;padding-left: 0.5rem;}\n"
+"    .unit .measure:before {font-size: 45px;font-weight: 600;display: inline-block;padding-right: 1em;}\n"
+"    .unit-pm10 .measure:after, .unit-pm25 .measure:after {content: 'µg/m³';}\n"
+"    .unit-humi .measure:after {content: '%';}\n"
+"    .unit-temp .measure:after {content: '°C';}\n"
+"    .unit-co2  .measure:after {content: 'ppm';}\n"
+"    .unit-pm10 .measure:before {content: 'PM 10';}\n"
+"    .unit-pm25 .measure:before {content: 'PM 2.5';}\n"
+"    .unit-humi .measure:before {content: 'Humidity';}\n"
+"    .unit-temp .measure:before {content: 'Temperature';}\n"
+"    .unit-co2  .measure:before {content: 'CO₂';}\n"
+"    .measure {font-weight: 300;font-size: 60px;margin-left:2.5rem;min-width: 33%;}\n"
+"    .unit-temp .measure {color: #f39c12;}\n"
+"    .unit-humi .measure {color: #3498db;}\n"
+"    .unit-pm25 .measure {color: #606050;}\n"
+"    .unit-pm10 .measure {color: #505060;}\n"
+"    .unit-co2 .measure {color: orangered;}\n"
+"    #data.noconnection h2 { display: initial;}\n"
+"    #data.noconnection > div, #data h2 { display: none;}\n"
+"    #data > div {display:flex;}\n"
+"  </style>\n"
+"  <script>\n"
+"    var intervalId = setInterval(loadDoc,5000);\n"
+"    function loadDoc() {\n"
+"      var xhttp = new XMLHttpRequest();\n"
+"      xhttp.onreadystatechange = function() {\n"
+"      if (this.readyState == 4 && this.status == 200){\n"
+"        document.getElementById('data').classList.remove('noconnection');\n"
+"        let readings = JSON.parse(this.responseText);\n"
+"        if (readings) { \n"
+"          Object.entries(readings).forEach((x) => {\n"
+"            const el = document.getElementById(`${x[0]}-readings`);\n"
+"            if (el) el.innerHTML=((isNaN(x[1])||-999==x[1])?' -- ': x[1])\n"
+"          })\n"
+"        } else {document.getElementById('data').classList.add('noconnection');}\n"
+"      }\n"
+"      if (this.readyState == 4 && this.status != 200) {document.getElementById('data').classList.add('noconnection');}\n"
+"};\n"
+"xhttp.open('GET', '/data.json', true);\n"
+"xhttp.send();\n"
+"}\n"
+"</script>\n"
+"</head>\n"
+"<body>\n"
+"<h1>StimaWifi Report</h1>\n"
+"<div id='data'>\n"
+"<h2>Not Connected</h2>\n"
+"  <div class='data icon icon-temp unit unit-temp'><div id='TEMP-readings' class='measure'> -- </div></div>\n"
+"  <div class='data icon icon-humi unit unit-humi'><div id='HUMID-readings' class='measure'> -- </div></div>\n"
+"  <div class='data icon icon-pm25 unit unit-pm25'><div id='PM2-readings' class='measure'> -- </div></div>\n"
+"  <div class='data icon icon-pm10 unit unit-pm10'><div id='PM10-readings' class='measure'> -- </div></div>\n"
+"  <div class='data icon icon-co2 unit unit-co2'  ><div id='CO2-readings'  class='measure'> -- </div></div>\n"
+"</div></body></html>\n");
 }
 
 
 // web server response callback function
 void handle_FullPage() {
   webserver.send(200, "text/html", FullPage()); 
-}
-
-// web server response callback function
-void handle_Data() {
-  webserver.send(200, "text/html", Data()); 
 }
 
 // web server response callback function
@@ -1670,7 +1633,6 @@ void setup() {
   // setup web server
   webserver.enableDelay(false);
   webserver.on("/", handle_FullPage);
-  webserver.on("/data", handle_Data);
   webserver.on("/data.json", handle_Json);
   webserver.on("/geo", handle_Geo);
   webserver.on("/archive.dat", handle_Archive);
