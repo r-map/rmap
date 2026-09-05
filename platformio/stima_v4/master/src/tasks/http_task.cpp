@@ -25,10 +25,42 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define LOCAL_TASK_ID   HTTP_TASK_ID
 
 #include "tasks/http_task.h"
+#include "hash/md5.h"
 
 #if (USE_HTTP)
 
 using namespace cpp_freertos;
+
+/// @brief Lowercase hex MD5 (32 chars + NUL) from 16-byte digest
+static void md5DigestToHex(const uint8_t digest[MD5_DIGEST_SIZE], char out[33])
+{
+  static const char hex[] = "0123456789abcdef";
+  for (uint8_t i = 0; i < MD5_DIGEST_SIZE; i++) {
+    out[i * 2]     = hex[(digest[i] >> 4) & 0x0F];
+    out[i * 2 + 1] = hex[digest[i] & 0x0F];
+  }
+  out[32] = '\0';
+}
+
+/// @brief Compare expected hex MD5 (case-insensitive) to digest
+static bool md5HexMatches(const char *expect_hex, const uint8_t digest[MD5_DIGEST_SIZE])
+{
+  if ((expect_hex == NULL) || (strlen(expect_hex) < 32)) {
+    return false;
+  }
+  char got[33];
+  md5DigestToHex(digest, got);
+  for (uint8_t i = 0; i < 32; i++) {
+    char a = expect_hex[i];
+    if ((a >= 'A') && (a <= 'F')) {
+      a = (char)(a - 'A' + 'a');
+    }
+    if (a != got[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 /// @brief Construct a new Http Task:: Http Task object
 /// @param taskName name of the task
@@ -124,8 +156,10 @@ void HttpTask::Run() {
   uint8_t module_download; // Module download firmware from ID Master FF 00..BOARDS_COUNT_MAX (Slave)
   uint8_t module_download_ver, module_download_rev; // firmware version and revision in download
   uint8_t module_download_type; // firmware module type in download
-  char module_download_md5[32]; // firmware md5 ckeck
+  char module_download_md5[33]; // firmware md5 hex from header (32 + NUL)
   uint32_t totBytesRead = 0;    // firmware download bytes for file
+  Md5Context md5_ctx;
+  bool md5_streaming = false;
 
   connection_request_t connection_request;
   connection_response_t connection_response;
@@ -434,27 +468,35 @@ void HttpTask::Run() {
 
         if(bValidFirmwareRequest) {
           TRACE_INFO_F(F("%s http request firmware dowload [ OK ], ready to download\r\n"), Thread::GetName().c_str(), status);
-          // Retrieve the value of the Content-Type header field
+          module_download_md5[0] = '\0';
           value = httpClientGetHeaderField(&httpClientContext, "x-MD5");
-          strcpy(module_download_md5, value);
+          if (value != NULL) {
+            strncpy(module_download_md5, value, sizeof(module_download_md5) - 1);
+            module_download_md5[sizeof(module_download_md5) - 1] = '\0';
+          }
           // Get version and revision for create file and check update is valid
           value = httpClientGetHeaderField(&httpClientContext, "version");
-          module_download_ver = atoi(value);
+          module_download_ver = (value != NULL) ? (uint8_t)atoi(value) : 0;
           value = httpClientGetHeaderField(&httpClientContext, "revision");
-          module_download_rev = atoi(value);
+          module_download_rev = (value != NULL) ? (uint8_t)atoi(value) : 0;
+          if (module_download_md5[0] == '\0') {
+            TRACE_ERROR_F(F("%s Missing x-MD5 header, refuse firmware save [ %s ]\r\n"),
+                          Thread::GetName().c_str(), ERROR_STRING);
+            bValidFirmwareRequest = false;
+          }
         }
 
-        // Header field found? With requet OK
+        // Header field found? With request OK (version/revision required)
         if ((bValidFirmwareRequest) && (value == NULL))
         {
           if(++retry_get_response<HTTP_TASK_GENERIC_RETRY) {
             is_error = true;
             state = HTTP_STATE_END;
-            TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+            TRACE_ERROR_F(F("%s version/revision header field not found [ %s ] ABORT!!!\r\n"), Thread::GetName().c_str(), ERROR_STRING);
           } else {
             TaskWatchDog(HTTP_TASK_GENERIC_RETRY_DELAY_MS);
             Delay(Ticks::MsToTicks(HTTP_TASK_GENERIC_RETRY_DELAY_MS));
-            TRACE_ERROR_F(F("%s Content-Type header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
+            TRACE_ERROR_F(F("%s version/revision header field not found [ %s ]\r\n"), Thread::GetName().c_str(), ERROR_STRING);
           }
           break;
         }
@@ -462,8 +504,15 @@ void HttpTask::Run() {
         // is_firmware (start queue naming file)
         if(bValidFirmwareRequest) {
           bErrorFirmwareDownload = do_firmware_set_name((Module_Type)module_download_type, module_download_ver, module_download_rev);
+          if (!bErrorFirmwareDownload) {
+            md5Init(&md5_ctx);
+            md5_streaming = true;
+          } else {
+            md5_streaming = false;
+          }
         } else {
           bErrorFirmwareDownload = true;
+          md5_streaming = false;
         }
       }
 
@@ -541,6 +590,10 @@ void HttpTask::Run() {
 
             totBytesRead += http_buffer_length;
 
+            if (md5_streaming) {
+              md5Update(&md5_ctx, http_buffer, http_buffer_length);
+            }
+
             // Log every ~8KB (or short/last block): less spam, less PPP delay
             if (((totBytesRead & 0x1FFFu) < http_buffer_length) ||
                 (http_buffer_length < HTTP_BUFFER_SIZE)) {
@@ -600,6 +653,45 @@ void HttpTask::Run() {
 
       // Closing Queue and File data if opened (Ready for next firmware...)
       if ((is_get_firmware)&&(bValidFirmwareRequest)) {
+        // Reject truncated body when Content-Length is known
+        if ((httpClientContext.bodyLen > 0) &&
+            ((uint32_t)httpClientContext.bodyLen != totBytesRead)) {
+          TRACE_ERROR_F(F("%s Firmware size mismatch: got %lu expect %lu [ %s ]\r\n"),
+                        Thread::GetName().c_str(),
+                        (unsigned long)totBytesRead,
+                        (unsigned long)httpClientContext.bodyLen,
+                        ABORT_STRING);
+          do_firmware_end_data(false);
+          md5_streaming = false;
+          is_error = true;
+          state = HTTP_STATE_END;
+          break;
+        }
+        // MD5: do not keep file / do not raise fw_upgradable if mismatch
+        if (md5_streaming) {
+          uint8_t digest[MD5_DIGEST_SIZE];
+          char digest_hex[33];
+          md5Final(&md5_ctx, digest);
+          md5_streaming = false;
+          md5DigestToHex(digest, digest_hex);
+          if (!md5HexMatches(module_download_md5, digest)) {
+            TRACE_ERROR_F(F("%s Firmware MD5 mismatch expect[%s] got[%s] [ %s ]\r\n"),
+                          Thread::GetName().c_str(), module_download_md5, digest_hex, ABORT_STRING);
+            do_firmware_end_data(false);
+            is_error = true;
+            state = HTTP_STATE_END;
+            break;
+          }
+          TRACE_INFO_F(F("%s Firmware MD5 OK [%s] (%lu bytes)\r\n"),
+                       Thread::GetName().c_str(), digest_hex, (unsigned long)totBytesRead);
+        } else {
+          TRACE_ERROR_F(F("%s Firmware MD5 not computed, refuse save [ %s ]\r\n"),
+                        Thread::GetName().c_str(), ABORT_STRING);
+          do_firmware_end_data(false);
+          is_error = true;
+          state = HTTP_STATE_END;
+          break;
+        }
         // Send closing File correct complete Data Chunk
         bErrorFirmwareDownload |= do_firmware_end_data(true);
         // At least one firmware are downloaded. Need to resynch version/revision to check avaiables version into SD card...

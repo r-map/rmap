@@ -962,6 +962,15 @@ void SdTask::Run()
       // **********************************************************************************
       // Clean entire structure firware dir (destroy all file into before new synch server)
       // **********************************************************************************
+      // Abort any in-progress HTTP→SD put session so redownload starts clean
+      if (putFile) {
+        putFile.close();
+      }
+      if (remote_file_name[0] != 0) {
+        SD.remove(remote_file_name);
+        remote_file_name[0] = 0;
+      }
+      TRACE_INFO_F(F("SD: clean /firmware (force full redownload)\r\n"));
       dir = SD.open("/firmware");
       if(!dir) {
         // ? Need to send response to sender (Only if required... from RPC, not from command LCD)
@@ -1943,7 +1952,12 @@ void SdTask::Run()
             // Locking file session (uploading...)
             memset(&file_put_response, 0, sizeof(file_put_response));
             // Open Put File
-            putFile = SD.open(remote_file_name, O_RDWR | O_CREAT);
+            // Create/overwrite: without O_TRUNC a shorter re-download leaves old trailing bytes
+            // → fw_upgradable true, flash fails, bootloader rollback (station survives, update fails)
+            if (SD.exists(remote_file_name)) {
+              SD.remove(remote_file_name);
+            }
+            putFile = SD.open(remote_file_name, O_RDWR | O_CREAT | O_TRUNC);
             // Open File High LED
             #ifdef PIN_SD_LED
             digitalWrite(PIN_SD_LED, HIGH);

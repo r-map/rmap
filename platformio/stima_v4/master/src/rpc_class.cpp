@@ -125,7 +125,7 @@ int RegisterRPC::admin(JsonObject params, JsonObject result)
             }
           }
         }
-        TRACE_INFO_F(F("RPC: DO DOWNLOAD FIRMWARE\r\n"));
+        TRACE_INFO_F(F("RPC: CLEAN /firmware then DO DOWNLOAD FIRMWARE\r\n"));
         // Start command sequnce for download module firmware
         param.systemStatusLock->Take();
         param.system_status->command.do_http_firmware_download = true;
