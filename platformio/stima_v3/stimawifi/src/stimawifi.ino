@@ -709,6 +709,7 @@ bool write_local_rmap_config(const String payload) {;
 int  rmap_config(const String payload){
 
   bool status_station = false;
+  bool status_board = false;
   bool status_board_mqtt = false;
   bool status_board_tcpip = false;
   bool status_sensors = false;
@@ -764,6 +765,15 @@ int  rmap_config(const String payload){
 	  }
 	}
 
+	if  (element["model"] == "stations.board"){
+	  if (element["fields"]["slug"] == station.boardslug){
+	    if (element["fields"]["active"]){
+	      frtosLog.notice(F("board found!"));
+	      status_board = true;
+	    }
+	  }
+	}
+	
 	if  (element["model"] == "stations.transportmqtt"){
 	  if (element["fields"]["board"][0] == station.boardslug){
 	    if (element["fields"]["active"]){
@@ -845,7 +855,9 @@ int  rmap_config(const String payload){
 	  }
 	}
       }
-      status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors); //Variable 'status' is reassigned a value before the old one has been used.
+      status = (int)!(status_station && status_board
+		      && status_board_mqtt && status_board_tcpip
+		      && status_sensors); //Variable 'status' is reassigned a value before the old one has been used.
     } else {
       frtosLog.error(F("error parsing array: %s"),error.c_str());
       //analogWrite(LED_PIN,973);
@@ -879,11 +891,13 @@ void readconfig() {
 	if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
 	if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
 	if (doc.containsKey("rmap_stationslug")) strcpy(station.stationslug, doc["rmap_stationslug"]);
+	if (doc.containsKey("rmap_boardslug")) strcpy(station.stationslug, doc["rmap_boardslug"]);
 	
 	frtosLog.notice(F("loaded config parameter:"));
 	frtosLog.notice(F("server: %s"),station.server);
 	frtosLog.notice(F("user: %s"),station.user);
 	frtosLog.notice(F("stationslug: %s"),station.stationslug);
+	frtosLog.notice(F("boardslug: %s"),station.boardslug);
 	
       } else {
 	frtosLog.error(F("failed to deserialize json config %s"),error.c_str());
@@ -910,6 +924,7 @@ void writeconfig() {;
   json["rmap_user"] = station.user;
   json["rmap_password"] = station.password;
   json["rmap_stationslug"] = station.stationslug;
+  json["rmap_boardslug"] = station.boardslug;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
@@ -1451,13 +1466,15 @@ void setup() {
   WiFiManagerParameter custom_rmap_server("server", "rmap server", station.server, 41);
   WiFiManagerParameter custom_rmap_user("user", "rmap user", station.user, 10);
   WiFiManagerParameter custom_rmap_password("password", "station password", station.password, 31, "type = \"password\"");
-  WiFiManagerParameter custom_rmap_stationslug("slug", "station slug", station.stationslug, 31);
+  WiFiManagerParameter custom_rmap_stationslug("stationslug", "station slug", station.stationslug, 31);
+  WiFiManagerParameter custom_rmap_boardslug("boardslug", "board slug", station.boardslug, 31);
 
   //add all your parameters here
   wifiManager.addParameter(&custom_rmap_server);
   wifiManager.addParameter(&custom_rmap_user);
   wifiManager.addParameter(&custom_rmap_password);
   wifiManager.addParameter(&custom_rmap_stationslug);
+  wifiManager.addParameter(&custom_rmap_boardslug);
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
@@ -1553,6 +1570,7 @@ void setup() {
     strcpy(station.user, custom_rmap_user.getValue());
     strcpy(station.password, custom_rmap_password.getValue());
     strcpy(station.stationslug, custom_rmap_stationslug.getValue());
+    strcpy(station.boardslug, custom_rmap_boardslug.getValue());
 
     writeconfig();
     if (oledpresent) {
