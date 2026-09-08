@@ -6,7 +6,8 @@
     "f_cpu": "80000000L",
     "mcu": "stm32l496vgt6",
     "product_line": "STM32L496xx",
-    "variant": "L496V(E-G)T_L4A6VGT"
+    "variant": "L496V(E-G)T_L4A6VGT",
+    "flash_offset": "0xB000"
   },
   "connectivity": [
     "can"
@@ -39,6 +40,7 @@
   "upload": {
     "maximum_ram_size": 327680,
     "maximum_size": 1048576,
+    "offset_address": "0x0800B000",
     "protocol": "stlink",
     "protocols": [
       "jlink",

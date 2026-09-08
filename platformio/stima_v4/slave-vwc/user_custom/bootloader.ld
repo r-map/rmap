@@ -37,8 +37,8 @@ _Min_Stack_Size = 0x400;	/* required amount of stack */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = LD_MAX_DATA_SIZE
-  /* FLASH    (rx)    : ORIGIN = 0x800C000 , LENGTH = 208K */
-  FLASH    (rx)    : ORIGIN = 0x800B000 , LENGTH = 0x34FFF
+  /* Offset da board build.flash_offset (stimav4_slave.json -> 0xB000) via LD_FLASH_OFFSET */
+  FLASH    (rx)    : ORIGIN = 0x8000000 + LD_FLASH_OFFSET, LENGTH = LD_MAX_SIZE - LD_FLASH_OFFSET
 }
 
 /* Sections */

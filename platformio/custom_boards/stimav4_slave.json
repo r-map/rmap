@@ -6,7 +6,8 @@
     "f_cpu": "80000000L",
     "mcu": "stm32l452rct6",
     "product_line": "STM32L452xx",
-    "variant": "L452R(C-E)(I-T-Y)_L462RE(I-T-Y)"
+    "variant": "L452R(C-E)(I-T-Y)_L462RE(I-T-Y)",
+    "flash_offset": "0xB000"
   },
   "connectivity": [
     "can"
@@ -35,10 +36,11 @@
     "libopencm3",
     "zephyr"
   ],
-  "name": "STIMA V4 MASTER L452RCT6",
+  "name": "STIMA V4 SLAVE L452RCT6",
   "upload": {
     "maximum_ram_size": 163840,
     "maximum_size": 262144,
+    "offset_address": "0x0800B000",
     "protocol": "stlink",
     "protocols": [
       "jlink",
