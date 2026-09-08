@@ -478,6 +478,88 @@ void LCDTask::display_on(void) {
   param.systemStatusLock->Give();
 }
 
+/// @brief Append " tok" to buf if it fits (NUL-terminated).
+static void lcdAppendTok(char *buf, size_t buflen, const char *tok)
+{
+  const size_t n = strlen(buf);
+  const size_t tlen = strlen(tok);
+  if (n + 1u + tlen >= buflen) {
+    return;
+  }
+  buf[n] = ' ';
+  memcpy(buf + n + 1u, tok, tlen + 1u);
+}
+
+/// @brief True if any configured slave is offline or has latched sensor flags.
+static bool lcdAnySlaveFieldError(const configuration_t *cfg, const system_status_t *st)
+{
+  for (uint8_t i = 0; i < BOARDS_COUNT_MAX; i++) {
+    if (cfg->board_slave[i].module_type == Module_Type::undefined) {
+      continue;
+    }
+    if (!st->data_slave[i].is_online || st->data_slave[i].bit8StateFlag) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// @brief Footer line for CHANNEL: version if OK, else ERR: miss / short flag codes.
+static void lcdFormatSlaveChannelFooter(char *out, size_t outlen, Module_Type module_type,
+                                        bool is_online, uint8_t bit8,
+                                        uint8_t module_version, uint8_t module_revision)
+{
+  if (!is_online) {
+    snprintf(out, outlen, "ERR: miss");
+    return;
+  }
+  if (bit8 == 0) {
+    snprintf(out, outlen, "Module version: %u.%u",
+             (unsigned)module_version, (unsigned)module_revision);
+    return;
+  }
+
+  snprintf(out, outlen, "ERR:");
+  switch (module_type) {
+    case Module_Type::th:
+      if (bit8 & 0x01u) lcdAppendTok(out, outlen, "main");
+      if (bit8 & 0x02u) lcdAppendTok(out, outlen, "red");
+      break;
+    case Module_Type::rain:
+      if (bit8 & 0x01u) lcdAppendTok(out, outlen, "main");
+      if (bit8 & 0x02u) lcdAppendTok(out, outlen, "red");
+      if (bit8 & 0x04u) lcdAppendTok(out, outlen, "tip");
+      if (bit8 & 0x08u) lcdAppendTok(out, outlen, "clg");
+      if (bit8 & 0x10u) lcdAppendTok(out, outlen, "bub");
+      if (bit8 & 0x20u) lcdAppendTok(out, outlen, "acc");
+      break;
+    case Module_Type::wind:
+      if (bit8 & 0x01u) lcdAppendTok(out, outlen, "rsp");
+      if (bit8 & 0x02u) lcdAppendTok(out, outlen, "hw");
+      if (bit8 & 0x04u) lcdAppendTok(out, outlen, "unt");
+      if (bit8 & 0x08u) lcdAppendTok(out, outlen, "axs");
+      if (bit8 & 0x10u) lcdAppendTok(out, outlen, "crc");
+      break;
+    case Module_Type::radiation:
+    case Module_Type::leaf:
+    case Module_Type::level:
+    case Module_Type::vwc:
+      if (bit8 & 0x01u) lcdAppendTok(out, outlen, "adc");
+      if (bit8 & 0x02u) lcdAppendTok(out, outlen, "ovf");
+      break;
+    case Module_Type::power:
+      if (bit8 & 0x01u) lcdAppendTok(out, outlen, "ltc");
+      if (bit8 & 0x02u) lcdAppendTok(out, outlen, "pwr");
+      break;
+    default:
+      break;
+  }
+  // Fallback if unknown module bits or empty decode
+  if (strlen(out) <= 4u) {
+    snprintf(out, outlen, "ERR: %02X", (unsigned)bit8);
+  }
+}
+
 /// @brief Rows with description, value and unity type of measurement
 /// @param module_type The module type
 void LCDTask::display_print_channel_interface(uint8_t module_type) {
@@ -635,9 +717,15 @@ void LCDTask::display_print_channel_interface(uint8_t module_type) {
     display.setCursor(X_TEXT_SYSTEM_MESSAGE, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
     display.print(F("Maintenance mode"));
   } else {
-    // Show Version and Revision actual for module on_line
+    // Version if healthy; else field ERR codes (or miss if configured but offline)
     char firmware_version[FIRMWARE_VERSION_LCD_LENGTH];
-    snprintf(firmware_version, sizeof(firmware_version), "Module version: %d.%d", param.system_status->data_slave[channel].module_version, param.system_status->data_slave[channel].module_revision);
+    lcdFormatSlaveChannelFooter(
+        firmware_version, sizeof(firmware_version),
+        (Module_Type)module_type,
+        param.system_status->data_slave[channel].is_online,
+        param.system_status->data_slave[channel].bit8StateFlag,
+        param.system_status->data_slave[channel].module_version,
+        param.system_status->data_slave[channel].module_revision);
     display.setFont(u8g2_font_helvR08_tf);
     display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 7.5 * LINE_BREAK);
     display.print(firmware_version);
@@ -852,6 +940,7 @@ void LCDTask::display_print_main_interface(void) {
   // Print system status
   display.setCursor(X_TEXT_FROM_RECT, Y_TEXT_FIRST_LINE + 5 * LINE_BREAK);
   display.print(F("System status: "));
+  const bool slave_field_err = lcdAnySlaveFieldError(param.configuration, param.system_status);
   if (!param.system_status->flags.pnp_request &&
       !param.system_status->flags.fw_updating &&
       !param.system_status->flags.file_server_running &&
@@ -859,7 +948,8 @@ void LCDTask::display_print_main_interface(void) {
       !param.system_status->flags.dns_error &&
       !param.system_status->flags.ntp_error &&
       !param.system_status->flags.mqtt_error &&
-      !param.system_status->flags.http_error) {
+      !param.system_status->flags.http_error &&
+      !slave_field_err) {
     display.print(F(" OK"));
   } else {
     // Add type of diag message to buffer (Fw upgrade)
@@ -945,6 +1035,11 @@ void LCDTask::display_print_main_interface(void) {
     if (param.system_status->flags.http_error) {
       is_error = true;
       strcat(errors, "http");
+    }
+    // Configured slave offline or latched sensor flags → scroll CHANNEL for detail
+    if (slave_field_err) {
+      is_error = true;
+      strcat(errors, "slave ");
     }
     // Dispaly Error or Diag Message
     if (is_error) {
