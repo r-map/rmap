@@ -20,6 +20,7 @@ struct now_sat_data_t {    // thread communication data
   Queue* mqttqueue;
   Queue* dbqueue;
   Queue* recoveryqueue;
+  nowsatStatus_t* status;  
 };
 
 typedef enum {

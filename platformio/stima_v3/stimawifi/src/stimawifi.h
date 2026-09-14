@@ -57,6 +57,9 @@ File logFile;
 WriteLoggingStream loggingStream(logFile,Serial);
 #endif
 
+// if reset is requested by user
+bool reset;
+
 //flag for saving data
 bool shouldSaveConfig = false;
 bool pmspresent =  false;
@@ -121,10 +124,10 @@ measureThread threadMeasure(&measure_data);
 publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&rpcRecoveryQueue,&rpcCalibrateQueue,&stimawifiStatus,&station};
 publishThread threadPublish(&publish_data);
 
-now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue};
+now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.now};
 nowThread threadNow(&now_data);
 
-now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue};
+now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat};
 nowSatThread threadNowSat(&now_sat_data);
 
 #if defined(ARDUINO_LOLIN_C3_MINI)

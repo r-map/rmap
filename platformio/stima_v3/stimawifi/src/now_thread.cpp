@@ -465,6 +465,17 @@ void nowThread::Run() {
 	data->logger->error(F("now Error sending pairing request"));
       }    
     }
+    //Delay(Ticks::SecondsToTicks(1));
+    //if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+    //  data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    //  data->status->no_heap_memory=error;
+    //}
+    
+    //data->logger->notice(F("stack gps: %d"),uxTaskGetStackHighWaterMark(NULL));
+    if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
+      data->logger->error(F("now stack"));
+      data->status->memory_collision=error;
+    }
   }
 };
   
