@@ -16,6 +16,9 @@ class TransportBluetoothInline(admin.TabularInline):
 class TransportTcpipInline(admin.TabularInline):
     model = TransportTcpip
 
+class TransportEspnowInline(admin.TabularInline):
+    model = TransportEspnow
+    
 class TransportRF24NetworkInline(admin.TabularInline):
     model = TransportRF24Network
 
@@ -102,6 +105,7 @@ class BoardAdmin(admin.ModelAdmin):
         TransportSerialInline,
         TransportBluetoothInline,
         TransportTcpipInline,
+        TransportEspnowInline,
         TransportRF24NetworkInline,
         TransportAmqpInline,
         TransportMqttInline,

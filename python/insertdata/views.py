@@ -31,7 +31,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.core import serializers
 from django.forms import BoundField, Field
-from rmap.stations.models import TransportMqtt,TransportTcpip,TransportCan,TransportAmqp,Sensor
+from rmap.stations.models import TransportEspnow,TransportMqtt,TransportTcpip,TransportCan,TransportAmqp,Sensor
 
 import traceback
 
@@ -749,6 +749,10 @@ def insertNewStation(request):
                     except ObjectDoesNotExist:
                         pass
                     try:
+                        transports.append(board.transportespnow)
+                    except ObjectDoesNotExist:
+                        pass
+                    try:
                         transports.append(board.transportbluetooth)
                     except ObjectDoesNotExist:
                         pass
@@ -992,18 +996,20 @@ def boardModify(request,slug,bslug):
     TransportTcpipFormSet = inlineformset_factory(Board,TransportTcpip, fields=["active","name","ntpserver","gsmapn","pppnumber"])
     TransportCanFormSet = inlineformset_factory(Board,TransportCan, fields=["active","cansampletime","node_id","subject","subject_id"])
     TransportAmqpFormSet = inlineformset_factory(Board,TransportAmqp, fields=["active","amqpserver","exchange","queue","amqpuser","amqppassword"])
+    TransportEspnowFormSet = inlineformset_factory(Board,TransportEspnow, fields=["active","amqpserver","espnowsampletime"])
     
     try:
         
         if request.method == 'POST': # If the form has been submitted...
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
-            boardform             = BoardForm            (request.POST, instance=myboard)
-            sensorformset         = SensorFormSet        (request.POST, instance=myboard)
-            transportmqttformset  = TransportMqttFormSet (request.POST, instance=myboard)
-            transporttcpipformset = TransportTcpipFormSet(request.POST, instance=myboard)
-            transportcanformset   = TransportCanFormSet  (request.POST, instance=myboard)
-            transportamqpformset  = TransportAmqpFormSet (request.POST, instance=myboard)
+            boardform              = BoardForm             (request.POST, instance=myboard)
+            sensorformset          = SensorFormSet         (request.POST, instance=myboard)
+            transportmqttformset   = TransportMqttFormSet  (request.POST, instance=myboard)
+            transporttcpipformset  = TransportTcpipFormSet (request.POST, instance=myboard)
+            transportcanformset    = TransportCanFormSet   (request.POST, instance=myboard)
+            transportamqpformset   = TransportAmqpFormSet  (request.POST, instance=myboard)
+            transportespnowformset = TransportEspnowFormSet(request.POST, instance=myboard)
 
             valid=False
             if (boardform.is_valid()
@@ -1011,7 +1017,8 @@ def boardModify(request,slug,bslug):
                 and transportmqttformset.is_valid()
                 and transporttcpipformset.is_valid()
                 and transportcanformset.is_valid()
-                and transportamqpformset.is_valid()):
+                and transportamqpformset.is_valid()
+                and transportespnowformset.is_valid()):
                 
                 boardform.save()
                 sensorformset.save()
@@ -1019,18 +1026,20 @@ def boardModify(request,slug,bslug):
                 transporttcpipformset.save()
                 transportcanformset.save()
                 transportamqpformset.save()
+                transportespnowformset.save()
                 valid=True
                 
             mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
             myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
 
             boardform = BoardForm(instance=myboard)
-            boardformset          = BoardForm(instance=mystation)
-            sensorformset         = SensorFormSet        (instance=myboard)            
-            transportmqttformset  = TransportMqttFormSet (instance=myboard)
-            transporttcpipformset = TransportTcpipFormSet(instance=myboard)
-            transportcanformset   = TransportCanFormSet  (instance=myboard)
-            transportamqpformset  = TransportAmqpFormSet (instance=myboard)
+            boardformset           = BoardForm              (instance=mystation)
+            sensorformset          = SensorFormSet          (instance=myboard)            
+            transportmqttformset   = TransportMqttFormSet   (instance=myboard)
+            transporttcpipformset  = TransportTcpipFormSet  (instance=myboard)
+            transportcanformset    = TransportCanFormSet    (instance=myboard)
+            transportamqpformset   = TransportAmqpFormSet   (instance=myboard)
+            transportespnowformset = TransportEspnowFormSet (instance=myboard)
 
             if (valid):
                 return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
@@ -1039,6 +1048,7 @@ def boardModify(request,slug,bslug):
                                                                           "transporttcpipformset":transporttcpipformset,
                                                                           "transportcanformset":transportcanformset,
                                                                           "transportamqpformset":transportamqpformset,
+                                                                          "transportespnowformset":transportespnowformset,
                                                                           "station":mystation,
                                                                           "board":myboard,
                                                                           "saved":True})
@@ -1050,6 +1060,7 @@ def boardModify(request,slug,bslug):
                                                                       "transporttcpipformset":transporttcpipformset,
                                                                       "transportcanformset":transportcanformset,
                                                                       "transportamqpformset":transportamqpformset,
+                                                                      "transportespnowformset":transportespnowformset,
                                                                       "station":mystation,
                                                                       "board":myboard,
                                                                       "invalid":True})
@@ -1059,18 +1070,20 @@ def boardModify(request,slug,bslug):
             myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
 
             boardform = BoardForm(instance=myboard)
-            boardformset          = BoardForm(instance=mystation)
-            sensorformset         = SensorFormSet        (instance=myboard)            
-            transportmqttformset  = TransportMqttFormSet (instance=myboard)
-            transporttcpipformset = TransportTcpipFormSet(instance=myboard)
-            transportcanformset   = TransportCanFormSet  (instance=myboard)
-            transportamqpformset  = TransportAmqpFormSet (instance=myboard)
+            boardformset           = BoardForm             (instance=mystation)
+            sensorformset          = SensorFormSet         (instance=myboard)            
+            transportmqttformset   = TransportMqttFormSet  (instance=myboard)
+            transporttcpipformset  = TransportTcpipFormSet (instance=myboard)
+            transportcanformset    = TransportCanFormSet   (instance=myboard)
+            transportamqpformset   = TransportAmqpFormSet  (instance=myboard)
+            transportespnowformset = TransportEspnowFormSet(instance=myboard)
             return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
                                                                       "sensorformset":sensorformset,
                                                                       "transportmqttformset":transportmqttformset,
                                                                       "transporttcpipformset":transporttcpipformset,
                                                                       "transportcanformset":transportcanformset,
                                                                       "transportamqpformset":transportamqpformset,
+                                                                      "transportespnowformset":transportespnowformset,
                                                                       "station":mystation,
                                                                       "board":myboard,
                                                                       })
@@ -1082,16 +1095,18 @@ def boardModify(request,slug,bslug):
         mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
         myboard=Board.objects.get(slug__exact=bslug,stationmetadata=mystation)
 
-        boardform             = BoardForm            (instance=myboard)
-        sensorformset         = SensorFormSet        (instance=myboard)
-        transportmqttformset  = TransportMqttFormSet (instance=myboard)
-        transporttcpipformset = TransportTcpipFormSet(instance=myboard)
-        transportcanformset   = TransportCanFormSet  (instance=myboard)
-        transportamqpformset  = TransportAmqpFormSet (instance=myboard)
+        boardform              = BoardForm             (instance=myboard)
+        sensorformset          = SensorFormSet         (instance=myboard)
+        transportmqttformset   = TransportMqttFormSet  (instance=myboard)
+        transporttcpipformset  = TransportTcpipFormSet (instance=myboard)
+        transportcanformset    = TransportCanFormSet   (instance=myboard)
+        transportamqpformset   = TransportAmqpFormSet  (instance=myboard)
+        transportespnowformset = TransportEspnowFormSet(instance=myboard)
         return render(request, 'insertdata/boardmodifyform.html',{'boardform':boardform,
                                                                   "sensorformset":sensorformset,
                                                                   "transportmqttformset":transportmqttformset,
                                                                   "transporttcpipformset":transporttcpipformset,
                                                                   "transportcanformset":transportcanformset,
                                                                   "transportamqpformset":transportamqpformset,"station":mystation,
+                                                                  "transportespnowformset":transportespnowformset,"station":mystation,
                                                                   "board":myboard,"error":True})

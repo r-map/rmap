@@ -164,7 +164,14 @@ class Sensor(models.Model):
         except:
             pass
 
-        #board do not have mqtttransport active; search for other board in station with mqtttransport
+        try:
+            if self.board.transportespnow.active:
+                #board have espnow transport active; use it
+                return self.timerange.format(P2=self.board.transportespnow.espnowsampletime)
+        except:
+            pass
+        
+        #board do not have mqtttransport active; search for other board in station with mqtttransport or espnowtransport
         mystation=self.board.stationmetadata
         for board in mystation.board_set.all():
             # try to get sampletime: from mqtt transport of one board of the station
@@ -173,6 +180,10 @@ class Sensor(models.Model):
                 if (board.transportmqtt.active) :
                     return self.timerange.format(P2=board.transportmqtt.mqttsampletime)
 
+            if (hasattr(board, 'transportespnow')):
+                if (board.transportespnow.active) :
+                    return self.timerange.format(P2=board.transportespnow.sampletime)
+                
         print ("dynamic_timerange warning: return timerange with default 900 sec. if not static defined")
         return self.timerange.format(P2=900)
                 
@@ -399,6 +410,34 @@ class TransportRF24Network(models.Model):
         return '%s' % (self.node)
 
 
+class TransportEspnowManager(models.Manager):
+    def get_by_natural_key(self, board):
+        #print "TransportEspnowManager:",board
+        return self.get(board=Board.objects.get_by_natural_key(board[0],board[1]))
+
+class TransportEspnow(models.Model):
+    """ESP now transport."""
+
+    objects = TransportEspnowManager()
+    active = models.BooleanField(_("Active"),default=False,null=False,blank=False,help_text=_("Activate this transport for measurements"))
+    espnowsampletime = models.PositiveIntegerField(default=300,null=False,blank=False,help_text=_("interval in seconds for publish"))
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
+
+    def natural_key(self):
+        #print "natural key TransportEspnow"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
+
+    natural_key.dependencies = ['stations.board']
+
+    class Meta:
+        ordering = ['node']
+        verbose_name = 'ESP NOW node' 
+        verbose_name_plural = 'ESP NOW nodes' 
+
+    def __str__(self):
+        return '%s' % (self.node)
+    
 class TransportMqttManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportMqttManager: ",board
@@ -701,6 +740,7 @@ class Board(models.Model):
         ('gsmv4', 'Stima V4 master LTS transport'),
         ('slavev4', 'Stima V4 slave CAN transport'),        
         ('stimawifiv3', 'Stima V3 Stima WiFI'),        
+        ('stimawifiv3espnow', 'Stima V3 Stima WiFI ESP NOW'),        
     )
 
     STIMAV4_MODULE_TYPE_CHOICES = (
@@ -719,6 +759,7 @@ class Board(models.Model):
         (29,"Module acquire soil humidity"),
         (30,"Module acquire level river"),
         (101,"Module StimaV3 WiFi"),
+        (102,"Module StimaV3 WiFi ESP NOW"),
     )
 
     name = models.CharField(max_length=255,help_text=_("board name"))
