@@ -611,15 +611,15 @@ void publishThread::store() {
   mqttMessage_t mqtt_message;
 
   if (data->mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue
-    if (mqtt_message.sent){
-      data->logger->error(F("publish skip and do not store message sended before: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
-    }else{
+    //if (mqtt_message.sent){
+    //  data->logger->error(F("publish skip and do not store message sended before: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
+    //}else{
       if(data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
 	data->logger->notice(F("publish skip and enqueue message for db: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
       }else{
 	data->logger->error(F("publish lost message for db: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
       }
-    }
+    //}
   }else{
     data->logger->error(F("publish getting message from mqtt queue"));
   }

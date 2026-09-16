@@ -275,7 +275,6 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
     
     if (seq+1 == incomingMessage.message.seq){
       nowSatThread::global_data->logger->notice(F("nowsat SEQ: %d"),incomingMessage.message.seq);
-      // TODO dequeue the message when we will have queue
     }else{
       nowSatThread::global_data->logger->error(F("nowsat SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
     }
@@ -488,25 +487,30 @@ void nowSatThread::Run() {
 	}
       }
     }
+
+    // try to flush messages in queue
     
     data->logger->notice(F("nowsat mqtt     queue space left %d"),data->mqttqueue->NumSpacesLeft());
     data->logger->notice(F("nowsat recovery queue space left %d"),data->recoveryqueue->NumSpacesLeft());
-    
-    /*
-      Now that we have setup a wake cause and if needed setup the
-      peripherals state in deep sleep, we can now start going to
-      deep sleep.
-      In the case that no wake up sources were provided but deep
-      sleep was started, it will sleep forever unless hardware
-      reset occurs.
-    */
-    
-    //data->logger->notice("nowsat I am going to sleep now");
-    //Serial.flush();
-    //
-    // esp_deep_sleep_start();
-    // delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
-    // data->logger->notice(F("nowsat This will never be printed in DEEP sleep mode"));
+    data->logger->notice(F("nowsat db       queue space left %d"),data->dbqueue->NumSpacesLeft());
+
+    // if there messages on the mqtt queue send it to the DB
+    bool timeout=false;
+    time_t start=millis();
+    while (data->mqttqueue->IsEmpty() or timeout){
+      store();
+      timeout=(millis()-start) > 10000;
+    }
+
+    // wait db queue to go empty
+    timeout=false;
+    start=millis();
+    while (data->dbqueue->IsEmpty() or timeout){
+      timeout=(millis()-start) > 10000;
+      delay(100);
+    }    
+    data->logger->notice(F("nowsat mqtt     queue space left before sleep %d"),data->mqttqueue->NumSpacesLeft());
+    data->logger->notice(F("nowsat db       queue space left before sleep %d"),data->dbqueue->NumSpacesLeft());
 
     //Delay(Ticks::SecondsToTicks(1));
     //if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
@@ -520,6 +524,21 @@ void nowSatThread::Run() {
       data->status->memory_collision=error;
     }
     
+    /*
+      Now that we have setup a wake cause and if needed setup the
+      peripherals state in deep sleep, we can now start going to
+      deep sleep.
+      In the case that no wake up sources were provided but deep
+      sleep was started, it will sleep forever unless hardware
+      reset occurs.
+    */
+    
+    data->logger->notice("nowsat I am going to sleep now");
+    Serial.flush();
+    //
+    esp_deep_sleep_start();
+    // delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
+    data->logger->notice(F("nowsat This will never be printed in DEEP sleep mode"));    
   }
 }
 // get one message from publish queue and send it to the queue for DB
@@ -530,15 +549,15 @@ void nowSatThread::store() {
   mqttMessage_t mqtt_message;
 
   if (data->mqttqueue->Dequeue(&mqtt_message, pdMS_TO_TICKS( 0 ))){;  // dequeue
-    if (mqtt_message.sent){
-      data->logger->error(F("nowsat skip and do not store message sended before: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
-    }else{
+    //if (mqtt_message.sent){
+    //  data->logger->error(F("nowsat skip and do not store message sended before: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
+    //}else{
       if(data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
 	data->logger->notice(F("nowsat skip and enqueue message for db: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
       }else{
 	data->logger->error(F("nowsat lost message for db: %s ; %s"), mqtt_message.topic, mqtt_message.payload);
       }
-    }
+    //}
   }else{
     data->logger->error(F("nowsat getting message from mqtt queue"));
   }
