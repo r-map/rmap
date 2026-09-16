@@ -190,7 +190,8 @@ void measureThread::doMeasure() {
   data->status->sensor=unknown;  
   data->status->novalue=unknown;
   data->status->geodef=unknown;
-  
+  data->state = STATE_MEASURE_STARTED;
+
   // sensorm (sensor Manager) is a finite state machine
   // here we can execute measure in parallel starting one state machine (sensorm) for each sensor
   // each sensor can do one or more measure
@@ -270,9 +271,9 @@ void measureThread::doMeasure() {
 
   if(data->status->novalue==unknown) data->status->novalue=ok;
   if(data->status->sensor==unknown) data->status->sensor=ok;
+  data->state = STATE_MEASURE_DONE;
 
 }
-
 
 measureThread::measureThread(measure_data_t* measure_data)
   : Thread{"measure", TASK_MEASURE_STACK_SIZE, TASK_MEASURE_PRIORITY
@@ -300,6 +301,7 @@ measureThread::~measureThread()
 
 void measureThread::Begin()
 {
+  data->state = STATE_MEASURE_NONE;
   // create one driver for each sensor
   uint8_t tmp_count=0;
   for (uint8_t i = 0; i < data->sensors_count; i++) {

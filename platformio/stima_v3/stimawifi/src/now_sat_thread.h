@@ -12,7 +12,6 @@
 
 #define SAT_TRANSACTION_TIMEOUT 1000
 #define S_TO_uS_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  10         /* Time ESP32 will go to sleep (in seconds) */
 
 struct now_sat_data_t {    // thread communication data
   int id;
@@ -21,6 +20,8 @@ struct now_sat_data_t {    // thread communication data
   Queue* dbqueue;
   Queue* recoveryqueue;
   nowsatStatus_t* status;  
+  station_t* station;
+  state_measure_t* state_measure;
 };
 
 typedef enum {

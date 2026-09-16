@@ -3,6 +3,13 @@
 #ifndef MEASURE_THREAD_H_
 #define MEASURE_THREAD_H_
 
+typedef enum {
+  STATE_MEASURE_NONE,
+  STATE_MEASURE_STARTED,
+  STATE_MEASURE_DONE
+} state_measure_t;
+
+
 struct measure_data_t {    // thread communication data
   int id;
   frtosLogging* logger;
@@ -16,6 +23,7 @@ struct measure_data_t {    // thread communication data
   BinaryQueue* rpccalibratequeue;
   sensor_t  sensors[SENSORS_MAX];
   uint8_t sensors_count;
+  state_measure_t state;
 };
 
 using namespace cpp_freertos;
