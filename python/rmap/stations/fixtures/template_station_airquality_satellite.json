@@ -1,0 +1,130 @@
+[
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "airquality satellite",
+    "active": true,
+    "slug": "airquality-satellite",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 19e-05,
+    "lon": 19e-05,
+    "network": "fixed",
+    "mqttrootpath": "sample",
+    "mqttmaintpath": "maint",
+    "category": "template",
+    "type": "stimav3"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "default",
+    "active": true,
+    "slug": "default",
+    "category": "stimawifiv3espnow",
+    "type": 102,
+    "sn": null,
+    "stationmetadata": [
+      "airquality-satellite",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Dust",
+    "driver": "I2C",
+    "type": [
+      "SPS"
+    ],
+    "i2cbus": null,
+    "address": 105,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "default",
+      [
+        "airquality-satellite",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "Temperature_Humidity",
+    "driver": "I2C",
+    "type": [
+      "SHT"
+    ],
+    "i2cbus": null,
+    "address": 68,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "default",
+      [
+        "airquality-satellite",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "CO2",
+    "driver": "I2C",
+    "type": [
+      "SCD"
+    ],
+    "i2cbus": null,
+    "address": 97,
+    "node": null,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "default",
+      [
+        "airquality-satellite",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportespnow",
+  "fields": {
+    "active": true,
+    "espnowsampletime": 30,
+    "board": [
+      "default",
+      [
+        "airquality-satellite",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+}
+]
+

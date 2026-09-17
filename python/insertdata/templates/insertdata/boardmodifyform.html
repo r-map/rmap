@@ -32,6 +32,7 @@
 	<li><a data-toggle="tab" href="#transportmqttformset">Transport MQTT</a></li>
 	<li><a data-toggle="tab" href="#transporttcpipformset">Transport TCP/IP</a></li>
 	<li><a data-toggle="tab" href="#transportcanformset">Transport CAN</a></li>
+	<li><a data-toggle="tab" href="#transportespnowformset">Transport ESP-NOW</a></li>
 	<li><a data-toggle="tab" href="#transportamqpformset">Transport AMQP</a></li>
       </ul>
 
@@ -89,7 +90,16 @@
 	  </table>
 	</div>
       </div>
-	
+
+      <div id="transportespnowformset" class="tab-pane fade">      
+	<div class="form-group">
+	  <h3 class="blockquote text-left">{% trans 'Modify transport ESP-NOW' %}</h3>      
+	  <table class="table table-bordered">
+	    {{ transportespnowformset.as_table }}
+	  </table>
+	</div>
+      </div>
+      
       <div id="transportamqpformset" class="tab-pane fade">      
 	<div class="form-group">
 	  <h3 class="blockquote text-left">{% trans 'Modify transport AMQP' %}</h3>      

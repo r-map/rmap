@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (StationMetadata,Board,Sensor,SensorType,Bcode,
-TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportCan,TransportAmqp,TransportBluetooth,
+                     TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportCan,TransportAmqp,TransportBluetooth,TransportEspnow,
 StationConstantData,BoardFirmwareMetadata,StationMaintStatus,StationImage,BoardMaintStatus)
 from django import forms
 from django.utils.translation import ugettext_lazy

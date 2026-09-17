@@ -431,12 +431,12 @@ class TransportEspnow(models.Model):
     natural_key.dependencies = ['stations.board']
 
     class Meta:
-        ordering = ['node']
+        ordering = ['board']
         verbose_name = 'ESP NOW node' 
         verbose_name_plural = 'ESP NOW nodes' 
 
     def __str__(self):
-        return '%s' % (self.node)
+        return '%s' % (self.board)
     
 class TransportMqttManager(models.Manager):
     def get_by_natural_key(self, board):

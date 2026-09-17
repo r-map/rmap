@@ -996,7 +996,7 @@ def boardModify(request,slug,bslug):
     TransportTcpipFormSet = inlineformset_factory(Board,TransportTcpip, fields=["active","name","ntpserver","gsmapn","pppnumber"])
     TransportCanFormSet = inlineformset_factory(Board,TransportCan, fields=["active","cansampletime","node_id","subject","subject_id"])
     TransportAmqpFormSet = inlineformset_factory(Board,TransportAmqp, fields=["active","amqpserver","exchange","queue","amqpuser","amqppassword"])
-    TransportEspnowFormSet = inlineformset_factory(Board,TransportEspnow, fields=["active","amqpserver","espnowsampletime"])
+    TransportEspnowFormSet = inlineformset_factory(Board,TransportEspnow, fields=["active","espnowsampletime"])
     
     try:
         
