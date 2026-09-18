@@ -127,7 +127,7 @@ publishThread threadPublish(&publish_data);
 now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.now};
 nowThread threadNow(&now_data);
 
-now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat};
+now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat,&station,&measure_data.state};
 nowSatThread threadNowSat(&now_sat_data);
 
 #if defined(ARDUINO_LOLIN_C3_MINI)
@@ -148,6 +148,14 @@ time_t rtc_set_time();
 String Json();
 String Data();
 String FullPage();
+
+// setup routine for master snd satellite stations
+void setup();
+void setup_pre();
+void setup_satellite();
+void setup_master();
+void setup_post();
+
 void writeconfig();
 
 // web server response function

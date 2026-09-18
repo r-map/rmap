@@ -894,7 +894,8 @@ int  rmap_config(const String payload){
       } else {
       
 	status = (int)!(status_station && status_board
-			&& (status_board_mqtt || status_board_espnow) && status_board_tcpip
+			&& (status_board_mqtt || status_board_espnow)
+			&& (status_board_tcpip|| status_board_espnow)
 			&& status_sensors); //Variable 'status' is reassigned a value before the old one has been used.
       }
     } else {
@@ -1196,19 +1197,27 @@ void logSuffix(Print* _logOutput) {
 
 // arduino setup routine
 void setup() {
-  setup_common_1();
+  setup_common_pre();
+  
   if (station.espnow){
-    String local_config  = read_local_rmap_config();
-    rmap_config(local_config);
+    setup_threads();
+    setup_satellite();
   } else {
     setup_master();
-  }    
-  setup_common_2();
+    setup_threads();
+  }
+  
+  //esp_task_wdt_init(60, true);
+  //enableLoopWDT();
+  //disableLoopWDT();
+  //rtc_wdt_protect_off();
+  //rtc_wdt_disable();
+  //wdt_hal_disable();  
 }
 
 
 // arduino setup routine part 1
-void setup_common_1() {
+void setup_common_pre() {
   // put your setup code here, to run once in Arduin task:
 
   /*
@@ -1493,6 +1502,17 @@ void setup_common_1() {
       delay(3000);
     }
   }
+  
+  String local_config  = read_local_rmap_config();
+  rmap_config(local_config);
+
+  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
+  
+}
+
+void setup_satellite() {
+  dataRecovery();
+  measureAndPublish();
 }
 
 // arduino setup routine for master station
@@ -1872,14 +1892,26 @@ void setup_master() {
     // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);  
 
+  Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
+  Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
+  
 }
 
 // arduino setup routine part 2
-void setup_common_2() {
+void setup_threads() {
   
-  Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
-  Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
-  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
+  // start other thread
+  threadMeasure.Begin();
+  threadMeasure.Start();
+  threadDb.Start();
+  if (station.espnow){
+    threadNowSat.Begin();
+    threadNowSat.Start();
+  }else{
+    threadPublish.Start();
+    threadNow.Begin();
+    threadNow.Start();
+  }
 
   // if mobile station start geolocation thread or if we need to acquire time
   if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
@@ -1891,26 +1923,7 @@ void setup_common_2() {
     threadGpsI2c.Start();
     #endif
   }
-
-  // start other thread
-  threadDb.Start();
-  if (station.espnow){
-    threadNowSat.Begin();
-    threadNowSat.Start();
-  }else{
-    threadPublish.Start();
-    threadNow.Begin();
-    threadNow.Start();
-  }
-  threadMeasure.Begin();
-  threadMeasure.Start();
   
-  //esp_task_wdt_init(60, true);
-  //enableLoopWDT();
-  //disableLoopWDT();
-  //rtc_wdt_protect_off();
-  //rtc_wdt_disable();
-  //wdt_hal_disable();
 }
 
 // arduino loop routine

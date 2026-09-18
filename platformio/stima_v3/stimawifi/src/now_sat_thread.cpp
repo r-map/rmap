@@ -350,6 +350,10 @@ void nowSatThread::Begin()
     uintptr_t end   = (uintptr_t)&_rtc_data_end;
     data->logger->notice(F("nowsat RTC used data: %d bytes on 8192 total"), (unsigned)(end - start));
   }
+
+  // Set device as a Wi-Fi Station
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
   
   // ESP-Now Range Test: Real-World Results for ESP32 Devices
   // https://youtu.be/oz0a7Ur7nko?si=aUMBJ4SpeXTSMMPg
