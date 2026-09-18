@@ -28,7 +28,6 @@ https://doc.rmap.cc/stima_wifi/stimawifi_v3/stima_wifi_howto.html#software
 */
 
 #include "stimawifi.h"
-#include "web_resources.h"
 
 void print_reset_reason() {
 
