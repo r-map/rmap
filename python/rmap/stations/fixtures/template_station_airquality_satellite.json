@@ -2,9 +2,9 @@
 {
   "model": "stations.stationmetadata",
   "fields": {
-    "name": "airquality satellite",
+    "name": "airquality now",
     "active": true,
-    "slug": "airquality-satellite",
+    "slug": "airquality-now",
     "user": [
       "rmap"
     ],
@@ -21,20 +21,37 @@
 {
   "model": "stations.board",
   "fields": {
-    "name": "default",
+    "name": "satellite",
     "active": true,
-    "slug": "default",
+    "slug": "satellite",
     "category": "stimawifiv3espnow",
     "type": 102,
     "sn": null,
     "stationmetadata": [
-      "airquality-satellite",
+      "airquality-now",
       [
         "rmap"
       ]
     ]
   }
 },
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "master",
+    "active": true,
+    "slug": "master",
+    "category": "stimawifiv3",
+    "type": 101,
+    "sn": null,
+    "stationmetadata": [
+      "airquality-now",
+      [
+        "rmap"
+      ]
+    ]
+  }
+},    
 {
   "model": "stations.sensor",
   "fields": {
@@ -50,9 +67,9 @@
     "timerange": "254,0,0",
     "level": "103,2000,-,-",
     "board": [
-      "default",
+      "satellite",
       [
-        "airquality-satellite",
+        "airquality-now",
         [
           "rmap"
         ]
@@ -75,9 +92,9 @@
     "timerange": "254,0,0",
     "level": "103,2000,-,-",
     "board": [
-      "default",
+      "satellite",
       [
-        "airquality-satellite",
+        "airquality-now",
         [
           "rmap"
         ]
@@ -100,9 +117,9 @@
     "timerange": "254,0,0",
     "level": "103,2000,-,-",
     "board": [
-      "default",
+      "satellite",
       [
-        "airquality-satellite",
+        "airquality-now",
         [
           "rmap"
         ]
@@ -116,15 +133,73 @@
     "active": true,
     "espnowsampletime": 30,
     "board": [
-      "default",
+      "satellite",
       [
-        "airquality-satellite",
+        "airquality-now",
         [
           "rmap"
         ]
       ]
     ]
   }
-}
+},
+{
+  "model": "stations.transportmqtt",
+  "fields": {
+    "active": true,
+    "mqttsampletime": 30,
+    "mqttserver": "rmap.cc",
+    "mqttuser": "rmap",
+    "mqttpassword": "none",
+    "mqttpskkey": null,
+    "board": [
+      "master",
+      [
+        "airquality-now",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transporttcpip",
+  "fields": {
+    "active": true,
+    "name": "stima",
+    "ntpserver": "it.pool.ntp.org",
+    "gsmapn": "ibox.tim.it",
+    "pppnumber": "*99#",
+    "board": [
+      "master",
+      [
+        "airquality-now",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "Observer",
+    "active": false,
+    "slug": "observer",
+    "user": [
+      "rmap"
+    ],
+    "ident": "",
+    "lat": 10e-05,
+    "lon": 10e-05,
+    "network": "fixed",
+    "mqttrootpath": "sample",
+    "mqttmaintpath": "maint",
+    "type": "manual",
+    "category": "template"
+  }
+}    
 ]
 
