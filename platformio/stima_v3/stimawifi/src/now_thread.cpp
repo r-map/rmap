@@ -1,5 +1,4 @@
 #include "common.h"
-#include "now_thread.h"
 
 
 //***********************************************************************************************
@@ -137,62 +136,62 @@ void nowThread::add_broadcast_peer(){
 
 // Callback when data is sent
 static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
-  nowThread::global_data->logger->notice(F("now OnDataSent"));
-  nowThread::global_data->logger->notice(F("now State: %d"),state);
-  nowThread::global_data->logger->notice(F("now destination MAC: %X:%X:%X:%X:%X:%X"),
-		  des_addr[0], des_addr[1], des_addr[2],
-		  des_addr[3], des_addr[4], des_addr[5]);
-  nowThread::global_data->logger->notice(F("now Last Packet Send Status: %s"), status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail"  );
+  //nowThread::global_data->logger->notice(F("now OnDataSent"));
+  //nowThread::global_data->logger->notice(F("now State: %d"),state);
+  //nowThread::global_data->logger->notice(F("now destination MAC: %X:%X:%X:%X:%X:%X"),
+  //		  des_addr[0], des_addr[1], des_addr[2],
+  //		  des_addr[3], des_addr[4], des_addr[5]);
+  //nowThread::global_data->logger->notice(F("now Last Packet Send Status: %s"), status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail"  );
   last_state_update=millis();
   if (status != ESP_NOW_SEND_SUCCESS){
     state=STATE_NONE;
-    nowThread::global_data->logger->error(F("now Error sending"));
+    //nowThread::global_data->logger->error(F("now Error sending"));
   }
-  nowThread::global_data->logger->notice(F("State: %d"),state);
+  //nowThread::global_data->logger->notice(F("State: %d"),state);
 }
 
 // Callback when data is received
 static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
   // Create a message_pair to hold incoming sensor readings
-  nowThread::global_data->logger->notice(F("now Packed received from MAC: : %X:%X:%X:%X:%X:%X"),
-		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
-		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
-  nowThread::global_data->logger->notice(F("now Bytes received: %d"),len);
+  //nowThread::global_data->logger->notice(F("now Packed received from MAC: : %X:%X:%X:%X:%X:%X"),
+  //		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
+  //		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
+  //nowThread::global_data->logger->notice(F("now Bytes received: %d"),len);
 
   // Controlla se è una risposta al Pairing
   uint16_t type;
   memcpy(&type, incomingData, sizeof(type));
   if (type == 1 ) {
-    nowThread::global_data->logger->notice(F("now broadcast ack received"));
+    //nowThread::global_data->logger->notice(F("now broadcast ack received"));
     message_pair_crc incomingMessage;
     memcpy(&incomingMessage, incomingData, len);
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message,sizeof(incomingMessage.message));
-    nowThread::global_data->logger->notice(F("now computed CRC: %d"),crc);
+    //nowThread::global_data->logger->notice(F("now computed CRC: %d"),crc);
     if (crc != incomingMessage.crc){
-      nowThread::global_data->logger->error(F("now CRC mismatch"));
+      //nowThread::global_data->logger->error(F("now CRC mismatch"));
       return;
     }
     
     if (seq+1 == incomingMessage.message.seq){
-      nowThread::global_data->logger->notice(F("now SEQ: %d"),incomingMessage.message.seq);
+      //nowThread::global_data->logger->notice(F("now SEQ: %d"),incomingMessage.message.seq);
     }else{
-      nowThread::global_data->logger->error(F("now SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
+      //nowThread::global_data->logger->error(F("now SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
       return;
     }
 
     if (state != STATE_PAIR_SENDED){
-      nowThread::global_data->logger->error(F("now STATE mismatch: %d, %d"),state, STATE_PAIR_SENDED);
+      //nowThread::global_data->logger->error(F("now STATE mismatch: %d, %d"),state, STATE_PAIR_SENDED);
       state = STATE_NONE;
       return;
     }
 
     if (config.accoppiato){
-      nowThread::global_data->logger->error(F("now PAIR mismatch"));
+      //nowThread::global_data->logger->error(F("now PAIR mismatch"));
       return;
     }
 
     if ((millis() - last_state_update) > TRANSACTION_TIMEOUT){
-      nowThread::global_data->logger->error(F("now Transaction timeout %d"),millis() - last_state_update);
+      //nowThread::global_data->logger->error(F("now Transaction timeout %d"),millis() - last_state_update);
       state=STATE_NONE;
       return;
     }
@@ -200,7 +199,7 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
     state=STATE_PAIR_ACK_RECEIVED;
 
     if (esp_now_is_peer_exist(esp_now_info->src_addr)){
-      nowThread::global_data->logger->notice(F("now peer already registered"));
+      //nowThread::global_data->logger->notice(F("now peer already registered"));
     }else{    
       // Aggiunge il satellite come peer specifico
       esp_now_peer_info_t peerInfo = {};
@@ -211,8 +210,8 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
       //memcpy(peerInfo.lmk, mio_lmk, 16);
       
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-	nowThread::global_data->logger->notice(F("now Satellite registered"));      
-	nowThread::global_data->logger->notice(F("now Paired!"));
+	//nowThread::global_data->logger->notice(F("now Satellite registered"));      
+	//nowThread::global_data->logger->notice(F("now Paired!"));
 	memcpy(config.peerMac, esp_now_info->src_addr, 6); // Salva il MAC reale del satellite
 
 	// Risponde al trasmettitore per confermare il pairing
@@ -225,19 +224,21 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
 	esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
 	if (result == ESP_OK) {
 	  state=STATE_PAIR_DONE;
-	  nowThread::global_data->logger->notice(F("now Sent with success"));
+	  //nowThread::global_data->logger->notice(F("now Sent with success"));
 	} else {
 	  state=STATE_NONE;
-	  nowThread::global_data->logger->error(F("now Sent with error"));
+	  //nowThread::global_data->logger->error(F("now Sent with error"));
 	  return;
 	}
 
 	config.accoppiato=true;
 	esp_now_del_peer(broadcastAddress);
 	
-	if (!write_local_config())nowThread::global_data->logger->error(F("now Error writing config file"));
-      }else{
-	nowThread::global_data->logger->error(F("now Error adding peer"));
+	if (!write_local_config()){
+	  //nowThread::global_data->logger->error(F("now Error writing config file"));
+	}
+      //}else{
+        //nowThread::global_data->logger->error(F("now Error adding peer"));
       }
     }
   } else if (type == 99) {
@@ -246,17 +247,17 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
     memcpy(&incomingMessage, incomingData, len);
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message,sizeof(incomingMessage.message));
     if (crc != incomingMessage.crc){
-      nowThread::global_data->logger->error(F("now CRC mismatch"));
+      //nowThread::global_data->logger->error(F("now CRC mismatch"));
       return;
     }
 
     if (!config.accoppiato){
-      nowThread::global_data->logger->error(F("now PAIR mismatch"));
+      //nowThread::global_data->logger->error(F("now PAIR mismatch"));
       return;
     }
 
     if (state != STATE_NONE and state != STATE_PAIR_DONE and state != STATE_DATA_DONE){
-      nowThread::global_data->logger->error(F("now STATE mismatch: %d, %d/%d/%d"),state, STATE_NONE,STATE_PAIR_DONE,STATE_DATA_DONE);
+      //nowThread::global_data->logger->error(F("now STATE mismatch: %d, %d/%d/%d"),state, STATE_NONE,STATE_PAIR_DONE,STATE_DATA_DONE);
       return;
     }
 
@@ -265,8 +266,8 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
     char dt[DATE_TIME_STRING_LENGTH];
     snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
 
-    nowThread::global_data->logger->notice(F("now topic received: %s"),incomingMessage.message.mqttmessage.topic);
-    nowThread::global_data->logger->notice(F("now payload received: %s"),incomingMessage.message.mqttmessage.payload);
+    //nowThread::global_data->logger->notice(F("now topic received: %s"),incomingMessage.message.mqttmessage.topic);
+    //nowThread::global_data->logger->notice(F("now payload received: %s"),incomingMessage.message.mqttmessage.payload);
 
     if (enqueueMqttMessage(incomingMessage.message.mqttmessage)){
       message_pair_crc outgoingMessage;
@@ -274,14 +275,14 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
       outgoingMessage.message.seq=incomingMessage.message.seq+1;
       outgoingMessage.message.datetime=now();
       outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
-      nowThread::global_data->logger->notice(F("now computed CRC: %d"),outgoingMessage.crc);
+      //nowThread::global_data->logger->notice(F("now computed CRC: %d"),outgoingMessage.crc);
       esp_err_t result = esp_now_send(config.peerMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
       if (result == ESP_OK) {
 	state=STATE_DATA_DONE;
-	nowThread::global_data->logger->notice(F("now Sent with success"));
+	//nowThread::global_data->logger->notice(F("now Sent with success"));
       } else {
 	state=STATE_NONE;
-	nowThread::global_data->logger->error(F("now Sent with error"));
+	//nowThread::global_data->logger->error(F("now Sent with error"));
       }
     }else{
 
@@ -334,7 +335,7 @@ nowThread::nowThread(now_data_t* now_data)
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
 
-  //data->status->no_heap_memory=ok;
+  data->status->no_heap_memory=ok;
 
   global_data=data;
   
@@ -352,15 +353,7 @@ void nowThread::Begin()
   // slow down
   //setCpuFrequencyMhz(80);
 
-  /*
-  if (RESET_PAIR){
-    data->logger->warning(F("now Reset pair information"));
-    LittleFS.begin();
-    LittleFS.format();
-  }
-  */
-  
-  data->logger->notice(F("now Started"));
+    data->logger->notice(F("now Started"));
 
   if(!read_local_config()) data->logger->error(F("now failed reading config file"));
   

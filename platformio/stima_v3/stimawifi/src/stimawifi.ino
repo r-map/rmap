@@ -816,7 +816,7 @@ int  rmap_config(const String payload){
 	}
 
 	if  (element["model"] == "stations.transportespnow"){
-	  if (element["fields"]["board"][0] == station.boardslug){
+ 	  if (element["fields"]["board"][0] == station.boardslug){
 	    if (element["fields"]["active"]){
 	      frtosLog.notice(F("board transportespnow found!"));
 	      station.sampletime=element["fields"]["espnowsampletime"];
@@ -845,24 +845,26 @@ int  rmap_config(const String payload){
 	
 	if  (element["model"] == "stations.sensor"){
 	  if (element["fields"]["active"]){
-	    if (measure_data.sensors_count < SENSORS_MAX) {
-	      frtosLog.notice(F("station sensor found!"));
-	      strncpy (measure_data.sensors[measure_data.sensors_count].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
-	      frtosLog.notice(F("driver: %s"),measure_data.sensors[measure_data.sensors_count].driver);
-	      strncpy (measure_data.sensors[measure_data.sensors_count].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
-	      frtosLog.notice(F("type: %s"),measure_data.sensors[measure_data.sensors_count].type);
-	      strncpy (measure_data.sensors[measure_data.sensors_count].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      frtosLog.notice(F("timerange: %s"),measure_data.sensors[measure_data.sensors_count].timerange);
-	      strncpy (measure_data.sensors[measure_data.sensors_count].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      frtosLog.notice(F("level: %s"),measure_data.sensors[measure_data.sensors_count].level);
-	      measure_data.sensors[measure_data.sensors_count].address = element["fields"]["address"];	    
-	      frtosLog.notice(F("address: %d"),measure_data.sensors[measure_data.sensors_count].address);
+	    if (element["fields"]["board"][0] == station.boardslug){
+	      if (measure_data.sensors_count < SENSORS_MAX) {
+		frtosLog.notice(F("station sensor found!"));
+		strncpy (measure_data.sensors[measure_data.sensors_count].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
+		frtosLog.notice(F("driver: %s"),measure_data.sensors[measure_data.sensors_count].driver);
+		strncpy (measure_data.sensors[measure_data.sensors_count].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
+		frtosLog.notice(F("type: %s"),measure_data.sensors[measure_data.sensors_count].type);
+		strncpy (measure_data.sensors[measure_data.sensors_count].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
+		frtosLog.notice(F("timerange: %s"),measure_data.sensors[measure_data.sensors_count].timerange);
+		strncpy (measure_data.sensors[measure_data.sensors_count].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
+		frtosLog.notice(F("level: %s"),measure_data.sensors[measure_data.sensors_count].level);
+		measure_data.sensors[measure_data.sensors_count].address = element["fields"]["address"];	    
+		frtosLog.notice(F("address: %d"),measure_data.sensors[measure_data.sensors_count].address);
 
-	      if (strcmp(measure_data.sensors[measure_data.sensors_count].type,"PMS")==0) pmspresent=true;
-	      
-	      measure_data.sensors_count++;
+		if (strcmp(measure_data.sensors[measure_data.sensors_count].type,"PMS")==0) pmspresent=true;
+		
+		measure_data.sensors_count++;
+	      }
+	      status_sensors = true;
 	    }
-	    status_sensors = true;
 	  }
 	}
 
@@ -896,7 +898,8 @@ int  rmap_config(const String payload){
 	status = (int)!(status_station && status_board
 			&& (status_board_mqtt || status_board_espnow)
 			&& (status_board_tcpip|| status_board_espnow)
-			&& status_sensors); //Variable 'status' is reassigned a value before the old one has been used.
+			&& status_board_espnow ? status_sensors: true);    // master board can have no sensors
+	//Variable 'status' is reassigned a value before the old one has been used.
       }
     } else {
       frtosLog.error(F("error parsing array: %s"),error.c_str());
@@ -931,7 +934,7 @@ void readconfig() {
 	if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
 	if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
 	if (doc.containsKey("rmap_stationslug")) strcpy(station.stationslug, doc["rmap_stationslug"]);
-	if (doc.containsKey("rmap_boardslug")) strcpy(station.stationslug, doc["rmap_boardslug"]);
+	if (doc.containsKey("rmap_boardslug")) strcpy(station.boardslug, doc["rmap_boardslug"]);
 	
 	frtosLog.notice(F("loaded config parameter:"));
 	frtosLog.notice(F("server: %s"),station.server);

@@ -1,5 +1,4 @@
 #include "common.h"
-#include "now_sat_thread.h"
 
 //***********************************************************************************************
 //                         global definition to use in NOW callback
@@ -320,7 +319,7 @@ nowSatThread::nowSatThread(now_sat_data_t* now_sat_data)
     data{now_sat_data}
 {
   //data->logger->notice("nowsat Create Thread %s %d", GetName().c_str(), data->id);
-  //data->status->no_heap_memory=ok;
+  data->status->no_heap_memory=ok;
 
   global_data=data;
   
