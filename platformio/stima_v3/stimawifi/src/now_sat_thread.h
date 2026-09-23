@@ -63,7 +63,6 @@ protected:
   virtual void Run();
     
 private:
-  virtual void myRun();
   now_sat_data_t* data;
   void store();
   bool doRelay(mqttMessage_t mqtt_message, const bool recovery=false);

@@ -470,12 +470,6 @@ void nowSatThread::Cleanup()
 }
 
 void nowSatThread::Run() {
-  while(true){
-    myRun();
-  }
-}
-
-void nowSatThread::myRun() {
   data->logger->notice(F("nowsat  Starting Thread %s %d"), GetName().c_str(), data->id);
 
   mqttMessage_t message;
@@ -634,8 +628,7 @@ void nowSatThread::myRun() {
   data->logger->notice("nowsat I am going to sleep now");
   Serial.flush();
   //
-  //esp_deep_sleep_start();
-  delay(5000);
+  esp_deep_sleep_start();
   // delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
   data->logger->notice(F("nowsat This will never be printed in DEEP sleep mode"));    
 }

@@ -1515,6 +1515,9 @@ void setup_common_pre() {
 
 void setup_satellite() {
 
+  // initialize RTC with mutex
+  frtosRTC.begin(RTC,i2cmutex);
+  
   if (timeStatus() != timeSet) {
     if (frtosRTC.isRunning() && (year(frtosRTC.get()) > 2020)){
       frtosLog.notice(F("Getted time from RTC"));
@@ -1525,10 +1528,8 @@ void setup_satellite() {
     }
   }
 
-  //dataRecovery();
-  //measureAndPublish();
-  Alarm.timerRepeat(10, dataRecovery);         // timer for data recovery from DB
-  Alarm.timerRepeat(15, measureAndPublish);    // timer for measure every SAMPLETIME seconds
+  dataRecovery();
+  measureAndPublish();
 }
 
 // arduino setup routine for master station
