@@ -1514,8 +1514,21 @@ void setup_common_pre() {
 }
 
 void setup_satellite() {
-  dataRecovery();
-  measureAndPublish();
+
+  if (timeStatus() != timeSet) {
+    if (frtosRTC.isRunning() && (year(frtosRTC.get()) > 2020)){
+      frtosLog.notice(F("Getted time from RTC"));
+      stimawifiStatus.rtc=ok;
+      setSyncProvider(rtc_set_time);   // the function to get the time from the RTC
+    }else{
+      stimawifiStatus.rtc=error;
+    }
+  }
+
+  //dataRecovery();
+  //measureAndPublish();
+  Alarm.timerRepeat(10, dataRecovery);         // timer for data recovery from DB
+  Alarm.timerRepeat(15, measureAndPublish);    // timer for measure every SAMPLETIME seconds
 }
 
 // arduino setup routine for master station
@@ -1914,19 +1927,20 @@ void setup_threads() {
     threadPublish.Start();
     threadNow.Begin();
     threadNow.Start();
-  }
-
-  // if mobile station start geolocation thread or if we need to acquire time
-  if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
-    threadUdp.Start();
-    #ifdef GPS_SERIAL
-    threadGps.Start();
-    #endif
-    #ifdef GPS_I2C
-    threadGpsI2c.Start();
-    #endif
-  }
   
+    // start geolocation thread if mobile station or if we need to acquire time
+    // (but not for satellite station)
+    if ((strcmp(station.ident,"") != 0 || (timeStatus() != timeSet))
+	&& !station.espnow){
+      threadUdp.Start();
+      #ifdef GPS_SERIAL
+      threadGps.Start();
+      #endif
+      #ifdef GPS_I2C
+      threadGpsI2c.Start();
+      #endif
+    }
+  }
 }
 
 // arduino loop routine
@@ -1938,29 +1952,32 @@ void loop() {
     loopinit=false;
   }
 
-  // set alarm for fixed station and when time is setted
-  if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){
-    time_t reboottime;
-    periodic_work_setted=true;
-    
-    if (pmspresent){
-      reboottime=3600*24;                                        // pms stall sometime, we reboot more
-    }else{
-      reboottime=3600*24*7;                                      // we reset everythings one time a week
+  if (!station.espnow){
+
+    // set alarm for fixed station and when time is setted
+    if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){
+      time_t reboottime;
+      periodic_work_setted=true;
+      
+      if (pmspresent){
+	reboottime=3600*24;                                        // pms stall sometime, we reboot more
+      }else{
+	reboottime=3600*24*7;                                      // we reset everythings one time a week
+      }
+      frtosLog.notice(F("reboot every: %l"),reboottime);
+      Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
+      
+      // update firmware
+      //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
+      Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
     }
-    frtosLog.notice(F("reboot every: %l"),reboottime);
-    Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
     
-    // update firmware
-    //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
-    Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
+    webserver.handleClient();
+    //MDNS.update(); 
   }
   
-  webserver.handleClient();
-  //MDNS.update();
   Alarm.delay(0);       // check for alarms
   delay(100);
-
 
   // check heap and stack
   //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

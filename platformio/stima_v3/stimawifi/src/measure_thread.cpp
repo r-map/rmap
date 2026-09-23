@@ -190,7 +190,6 @@ void measureThread::doMeasure() {
   data->status->sensor=unknown;  
   data->status->novalue=unknown;
   data->status->geodef=unknown;
-  data->state = STATE_MEASURE_STARTED;
 
   // sensorm (sensor Manager) is a finite state machine
   // here we can execute measure in parallel starting one state machine (sensorm) for each sensor
@@ -271,7 +270,6 @@ void measureThread::doMeasure() {
 
   if(data->status->novalue==unknown) data->status->novalue=ok;
   if(data->status->sensor==unknown) data->status->sensor=ok;
-  data->state = STATE_MEASURE_DONE;
 
 }
 
@@ -338,7 +336,10 @@ void measureThread::Run() {
   for(;;){
     // wait for notification from the main task; start when we have to do measurements
     WaitForNotification();
+    
+    data->state = STATE_MEASURE_STARTED;
     if (timeStatus() == timeSet) doMeasure();  // measure il we can use a timestamp
+    data->state = STATE_MEASURE_DONE;
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

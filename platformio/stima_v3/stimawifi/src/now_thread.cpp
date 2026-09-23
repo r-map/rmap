@@ -5,6 +5,13 @@
 //                         global definition to use in NOW callback
 // pointers setted by class istance
 now_data_t* nowThread::global_data=NULL;
+static bool have_to_write_config=false;
+now_config_t config;
+const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+volatile unsigned int last_state_update =0;
+volatile state_t state = STATE_NONE;
+volatile uint16_t seq=0;
+
 //***********************************************************************************************
 
 
@@ -24,11 +31,6 @@ const uint8_t mio_lmk[16] = {
 };
 */
 
-now_config_t config;
-const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
-volatile unsigned int last_state_update =0;
-volatile state_t state = STATE_NONE;
-volatile uint16_t seq=0;
 
 // read configuration from EEPROM
 static bool read_local_config() {
@@ -47,11 +49,11 @@ static bool read_local_config() {
       String content = configFile.readString();
       configFile.close();
       
-      DynamicJsonDocument doc(200);
+      DynamicJsonDocument doc(256);
       DeserializationError error = deserializeJson(doc,content);
       if (!error){
 	const char* ver = doc["ver"]; // "1.0"
-	config.accoppiato = doc["accoppiato"];
+	config.paired = doc["paired"];
 	JsonArray mac = doc["satellitemac"];
 	config.peerMac[0]= mac[0]; // 1
 	config.peerMac[1]= mac[1]; // 2
@@ -62,7 +64,7 @@ static bool read_local_config() {
 	config.channel = doc["channel"];
 
 	nowThread::global_data->logger->notice(F("now Config read:"));
-	nowThread::global_data->logger->notice(F("now accoppiato: %T"),config.accoppiato);
+	nowThread::global_data->logger->notice(F("now paired: %T"),config.paired);
 	nowThread::global_data->logger->notice(F("now MAC 0: %X"),config.peerMac[0]);
 	nowThread::global_data->logger->notice(F("now MAC 1: %X"),config.peerMac[1]);
 	nowThread::global_data->logger->notice(F("now MAC 2: %X"),config.peerMac[2]);
@@ -87,30 +89,41 @@ static bool read_local_config() {
 static bool write_local_config() {
 
   //save the custom parameters to FS
-  nowThread::global_data->logger->notice(F("now saving master config"));
+  //nowThread::global_data->logger->notice(F("now saving master config"));
   
   File configFile = LittleFS.open("/master.json", "w");
   if (!configFile) {
-    nowThread::global_data->logger->error(F("now failed to open rmap config file for writing"));
+    //nowThread::global_data->logger->error(F("now failed to open rmap config file for writing"));
     return false;
   }
 
-  DynamicJsonDocument doc(200); 
-  doc["ver"] = SOFTWARE_VERSION;
-  doc["accoppiato"] = config.accoppiato;
-  doc["satellitemac"][0] = config.peerMac[0];
-  doc["satellitemac"][1] = config.peerMac[1];
-  doc["satellitemac"][2] = config.peerMac[2];
-  doc["satellitemac"][3] = config.peerMac[3];
-  doc["satellitemac"][4] = config.peerMac[4];
-  doc["satellitemac"][5] = config.peerMac[5];
+  DynamicJsonDocument doc(256); 
+  doc[F("ver")] = F(SOFTWARE_VERSION);
+  doc[F("paired")] = config.paired;
+
+  //doc[F("satellitemac")][0] = config.peerMac[0];
+  //doc[F("satellitemac")][1] = config.peerMac[1];
+  //doc[F("satellitemac")][2] = config.peerMac[2];
+  //doc[F("satellitemac")][3] = config.peerMac[3];
+  //doc[F("satellitemac")][4] = config.peerMac[4];
+  //doc[F("satellitemac")][5] = config.peerMac[5];
+
+  JsonArray satellitemac = doc[F("satellitemac")].to<JsonArray>();
+  satellitemac.add(config.peerMac[0]);
+  satellitemac.add(config.peerMac[1]);
+  satellitemac.add(config.peerMac[2]);
+  satellitemac.add(config.peerMac[3]);
+  satellitemac.add(config.peerMac[4]);
+  satellitemac.add(config.peerMac[5]);
   
   doc["channel"] = config.channel;
-  char buffer[256];
-  serializeJson(doc, buffer, sizeof(buffer));
-  configFile.print(buffer);
+  //{"ver":"12.123","paired":true,"satellitemac":[1111,2222,3333,4444,5555,6666],"channel":13}
+  //char buffer[100];
+  //serializeJson(doc, buffer, sizeof(buffer));
+  //configFile.print(buffer);
+  serializeJson(doc, configFile);
   configFile.close();
-  nowThread::global_data->logger->notice(F("now saved master config parameter"));
+  //nowThread::global_data->logger->notice(F("now saved master config parameter"));
   //end save
   return true;
 }
@@ -185,7 +198,7 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
       return;
     }
 
-    if (config.accoppiato){
+    if (config.paired){
       //nowThread::global_data->logger->error(F("now PAIR mismatch"));
       return;
     }
@@ -231,12 +244,9 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
 	  return;
 	}
 
-	config.accoppiato=true;
+	config.paired=true;
 	esp_now_del_peer(broadcastAddress);
-	
-	if (!write_local_config()){
-	  //nowThread::global_data->logger->error(F("now Error writing config file"));
-	}
+	have_to_write_config=true;
       //}else{
         //nowThread::global_data->logger->error(F("now Error adding peer"));
       }
@@ -251,7 +261,7 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
       return;
     }
 
-    if (!config.accoppiato){
+    if (!config.paired){
       //nowThread::global_data->logger->error(F("now PAIR mismatch"));
       return;
     }
@@ -269,25 +279,31 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
     //nowThread::global_data->logger->notice(F("now topic received: %s"),incomingMessage.message.mqttmessage.topic);
     //nowThread::global_data->logger->notice(F("now payload received: %s"),incomingMessage.message.mqttmessage.payload);
 
-    if (enqueueMqttMessage(incomingMessage.message.mqttmessage)){
-      message_pair_crc outgoingMessage;
+    message_pair_crc outgoingMessage;
+    if (incomingMessage.message.mqttmessage.sent==1
+	and incomingMessage.message.mqttmessage.topic[0] == NULL
+	and incomingMessage.message.mqttmessage.payload[0] == NULL){
+      //nowThread::global_data->logger->notice(F("now time sync message received"));
       outgoingMessage.message.type=3;                     // data ACK
-      outgoingMessage.message.seq=incomingMessage.message.seq+1;
-      outgoingMessage.message.datetime=now();
-      outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
-      //nowThread::global_data->logger->notice(F("now computed CRC: %d"),outgoingMessage.crc);
-      esp_err_t result = esp_now_send(config.peerMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
-      if (result == ESP_OK) {
-	state=STATE_DATA_DONE;
-	//nowThread::global_data->logger->notice(F("now Sent with success"));
-      } else {
-	state=STATE_NONE;
-	//nowThread::global_data->logger->error(F("now Sent with error"));
-      }
     }else{
-
-      // TODO NACK
-      
+      if(enqueueMqttMessage(incomingMessage.message.mqttmessage)){
+	outgoingMessage.message.type=3;                     // data ACK
+      }else{
+	// TODO NACK
+	outgoingMessage.message.type=10;  // not managed !
+      }	
+    }
+    outgoingMessage.message.seq=incomingMessage.message.seq+1;
+    outgoingMessage.message.datetime=now();
+    outgoingMessage.crc = esp_rom_crc8_le(0, (const uint8_t*)&outgoingMessage.message, sizeof(outgoingMessage.message));
+    //nowThread::global_data->logger->notice(F("now computed CRC: %d"),outgoingMessage.crc);
+    esp_err_t result = esp_now_send(config.peerMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+    if (result == ESP_OK) {
+      state=STATE_DATA_DONE;
+      //nowThread::global_data->logger->notice(F("now Sent with success"));
+    } else {
+      state=STATE_NONE;
+      //nowThread::global_data->logger->error(F("now Sent with error"));
     }
   }
 }
@@ -396,7 +412,7 @@ void nowThread::Begin()
   // Register for a callback function that will be called when data is received
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
-  if (config.accoppiato){
+  if (config.paired){
 
     esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
     // Aggiunge il master come peer specifico
@@ -416,7 +432,7 @@ void nowThread::Begin()
 	data->logger->notice(F("now boot Accoppiamento riuscito!"));
       }else{
 	data->logger->error(F("now boot Error adding peer"));
-	config.accoppiato=false;
+	config.paired=false;
       }
     }
   }else{
@@ -438,7 +454,16 @@ void nowThread::Run() {
 
     delay(1000);
 
-    if (!config.accoppiato){
+    if(have_to_write_config){
+      if (write_local_config()){
+	data->logger->notice(F("now config file written"));
+      }else{
+	data->logger->error(F("now Error writing config file"));
+      }
+      have_to_write_config=false;
+    }
+    
+    if (!config.paired){
       
       // send pairing request
       message_pair_crc outgoingMessage;

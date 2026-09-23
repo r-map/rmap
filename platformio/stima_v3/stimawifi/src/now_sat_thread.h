@@ -22,16 +22,17 @@ struct now_sat_data_t {    // thread communication data
   nowsatStatus_t* status;  
   station_t* station;
   state_measure_t* state_measure;
+  frtosRtc* frtosRTC;  
 };
 
 typedef enum {
   STATE_SAT_NONE,
   STATE_SAT_PAIR_RECEIVED,
-    STATE_SAT_PAIR_ACK_SENDED,
-    STATE_SAT_PAIR_DONE,
-    STATE_SAT_DATA_SENDED,
-    STATE_SAT_DATA_ACK_RECEIVED,
-    STATE_SAT_DATA_DONE
+  STATE_SAT_PAIR_ACK_SENDED,
+  STATE_SAT_PAIR_DONE,
+  STATE_SAT_DATA_SENDED,
+  STATE_SAT_DATA_ACK_RECEIVED,
+  STATE_SAT_DATA_DONE
 } state_sat_t;
 
 extern "C" {
@@ -62,6 +63,7 @@ protected:
   virtual void Run();
     
 private:
+  virtual void myRun();
   now_sat_data_t* data;
   void store();
   bool doRelay(mqttMessage_t mqtt_message, const bool recovery=false);

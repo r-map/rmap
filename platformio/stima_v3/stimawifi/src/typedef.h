@@ -321,7 +321,7 @@ struct message_data_crc {
 };
 
 struct now_config_t {
-  bool accoppiato = false;
+  bool paired = false;
   uint8_t peerMac[6];
   uint8_t channel = 3;
 };

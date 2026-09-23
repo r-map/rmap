@@ -4,6 +4,7 @@
 //                         global definition to use in NOW callback
 // pointers setted by class istance
 now_sat_data_t* nowSatThread::global_data=NULL;
+static bool have_to_write_config=false;
 //***********************************************************************************************
 
 /*
@@ -24,7 +25,6 @@ const uint8_t mio_lmk[16] = {
 
 static const uint8_t broadcastAddress[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 static RTC_DATA_ATTR int bootCount;
-static RTC_DATA_ATTR now_config_t config;
 static RTC_DATA_ATTR volatile uint8_t error_count;
 static RTC_DATA_ATTR volatile unsigned int last_state_update;
 static RTC_DATA_ATTR volatile state_sat_t state;
@@ -32,17 +32,18 @@ static RTC_DATA_ATTR volatile uint16_t seq;
 // Flag per verificare se l'invio è completato
 static RTC_DATA_ATTR volatile bool transmissionCompleted ;
 // Flag per sapere se il canale è cambiato rispetto alla conf salvata
-static RTC_DATA_ATTR volatile bool channelchanged;
+static volatile bool channelchanged;
+static now_config_t config;
 
 // read configuration from EEPROM
 static bool read_local_config() {
 
   if (LittleFS.exists("/satellite.json")) {
     //file exists, read and load
-    nowSatThread::global_data->logger->notice(F("nowsat reading rmap config file"));
-    File configFile = LittleFS.open("/master.json", "r");
+    nowSatThread::global_data->logger->notice(F("nowsat reading satellite config file"));
+    File configFile = LittleFS.open("/satellite.json", "r");
     if (configFile) {
-      nowSatThread::global_data->logger->notice(F("nowsat opened master config file"));
+      nowSatThread::global_data->logger->notice(F("nowsat opened satellite config file"));
       
       //size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
@@ -51,11 +52,11 @@ static bool read_local_config() {
       String content = configFile.readString();
       configFile.close();
       
-      DynamicJsonDocument doc(200);
+      DynamicJsonDocument doc(256);
       DeserializationError error = deserializeJson(doc,content);
       if (!error){
 	const char* ver = doc["ver"]; // "1.0"
-	config.accoppiato = doc["accoppiato"];
+	config.paired = doc["paired"];
 	JsonArray mac = doc["mastermac"];
 	config.peerMac[0]= mac[0]; // 1
 	config.peerMac[1]= mac[1]; // 2
@@ -66,7 +67,7 @@ static bool read_local_config() {
 	config.channel = doc["channel"];
 
 	nowSatThread::global_data->logger->notice(F("nowsat Config read:"));
-	nowSatThread::global_data->logger->notice(F("nowsat accoppiato: %T"),config.accoppiato);
+	nowSatThread::global_data->logger->notice(F("nowsat paired: %T"),config.paired);
 	nowSatThread::global_data->logger->notice(F("nowsat MAC 0: %X"),config.peerMac[0]);
 	nowSatThread::global_data->logger->notice(F("nowsat MAC 1: %X"),config.peerMac[1]);
 	nowSatThread::global_data->logger->notice(F("nowsat MAC 2: %X"),config.peerMac[2]);
@@ -78,20 +79,20 @@ static bool read_local_config() {
 	
 	return true;
       } else {
-	nowSatThread::global_data->logger->error(F("nowsat reading master file: %s"),error.c_str());	
+	nowSatThread::global_data->logger->error(F("nowsat reading satellite file: %s"),error.c_str());	
       }
     } else {
-      nowSatThread::global_data->logger->warning(F("nowsat master file do not exist"));
+      nowSatThread::global_data->logger->warning(F("nowsat satellite file do not exist"));
     }
   }
   return false;
 }
 
 // write configuration to EEPROM
-static bool write_local_config() {
+  static bool write_local_config() {
 
   //save the custom parameters to FS
-  nowSatThread::global_data->logger->notice(F("nowsat saving master config"));
+  nowSatThread::global_data->logger->notice(F("nowsat saving satellite config"));
   
   File configFile = LittleFS.open("/satellite.json", "w");
   if (!configFile) {
@@ -99,43 +100,52 @@ static bool write_local_config() {
     return false;
   }
 
-  DynamicJsonDocument doc(200); 
-  doc["ver"] = SOFTWARE_VERSION;
-  doc["accoppiato"] = config.accoppiato;
-  doc["mastermac"][0] = config.peerMac[0];
-  doc["mastermac"][1] = config.peerMac[1];
-  doc["mastermac"][2] = config.peerMac[2];
-  doc["mastermac"][3] = config.peerMac[3];
-  doc["mastermac"][4] = config.peerMac[4];
-  doc["mastermac"][5] = config.peerMac[5];
+  DynamicJsonDocument doc(256); 
+  doc[F("ver")] = F(SOFTWARE_VERSION);
+  doc[F("paired")] = config.paired;
 
-  doc["channel"] = config.channel;
-  char buffer[256];
+  //doc[F("mastermac")][0] = config.peerMac[0];
+  //doc[F("mastermac")][1] = config.peerMac[1];
+  //doc[F("mastermac")][2] = config.peerMac[2];
+  //doc[F("mastermac")][3] = config.peerMac[3];
+  //doc[F("mastermac")][4] = config.peerMac[4];
+  //doc[F("mastermac")][5] = config.peerMac[5];
+
+  JsonArray mastermac = doc[F("mastermac")].to<JsonArray>();
+  mastermac.add(config.peerMac[0]);
+  mastermac.add(config.peerMac[1]);
+  mastermac.add(config.peerMac[2]);
+  mastermac.add(config.peerMac[3]);
+  mastermac.add(config.peerMac[4]);
+  mastermac.add(config.peerMac[5]);
+  
+  doc[F("channel")] = config.channel;
+  char buffer[100];
   serializeJson(doc, buffer, sizeof(buffer));
   configFile.print(buffer);
   configFile.close();
-  nowSatThread::global_data->logger->notice(F("nowsat saved master config parameter"));
+  nowSatThread::global_data->logger->notice(F("nowsat saved satellite config parameter"));
   //end save
   return true;
 }
 
 // Callback when data is sent
 static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
-  nowSatThread::global_data->logger->notice(F("nowsat OnDataSent"));
-  nowSatThread::global_data->logger->notice(F("nowsat State: %d"),state);
-  nowSatThread::global_data->logger->notice(F("nowsat destination MAC: %X:%X:%X:%X:%X:%X"),
-		  des_addr[0], des_addr[1], des_addr[2],
-		  des_addr[3], des_addr[4], des_addr[5]);
-  nowSatThread::global_data->logger->notice("nowsat Last Packet Send Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail"  );
+  //nowSatThread::global_data->logger->notice(F("nowsat OnDataSent"));
+  //nowSatThread::global_data->logger->notice(F("nowsat State: %d"),state);
+  //nowSatThread::global_data->logger->notice(F("nowsat destination MAC: %X:%X:%X:%X:%X:%X"),
+  //		  des_addr[0], des_addr[1], des_addr[2],
+  //		  des_addr[3], des_addr[4], des_addr[5]);
+  //nowSatThread::global_data->logger->notice("nowsat Last Packet Send Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail"  );
   last_state_update=millis();
   if (status != ESP_NOW_SEND_SUCCESS){
     error_count++;
     state=STATE_SAT_NONE;
-    nowSatThread::global_data->logger->error("nowsat Error sending");
+    //nowSatThread::global_data->logger->error("nowsat Error sending");
   }else{
     error_count=0;
   }
-  nowSatThread::global_data->logger->notice(F("nowsat State: %d"),state);
+  //nowSatThread::global_data->logger->notice(F("nowsat State: %d"),state);
 }
 
 // Callback when data is received
@@ -150,36 +160,36 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
   uint16_t type;
   memcpy(&type, incomingData, sizeof(type));
   if (type == 0) {
-    nowSatThread::global_data->logger->notice("nowsat Richiesta di pairing ricevuta");
+    //nowSatThread::global_data->logger->notice("nowsat Richiesta di pairing ricevuta");
     message_pair_crc incomingMessage;
     memcpy(&incomingMessage, incomingData, len);
 
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message, sizeof(incomingMessage.message));
-    nowSatThread::global_data->logger->notice(F("nowsat computed CRC: %d"),crc);
+    //nowSatThread::global_data->logger->notice(F("nowsat computed CRC: %d"),crc);
 
     if (crc != incomingMessage.crc){
-      nowSatThread::global_data->logger->error("nowsat CRC mismatch");
-      nowSatThread::global_data->logger->error("nowsat crcc=%d  crcr=%d",crc,incomingMessage.crc);
+      //nowSatThread::global_data->logger->error("nowsat CRC mismatch");
+      //nowSatThread::global_data->logger->error("nowsat crcc=%d  crcr=%d",crc,incomingMessage.crc);
       return;
     }
 
     if (state != STATE_SAT_NONE){
-      nowSatThread::global_data->logger->error(F("nowsat STATE mismatch: %d, %d"),state, STATE_SAT_NONE);
+      //nowSatThread::global_data->logger->error(F("nowsat STATE mismatch: %d, %d"),state, STATE_SAT_NONE);
       state = STATE_SAT_NONE;
       return;
     }
 
-    if (config.accoppiato){
-      nowSatThread::global_data->logger->error("nowsat PAIR mismatch");
+    if (config.paired){
+      //nowSatThread::global_data->logger->error("nowsat PAIR mismatch");
       return;
     }
     
-    nowSatThread::global_data->logger->notice(F("nowsat SEQ: %d"),incomingMessage.message.seq);
+    //nowSatThread::global_data->logger->notice(F("nowsat SEQ: %d"),incomingMessage.message.seq);
     seq=incomingMessage.message.seq;
     last_state_update=millis();
     state = STATE_SAT_PAIR_RECEIVED;
-    // Risponde al trasmettitore per confermare il pairing
-    // Create a struct_message called Readings to hold sensor readings
+    // Answer to tx for pairing confirmation
+    // Create a struct message
     message_pair_crc outgoingMessage;
     outgoingMessage.message.type=1;
     outgoingMessage.message.seq=++seq;
@@ -190,43 +200,44 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
     esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
     if (result == ESP_OK) {
       state=STATE_SAT_PAIR_ACK_SENDED;
-      nowSatThread::global_data->logger->notice("nowsat Sent with success");
+      //nowSatThread::global_data->logger->notice("nowsat Sent with success");
     } else {
       state=STATE_SAT_NONE;
-      nowSatThread::global_data->logger->error("nowsat Sent with error");
+      //nowSatThread::global_data->logger->error("nowsat Sent with error");
       return;
     }
 
   } else if (type == 2 ) {
-    nowSatThread::global_data->logger->notice("nowsat ACK al broadcast ricevuta");
+    //nowSatThread::global_data->logger->notice("nowsat ACK al broadcast ricevuta");
     message_pair_crc incomingMessage;
     memcpy(&incomingMessage, incomingData, len);
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message, sizeof(incomingMessage.message));
     if (crc != incomingMessage.crc){
-      nowSatThread::global_data->logger->error("nowsat CRC mismatch");
+      //nowSatThread::global_data->logger->error("nowsat CRC mismatch");
       return;
     }
 
     if ((millis() - last_state_update) > TRANSACTION_TIMEOUT){
-      nowSatThread::global_data->logger->error(F("nowsat Transaction timeout %d"),millis() - last_state_update);
+      //nowSatThread::global_data->logger->error(F("nowsat Transaction timeout %d"),millis() - last_state_update);
       state=STATE_SAT_NONE;
+      return;
     }
     
     if (state != STATE_SAT_PAIR_ACK_SENDED){
-      nowSatThread::global_data->logger->error(F("nowsat STATE mismatch: %d, %d"),state, STATE_SAT_PAIR_ACK_SENDED);
+      //nowSatThread::global_data->logger->error(F("nowsat STATE mismatch: %d, %d"),state, STATE_SAT_PAIR_ACK_SENDED);
       state = STATE_SAT_NONE;
       return;
     }
 
     if (seq+1 == incomingMessage.message.seq){
-      nowSatThread::global_data->logger->notice(F("nowsat SEQ: %d"),incomingMessage.message.seq);
+      //nowSatThread::global_data->logger->notice(F("nowsat SEQ: %d"),incomingMessage.message.seq);
     }else{
-      nowSatThread::global_data->logger->error(F("nowsat SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
+      //nowSatThread::global_data->logger->error(F("nowsat SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
       return;
     }
     
     if (esp_now_is_peer_exist(esp_now_info->src_addr)){
-      nowSatThread::global_data->logger->notice("nowsat peer già registrato");
+      //nowSatThread::global_data->logger->notice("nowsat peer già registrato");
     }else{
       // Aggiunge il master come peer specifico
       esp_now_peer_info_t peerInfo = {};
@@ -237,57 +248,61 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
       //memcpy(peerInfo.lmk, mio_lmk, 16);
       
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-	nowSatThread::global_data->logger->notice("nowsat Master registrato come peer fisso.");      
-	nowSatThread::global_data->logger->notice("nowsat Accoppiamento riuscito!");
+	//nowSatThread::global_data->logger->notice("nowsat Master registrato come peer fisso.");      
+	//nowSatThread::global_data->logger->notice("nowsat Accoppiamento riuscito!");
 	memcpy(config.peerMac, esp_now_info->src_addr, 6); // Salva il MAC reale del master
+	config.paired=true;
 	error_count=0;
 	//Rimuove il peer broadcast generico
 	esp_now_del_peer(broadcastAddress);
-	if (!write_local_config())nowSatThread::global_data->logger->error("nowsat Error writing config file");
+	have_to_write_config=true;
+	setTime(incomingMessage.message.datetime);
       }else{
-	nowSatThread::global_data->logger->notice("nowsat Error adding peer");
+	//nowSatThread::global_data->logger->notice("nowsat Error adding peer");
       }
     }
 
     state = STATE_SAT_PAIR_DONE;
     
   } else if (type == 3 ) {
-    nowSatThread::global_data->logger->notice("nowsat ACK ai dati ricevuta");
+    //nowSatThread::global_data->logger->notice("nowsat ACK ai dati ricevuta");
     message_pair_crc incomingMessage;
     memcpy(&incomingMessage, incomingData, len);
     uint8_t crc = esp_rom_crc8_le(0, (const uint8_t*)&incomingMessage.message, sizeof(incomingMessage.message));
     if (crc != incomingMessage.crc){
-      nowSatThread::global_data->logger->error("nowsat CRC mismatch");
+      //nowSatThread::global_data->logger->error("nowsat CRC mismatch");
       return;
     }
 
     if ((millis() - last_state_update) > TRANSACTION_TIMEOUT){
-      nowSatThread::global_data->logger->error(F("nowsat Transaction timeout %d"),millis() - last_state_update);
+      //nowSatThread::global_data->logger->error(F("nowsat Transaction timeout %d"),millis() - last_state_update);
       state=STATE_SAT_NONE;
+      return;
     }
     
     if (state != STATE_SAT_DATA_SENDED){
-      nowSatThread::global_data->logger->error(F("nowsat STATE mismatch: %d, %d"),state, STATE_SAT_DATA_SENDED);
+      //nowSatThread::global_data->logger->error(F("nowsat STATE mismatch: %d, %d"),state, STATE_SAT_DATA_SENDED);
       state = STATE_SAT_NONE;
       return;
     }
     
     if (seq+1 == incomingMessage.message.seq){
-      nowSatThread::global_data->logger->notice(F("nowsat SEQ: %d"),incomingMessage.message.seq);
+      //nowSatThread::global_data->logger->notice(F("nowsat SEQ: %d"),incomingMessage.message.seq);
     }else{
-      nowSatThread::global_data->logger->error(F("nowsat SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
+      //nowSatThread::global_data->logger->error(F("nowsat SEQ mismatch: %d, %d"),incomingMessage.message.seq,seq+1);
+      return;
     }
 
     // Sblocca il ciclo principale consentendo il deep sleep
     transmissionCompleted = true;
     if (channelchanged){
-      if (!write_local_config())nowSatThread::global_data->logger->error("nowsat Error writing config file");
+      have_to_write_config=true;
     }
     channelchanged=false;
     setTime(incomingMessage.message.datetime);
     state = STATE_SAT_DATA_DONE;
   } else {
-    nowSatThread::global_data->logger->error("nowsat message type unknown");
+    //nowSatThread::global_data->logger->error("nowsat message type unknown");
     return;
   }
 }
@@ -336,8 +351,8 @@ void nowSatThread::Begin()
   if (bootCount == 0 ){
 
     bootCount = 0;
-    config.channel=1;
-    config.accoppiato=false;
+    config.channel=0;
+    config.paired=false;
     error_count=0;
     last_state_update = 0;
     state = STATE_SAT_NONE;
@@ -390,18 +405,15 @@ void nowSatThread::Begin()
   // Register for a callback function that will be called when data is received
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
   
-  if (bootCount == 0 ){
-
-    if(read_local_config()){
-      bootCount = 1;
-    }else{
-      data->logger->error(F("nowsat failed reading config file"));
-    }
+  if(read_local_config()){
+    bootCount = 1;
+  }else{
+    data->logger->error(F("nowsat failed reading config file"));
   }
 
-  data->logger->notice("nowsat Boot number: %d accoppiato: %T", bootCount,config.accoppiato);
+  data->logger->notice("nowsat Boot number: %d paired: %T", bootCount,config.paired);
 
-  if (bootCount > 0 and config.accoppiato){
+  if (bootCount > 0 and config.paired){
     esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
     // Aggiunge il master come peer specifico
     
@@ -418,18 +430,14 @@ void nowSatThread::Begin()
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
 	data->logger->notice("nowsat boot Master registrato come peer fisso.");      
 	data->logger->notice("nowsat boot Accoppiamento riuscito!");
-	config.accoppiato=true;
+	config.paired=true;
       }else{
 	data->logger->error("nowsat boot Error adding peer");
-	config.accoppiato=false;
+	config.paired=false;
       }
     }
   }
 
-  //Increment boot number and print it every reboot
-  data->logger->notice("nowsat Boot number: %d", bootCount);
-  ++bootCount;
-  
   /*
   First we configure the wake up source
   We set our ESP32 to wake up every 5 seconds
@@ -448,6 +456,9 @@ void nowSatThread::Begin()
   */
   //esp_deep_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
   //data->logger->notice("nowsat Configured all RTC Peripherals to be powered down in sleep");
+
+  //Increment boot number
+  ++bootCount;  
 }
 
 void nowSatThread::Cleanup()
@@ -459,16 +470,57 @@ void nowSatThread::Cleanup()
 }
 
 void nowSatThread::Run() {
+  while(true){
+    myRun();
+  }
+}
+
+void nowSatThread::myRun() {
   data->logger->notice(F("nowsat  Starting Thread %s %d"), GetName().c_str(), data->id);
 
-  while(*data->state_measure != STATE_MEASURE_DONE){
+  mqttMessage_t message;
 
+  // wait for pairing
+  while(!config.paired){
+    add_broadcast_peer();
+    config.channel++;
+    if (config.channel >13) config.channel=1;
+    data->logger->notice("nowsat channel: %d",config.channel);
+    esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
+    
+    data->logger->notice(F("nowsat wait for pairing"));
+    delay(1000);
+    if(have_to_write_config){
+      if (write_local_config()){
+	data->logger->notice(F("now config file written"));
+      }else{
+	data->logger->error(F("now Error writing config file"));
+      }
+    }    
+  }
+
+  // we need time in sync; without it no measure are done
+  if (timeStatus() != timeSet){  
+    // send null message to sync time
+    message.sent=1;
+    message.topic[0] = NULL;
+    message.payload[0] = NULL;
+    if(nowPublish(message)){
+      data->logger->notice("nowsat Setup ESP32 to sleep for %d seconds",1);
+      esp_sleep_enable_timer_wakeup(1 * S_TO_uS_FACTOR);
+    }else{
+      data->logger->error(F("nowsat sendig message for time sync"));
+    }
+  }
+
+  while(*data->state_measure != STATE_MEASURE_DONE){
+    
     // if there are no enough space left on the mqtt queue send it to the DB
     while (data->mqttqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_PUBLISH){
       store();
     }
 
-    mqttMessage_t message;
+    // during the measure check the queue every 1 sec
     data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 1000 ));     // wait for a new incoming message
     while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
       if (!doRelay(message)) break;  	// publish message
@@ -492,8 +544,41 @@ void nowSatThread::Run() {
       }
     }
   }
+
+  // at least one time check the queue
+  while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
+    if (!doRelay(message)) break;  	// publish message
+    data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+  }
+  while (data->recoveryqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
+    if (message.sent==0 and message.topic[0] == NULL and message.payload[0] == NULL){
+      data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+      if(!data->dbqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
+	data->logger->error(F("nowsat lost SYNC message for db: %s ; %s"),  message.topic, message.payload);
+      }else{
+	data->logger->notice(F("nowsat SYNC message queued for db"));
+      }
+    }else{
+      if (!doRelay(message,true)) break; 	// publish message
+      data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+      while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
+	if (!doRelay(message)) break;  	// publish message
+	data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
+      }
+    }
+  }
+
+  // check if we have to write config
+  if(have_to_write_config){
+    if (write_local_config()){
+      data->logger->notice(F("now config file written for channel change"));
+    }else{
+      data->logger->error(F("now Error writing config file for channel change"));
+    }
+    have_to_write_config=false;
+  }	
+
   // try to flush messages in queue
-  
   data->logger->notice(F("nowsat mqtt     queue space left %d"),data->mqttqueue->NumSpacesLeft());
   data->logger->notice(F("nowsat recovery queue space left %d"),data->recoveryqueue->NumSpacesLeft());
   data->logger->notice(F("nowsat db       queue space left %d"),data->dbqueue->NumSpacesLeft());
@@ -501,7 +586,7 @@ void nowSatThread::Run() {
   // if there messages on the mqtt queue send it to the DB
   bool timeout=false;
   time_t start=millis();
-  while (data->mqttqueue->IsEmpty() or timeout){
+  while (!data->mqttqueue->IsEmpty() and !timeout){
     store();
     timeout=(millis()-start) > 10000;
   }
@@ -509,10 +594,12 @@ void nowSatThread::Run() {
   // wait db queue to go empty
   timeout=false;
   start=millis();
-  while (data->dbqueue->IsEmpty() or timeout){
+  while (!data->dbqueue->IsEmpty() and !timeout){
     timeout=(millis()-start) > 10000;
     delay(100);
-  }    
+  }
+
+  // we want wee here 0 meaaseges in queues
   data->logger->notice(F("nowsat mqtt     queue space left before sleep %d"),data->mqttqueue->NumSpacesLeft());
   data->logger->notice(F("nowsat db       queue space left before sleep %d"),data->dbqueue->NumSpacesLeft());
   
@@ -521,6 +608,13 @@ void nowSatThread::Run() {
   //  data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
   //  data->status->no_heap_memory=error;
   //}
+
+  // set RTC time
+  if (timeStatus() == timeSet){  
+    if (!data->frtosRTC->set(now())){
+      data->logger->error("now Setting RTC time from esp-now!");
+    }
+  }
   
   //data->logger->notice(F("stack gps: %d"),uxTaskGetStackHighWaterMark(NULL));
   if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
@@ -540,7 +634,8 @@ void nowSatThread::Run() {
   data->logger->notice("nowsat I am going to sleep now");
   Serial.flush();
   //
-  esp_deep_sleep_start();
+  //esp_deep_sleep_start();
+  delay(5000);
   // delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
   data->logger->notice(F("nowsat This will never be printed in DEEP sleep mode"));    
 }
@@ -597,18 +692,18 @@ bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
   
   if(state == STATE_SAT_PAIR_DONE) state = STATE_SAT_NONE;
     
-  if (!config.accoppiato or error_count > 10){
-    data->logger->notice(F("nowsat accoppiato %T  error count %d"),config.accoppiato, error_count);
+  if (!config.paired or error_count > 10){
+    data->logger->notice(F("nowsat paired %T  error count %d"),config.paired, error_count);
     
     config.channel++;
     channelchanged=true;
     if (config.channel >13) config.channel=1;
     data->logger->notice("nowsat channel: %d",config.channel);
     esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
-    if (!config.accoppiato) delay(3000);
+    if (!config.paired) delay(3000);
   }  
   
-  if (!config.accoppiato) return rc;
+  if (!config.paired) return rc;
   
   if (state != STATE_SAT_NONE and state != STATE_SAT_DATA_DONE){
     data->logger->notice(F("nowsat STATE not ready: %d, %d"),state, STATE_SAT_NONE);
@@ -630,7 +725,7 @@ bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(config.peerMac, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
   if (result == ESP_OK) {
-    data->logger->notice("nowsat Queued for send with success");
+    data->logger->notice("nowsat outgoing message Queued for send");
     //error_count=0;
     state = STATE_SAT_DATA_SENDED;
     rc=true;
@@ -643,6 +738,7 @@ bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
       if (millis() - startTimeout > 1000) {
 	data->logger->notice("nowsat Transaction timeout exceded!");
 	rc=false;
+	state = STATE_SAT_NONE;
 	break;
       }
     }

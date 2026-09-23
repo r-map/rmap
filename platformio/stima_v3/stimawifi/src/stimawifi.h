@@ -127,7 +127,7 @@ publishThread threadPublish(&publish_data);
 now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.now};
 nowThread threadNow(&now_data);
 
-now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat,&station,&measure_data.state};
+now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat,&station,&measure_data.state,&frtosRTC};
 nowSatThread threadNowSat(&now_sat_data);
 
 #if defined(ARDUINO_LOLIN_C3_MINI)
