@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file    lcd_task.h
  * @author  Cristiano Souza Paz <c.souzapaz@digiteco.it>
+ * @author  Moreno Gasperini <m.gasperini@digiteco.it>
  * @brief   LCD Task based u8gl library
  ******************************************************************************
  * @attention
@@ -47,6 +48,14 @@
 #include "queue.hpp"
 #include "thread.hpp"
 #include "ticks.hpp"
+
+#define LCD_CFG_MENU_VISIBLE  (10)
+
+/// Fixed 4-digit service PIN (gate for sensitive LCD commands)
+#define LCD_MENU_PIN_CODE       "6455"
+#define LCD_MENU_PIN_LEN        (4)
+#define LCD_MENU_UNLOCK_MS      (15UL * 60UL * 1000UL)
+#define ALPHABET_PIN_LENGTH     (12)
 
 #if (ENABLE_I2C1 || ENABLE_I2C2)
 #include <U8g2lib.h>
@@ -107,13 +116,20 @@ typedef enum {
   MASTER_COMMAND_UPDATE_BOARD_SLUG,     ///< update board slug
   #endif
   MASTER_COMMAND_UPDATE_MQTT_USERNAME,  ///< update mqtt username
+  MASTER_COMMAND_UPDATE_MQTT_PASSWORD,  ///< update mqtt password
   MASTER_COMMAND_UPDATE_GSM_APN,        ///< update gsm apn
   #if (ENABLE_MENU_GSM_NUMBER)
   MASTER_COMMAND_UPDATE_GSM_NUMBER,     ///< update gsm number
   #endif
   MASTER_COMMAND_UPDATE_PSK_KEY,        ///< update PSK key
   MASTER_COMMAND_UPDATE_GSM_NETWORK,    ///< update GSM CNMP 2G/4G
+  MASTER_COMMAND_UPDATE_REPORT_S,       ///< report period presets
+  MASTER_COMMAND_UPDATE_OBSERVATION_S,  ///< observation period presets
+#if (USE_NTP)
+  MASTER_COMMAND_UPDATE_NTP_SERVER,     ///< NTP server hostname
+#endif
   MASTER_COMMAND_FIRMWARE_UPGRADE,      ///< firmware upgrade
+  MASTER_COMMAND_LOCK,                  ///< lock sensitive menu (shown only while unlocked)
   MASTER_COMMAND_EXIT                   ///< exit from menu. Always the latest element
 } stima4_master_commands_t;
 
@@ -136,13 +152,35 @@ typedef enum {
   APN_COMMAND_EXIT
 } stima4_master_apn_commands_t;
 
+/// @brief Report period presets (seconds)
+typedef enum {
+  REPORT_CMD_1MIN,
+  REPORT_CMD_2MIN,
+  REPORT_CMD_5MIN,
+  REPORT_CMD_10MIN,
+  REPORT_CMD_15MIN,
+  REPORT_CMD_30MIN,
+  REPORT_CMD_60MIN,
+  REPORT_CMD_EXIT
+} stima4_report_commands_t;
+
+/// @brief Observation period presets (seconds)
+typedef enum {
+  OBS_CMD_30S,
+  OBS_CMD_1MIN,
+  OBS_CMD_2MIN,
+  OBS_CMD_5MIN,
+  OBS_CMD_10MIN,
+  OBS_CMD_EXIT
+} stima4_obs_commands_t;
+
 /// @brief LCD Slave commands names
 typedef enum {
-  SLAVE_COMMAND_MAINTENANCE,                ///< do/undo maintenance
   SLAVE_COMMAND_RESET_FLAGS,                ///< reset flags
   SLAVE_COMMAND_DO_FACTORY,                 ///< do factory
   SLAVE_COMMAND_CALIBRATION_ACCELEROMETER,  ///< do calibration accelerometer
   SLAVE_COMMAND_FIRMWARE_UPGRADE,           ///< firmware upgrade
+  SLAVE_COMMAND_MAINTENANCE,                ///< do/undo maintenance
   SLAVE_COMMAND_EXIT                        ///< exit from menu. Always the latest element
 } stima4_slave_commands_t;
 
@@ -154,12 +192,20 @@ typedef enum {
   UPDATE_STATION_SLUG,                ///< update station slug
   UPDATE_BOARD_SLUG,                  ///< update board slug
   UPDATE_MQTT_USERNAME,               ///< update mqtt username
+  UPDATE_MQTT_PASSWORD,               ///< update mqtt password
   UPDATE_GSM_APN,                     ///< update gsm apn
   #if (ENABLE_MENU_GSM_NUMBER)
   UPDATE_GSM_NUMBER,                  ///< update gsm number
   #endif
   UPDATE_PSK_KEY,                     ///< update PSK key
-  UPDATE_GSM_NETWORK                  ///< update GSM CNMP
+  UPDATE_GSM_NETWORK,                 ///< update GSM CNMP
+  UPDATE_REPORT_S,                    ///< pick report period
+  UPDATE_OBSERVATION_S,               ///< pick observation period
+#if (USE_NTP)
+  UPDATE_NTP_SERVER,                  ///< edit NTP server
+#endif
+  ENTER_MENU_PIN,                     ///< enter service PIN for sensitive commands
+  ENTER_CONFIRM,                      ///< Yes/No confirm for destructive actions
 } stima4_menu_ui_t;
 
 /// @brief Decoding function for Encoder 
@@ -218,6 +264,10 @@ private:
   const char *get_master_apn_command_name_from_enum(stima4_master_apn_commands_t command);
   const char *get_master_gsm_command_name_from_enum(stima4_master_gsm_commands_t command);
   const char *get_slave_command_name_from_enum(stima4_slave_commands_t command);
+  const char *get_report_command_name_from_enum(stima4_report_commands_t command);
+  const char *get_obs_command_name_from_enum(stima4_obs_commands_t command);
+  uint16_t report_seconds_from_enum(stima4_report_commands_t command) const;
+  uint16_t obs_seconds_from_enum(stima4_obs_commands_t command) const;
   static void encoder_process(uint8_t new_value, uint8_t old_value);
   static void ISR_input_pression_pin_encoder(void);
   static void ISR_input_rotation_pin_encoder(void);
@@ -226,6 +276,13 @@ private:
   void display_print_channel_interface(uint8_t module_type);
   void display_print_config_menu_interface(void);
   void display_print_default_interface(void);
+  void display_print_confirm_interface(void);
+  void display_print_enter_menu_pin_interface(void);
+  void display_print_update_report_interface(void);
+  void display_print_update_observation_interface(void);
+#if (USE_NTP)
+  void display_print_update_ntp_server_interface(void);
+#endif
   void display_print_main_interface(void);
   void display_print_update_board_slug_interface(void);
   void display_print_update_gsm_apn_interface(void);
@@ -234,6 +291,7 @@ private:
   void display_print_update_gsm_number_interface(void);
   #endif
   void display_print_update_mqtt_username_interface(void);
+  void display_print_update_mqtt_password_interface(void);
   void display_print_update_psk_key_interface(void);
   void display_print_update_station_slug_interface(void);
   void display_setup(void);
@@ -241,6 +299,23 @@ private:
   void elaborate_master_apn_command(stima4_master_apn_commands_t command);
   void elaborate_master_gsm_command(stima4_master_gsm_commands_t command);
   void elaborate_slave_command(stima4_slave_commands_t command);
+  void apply_master_config_command(stima4_master_commands_t command);
+  void apply_slave_config_command(stima4_slave_commands_t command);
+  void proceed_master_command(stima4_master_commands_t command);
+  void proceed_slave_command(stima4_slave_commands_t command);
+  void start_menu_pin_entry(bool from_master);
+  void start_confirm_entry(bool from_master);
+  bool lcd_menu_is_unlocked(void) const;
+  void lcd_menu_unlock(void);
+  void lcd_menu_lock(void);
+  bool master_command_needs_pin(stima4_master_commands_t command) const;
+  bool slave_command_needs_pin(stima4_slave_commands_t command) const;
+  bool master_command_needs_confirm(stima4_master_commands_t command) const;
+  bool slave_command_needs_confirm(stima4_slave_commands_t command) const;
+  void get_lcd_module_title(char *out, size_t outlen, Module_Type mt) const;
+  void cfg_menu_ensure_scroll(void);
+  uint8_t cfg_menu_count_rows(void) const;
+  void display_print_menu_scroll_hints(bool more_above, bool more_below, uint8_t drawn_rows);
   void switch_interface(void);
 
   LCDState_t state;
@@ -259,11 +334,19 @@ private:
   /// @brief PSK KEY char list for user input
   char alphabet_psk_key[ALPHABET_PSK_KEY_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', '<', '>', '!'};
 
+  /// @brief Service PIN entry: digits + backspace + cancel
+  char alphabet_pin[ALPHABET_PIN_LENGTH] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<', '!'};
+
   /// @brief It contains the new psk key in char format inserted from user
   char new_client_psk_key[2 * CLIENT_PSK_KEY_LENGTH + 1];
 
-  /// @brief It contains the new gsm apn inserted from user
-  char new_gsm_apn[GSM_APN_LENGTH] = {0};
+  /// @brief It contains the new mqtt password of station inserted from user
+  char new_mqtt_password[MQTT_PASSWORD_LENGTH] = {0};
+
+#if (USE_NTP)
+  /// @brief NTP server hostname buffer for LCD edit
+  char new_ntp_server[NTP_SERVER_LENGTH] = {0};
+#endif
 
   /// @brief It contains the new gsm number inserted from user
   char new_gsm_number[GSM_NUMBER_LENGTH] = {0};
@@ -335,14 +418,38 @@ private:
 
   /// @brief Indicates the position of command selector in configuration menu
   uint8_t command_selector_pos;
+  uint8_t cfg_scroll;
   uint8_t command_apn_selector_pos;
   uint8_t command_gsm_selector_pos;
+  uint8_t command_report_selector_pos;
+  uint8_t command_obs_selector_pos;
+  uint8_t commands_report_number;
+  uint8_t commands_obs_number;
+  stima4_report_commands_t stima4_report_command;
+  stima4_obs_commands_t stima4_obs_command;
   uint8_t commands_master_number;
   uint8_t commands_apn_master_number;
   uint8_t commands_gsm_master_number;
 
   /// @brief Contains the number of commands available for each slave board
   uint8_t commands_slave_number;
+
+  /// @brief Confirm dialog: 0 = No, 1 = Si
+  uint8_t confirm_selector_pos;
+  bool confirm_from_master;
+  stima4_master_commands_t confirm_pending_master;
+  stima4_slave_commands_t confirm_pending_slave;
+
+  /// @brief Sensitive-menu unlock deadline (0 = locked); millis() epoch
+  uint32_t lcd_unlock_until_ms;
+
+  /// @brief PIN entry buffer (4 digits + NUL)
+  char menu_pin_buf[LCD_MENU_PIN_LEN + 1];
+  uint8_t menu_pin_len;
+  bool menu_pin_from_master;
+  stima4_master_commands_t menu_pin_pending_master;
+  stima4_slave_commands_t menu_pin_pending_slave;
+  bool menu_pin_was_wrong;
 
   /// @brief Used to calculate the y-axis position of cursor to enter the new char of new station name
   uint8_t cursor_pos;
