@@ -308,6 +308,9 @@ private:
   bool lcd_menu_is_unlocked(void) const;
   void lcd_menu_unlock(void);
   void lcd_menu_lock(void);
+  /// @brief Upgrade FW menu entry: needs SD ready + newer FW flagged on SD catalog
+  bool lcd_master_fw_upgrade_available(void) const;
+  bool lcd_slave_fw_upgrade_available(void) const;
   bool master_command_needs_pin(stima4_master_commands_t command) const;
   bool slave_command_needs_pin(stima4_slave_commands_t command) const;
   bool master_command_needs_confirm(stima4_master_commands_t command) const;
