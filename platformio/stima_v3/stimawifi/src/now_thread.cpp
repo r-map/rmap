@@ -137,11 +137,11 @@ void nowThread::add_broadcast_peer(){
   peerInfo.encrypt = false;
 
   if (esp_now_is_peer_exist(peerInfo.peer_addr)){
-    data->logger->notice(F("now peer broadcast already registered"));
+    //data->logger->notice(F("now peer broadcast already registered"));
   }else{    
     // Add peer        
     if (esp_now_add_peer(&peerInfo) != ESP_OK){
-      data->logger->error(F("now Failed to add broadcast peer"));
+      //data->logger->error(F("now Failed to add broadcast peer"));
     }
   }
 }
@@ -314,27 +314,27 @@ static bool enqueueMqttMessage(const mqttMessage_t mqtt_message) {
   bool rc=true;
   //mqtt_message.sent=0;
   
-  nowThread::global_data->logger->notice(F("now have to publish:"));
-  nowThread::global_data->logger->notice(F("now Topic: %s"),mqtt_message.topic);
-  nowThread::global_data->logger->notice(F("now Payload: %s"),mqtt_message.payload);
+  //nowThread::global_data->logger->notice(F("now have to publish:"));
+  //nowThread::global_data->logger->notice(F("now Topic: %s"),mqtt_message.topic);
+  //nowThread::global_data->logger->notice(F("now Payload: %s"),mqtt_message.payload);
         
   // if there are enough space left on the publish queue send it
   if (nowThread::global_data->mqttqueue->NumSpacesLeft() > QUEUE_SPACELEFT_MEASURE){
-    nowThread::global_data->logger->notice(F("now enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
+    //nowThread::global_data->logger->notice(F("now enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);    
     if(!nowThread::global_data->mqttqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      nowThread::global_data->logger->error(F("now enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      //nowThread::global_data->logger->error(F("now enqueue for mqtt: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
       if (nowThread::global_data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){      // on error send il to DB
-	nowThread::global_data->logger->notice(F("now enqueue for db"));
+	//nowThread::global_data->logger->notice(F("now enqueue for db"));
       }else{
-	nowThread::global_data->logger->error(F("now lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+	//nowThread::global_data->logger->error(F("now lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
 	rc=false;
       }
     }
   } else {    // if there are no enough space left on the publish queue send it to the archive
     if(nowThread::global_data->dbqueue->Enqueue(&mqtt_message,pdMS_TO_TICKS(0))){
-      nowThread::global_data->logger->notice(F("now enqueue for db"));
+      //nowThread::global_data->logger->notice(F("now enqueue for db"));
     }else{
-      nowThread::global_data->logger->error(F("now lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
+      //nowThread::global_data->logger->error(F("now lost message for db: %s ; %s"),  mqtt_message.topic, mqtt_message.payload);
       rc=false;
     }
   }
@@ -350,7 +350,7 @@ nowThread::nowThread(now_data_t* now_data)
     data{now_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
-
+  data->status->memory_collision=ok;
   data->status->no_heap_memory=ok;
 
   global_data=data;
@@ -444,7 +444,8 @@ void nowThread::Cleanup()
 {
   data->logger->notice(F("now Delete Thread %s %d"), GetName().c_str(), data->id);
   // todo disconnect and others
-  //data->status->no_heap_memory=unknown;
+  data->status->memory_collision=unknown;
+  data->status->no_heap_memory=unknown;
   delete this;
 }
 
@@ -483,11 +484,13 @@ void nowThread::Run() {
 	data->logger->error(F("now Error sending pairing request"));
       }    
     }
-    //Delay(Ticks::SecondsToTicks(1));
-    //if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
-    //  data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-    //  data->status->no_heap_memory=error;
-    //}
+
+    // checks for heap and stack
+    //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+    if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+      data->logger->error(F("free HEAP: %l"),esp_get_minimum_free_heap_size());
+      data->status->no_heap_memory=error;
+    }
     
     //data->logger->notice(F("stack gps: %d"),uxTaskGetStackHighWaterMark(NULL));
     if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){

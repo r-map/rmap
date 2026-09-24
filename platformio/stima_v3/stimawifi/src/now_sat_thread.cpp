@@ -151,10 +151,10 @@ static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
 // Callback when data is received
 static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
   // Create a struct_message to hold incoming sensor readings
-  nowSatThread::global_data->logger->notice(F("nowsat Pacchetto ricevuto da MAC: : %X:%X:%X:%X:%X:%X"),
-		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
-		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
-  nowSatThread::global_data->logger->notice(F("nowsat Bytes received: %d"),len);
+  //nowSatThread::global_data->logger->notice(F("nowsat Pacchetto ricevuto da MAC: : %X:%X:%X:%X:%X:%X"),
+  //		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
+  //		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
+  //nowSatThread::global_data->logger->notice(F("nowsat Bytes received: %d"),len);
   
   // Controlla se è una richiesta di Pairing
   uint16_t type;
@@ -334,6 +334,7 @@ nowSatThread::nowSatThread(now_sat_data_t* now_sat_data)
     data{now_sat_data}
 {
   //data->logger->notice("nowsat Create Thread %s %d", GetName().c_str(), data->id);
+  data->status->memory_collision=ok;
   data->status->no_heap_memory=ok;
 
   global_data=data;
@@ -465,7 +466,8 @@ void nowSatThread::Cleanup()
 {
   data->logger->notice(F("nowsat Delete Thread %s %d"), GetName().c_str(), data->id);
   // todo disconnect and others
-  //data->status->no_heap_memory=unknown;
+  data->status->memory_collision=unknown;
+  data->status->no_heap_memory=unknown;
   delete this;
 }
 
@@ -597,17 +599,18 @@ void nowSatThread::Run() {
   data->logger->notice(F("nowsat mqtt     queue space left before sleep %d"),data->mqttqueue->NumSpacesLeft());
   data->logger->notice(F("nowsat db       queue space left before sleep %d"),data->dbqueue->NumSpacesLeft());
   
-  //Delay(Ticks::SecondsToTicks(1));
-  //if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
-  //  data->logger->error(F("HEAP: %l"),esp_get_minimum_free_heap_size());
-  //  data->status->no_heap_memory=error;
-  //}
-
   // set RTC time
   if (timeStatus() == timeSet){  
     if (!data->frtosRTC->set(now())){
       data->logger->error("now Setting RTC time from esp-now!");
     }
+  }
+
+  // checks for heap and stack
+  //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
+  if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
+    data->logger->error(F("free HEAP: %l"),esp_get_minimum_free_heap_size());
+    data->status->no_heap_memory=error;
   }
   
   //data->logger->notice(F("stack gps: %d"),uxTaskGetStackHighWaterMark(NULL));

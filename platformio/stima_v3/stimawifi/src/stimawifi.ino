@@ -732,7 +732,8 @@ int  rmap_config(const String payload){
   bool status_sensors = false;
   int status = 0;
   measure_data.sensors_count=0;
-
+  station.constantdata_count=0;
+  
   if (! (payload == String())) {
     DynamicJsonDocument doc(4000);
     status = 3;
@@ -1017,7 +1018,7 @@ void displayStatus()
   if (station.espnow){
     frtosLog.notice(F("status nowsat   : noheap  %d, stack    %d"),stimawifiStatus.nowsat.no_heap_memory,stimawifiStatus.nowsat.memory_collision);
   }else{
-    frtosLog.notice(F("status nowsat   : noheap  %d, stack    %d"),stimawifiStatus.nowsat.no_heap_memory,stimawifiStatus.nowsat.memory_collision);
+    frtosLog.notice(F("status nowmas   : noheap  %d, stack    %d"),stimawifiStatus.now.no_heap_memory,stimawifiStatus.now.memory_collision);
   }    
   
   // collect error in summary  
