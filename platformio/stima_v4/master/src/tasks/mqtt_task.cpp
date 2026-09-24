@@ -1117,13 +1117,10 @@ void MqttTask::Run()
         TRACE_DEBUG_F(F("%s%s %s [ %s ]\r\n"), MQTT_PUB_CMD_DEBUG_PREFIX, topic, MQTT_ON_DISCONNECT_MESSAGE, error ? ERROR_STRING : OK_STRING);
       }
 
-      // Unsubscribe from each subscribed topic
-      memset(topic, 0, sizeof(topic));
-      snprintf(topic, sizeof(topic), "%s/%s/%s/%d,%d/%s/%s", param.configuration->mqtt_rpc_topic, param.configuration->mqtt_username, param.configuration->ident, param.configuration->longitude, param.configuration->latitude, param.configuration->network, MQTT_RPC_COM_TOPIC);
-      TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
-      mqttClientUnsubscribe(&mqttClientContext, topic, NULL);
-      TaskWatchDog(MQTT_TASK_WAIT_DELAY_MS);
-      TRACE_VERBOSE_F(F("%s Unsubscribe from mqtt server %s on %s\r\n"), Thread::GetName().c_str(), param.configuration->mqtt_server, topic);
+      // Do NOT unsubscribe before close.
+      // clean_session=false keeps ClientId session on the broker: UNSUBSCRIBE on RPC would
+      // drop that subscription from the session so QoS1 publishes while offline are not queued.
+      // Leaving the subscription active allows pending RPC delivery at next CONNACK.
 
       TaskWatchDog(MQTT_NET_WAIT_TIMEOUT_SUSPEND);
       mqttClientDisconnect(&mqttClientContext);
