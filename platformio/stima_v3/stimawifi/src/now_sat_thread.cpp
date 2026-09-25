@@ -34,6 +34,7 @@ static RTC_DATA_ATTR volatile bool transmissionCompleted ;
 // Flag per sapere se il canale è cambiato rispetto alla conf salvata
 static volatile bool channelchanged;
 static now_config_t config;
+static RTC_DATA_ATTR volatile uint8_t channel;
 
 // read configuration from EEPROM
 static bool read_local_config() {
@@ -351,7 +352,6 @@ void nowSatThread::Begin()
 {
   if (bootCount == 0 ){
 
-    bootCount = 0;
     config.channel=0;
     config.paired=false;
     error_count=0;
@@ -364,6 +364,15 @@ void nowSatThread::Begin()
     uintptr_t start = (uintptr_t)&_rtc_data_start;
     uintptr_t end   = (uintptr_t)&_rtc_data_end;
     data->logger->notice(F("nowsat RTC used data: %d bytes on 8192 total"), (unsigned)(end - start));
+  }
+
+  if(read_local_config()){
+    if (bootCount == 0 ){
+      channel=config.channel;
+    }
+  }else{
+    data->logger->error(F("nowsat failed reading config file"));
+    return;
   }
 
   // Set device as a Wi-Fi Station
@@ -406,16 +415,10 @@ void nowSatThread::Begin()
   // Register for a callback function that will be called when data is received
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
   
-  if(read_local_config()){
-    bootCount = 1;
-  }else{
-    data->logger->error(F("nowsat failed reading config file"));
-  }
-
   data->logger->notice("nowsat Boot number: %d paired: %T", bootCount,config.paired);
 
-  if (bootCount > 0 and config.paired){
-    esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
+  if (config.paired){
+    esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
     // Aggiunge il master come peer specifico
     
     esp_now_peer_info_t peerInfo = {};
@@ -479,19 +482,21 @@ void nowSatThread::Run() {
   // wait for pairing
   while(!config.paired){
     add_broadcast_peer();
-    config.channel++;
-    if (config.channel >13) config.channel=1;
-    data->logger->notice("nowsat channel: %d",config.channel);
-    esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
+    channel++;
+    if (channel >13) channel=1;
+    data->logger->notice("nowsat channel: %d",channel);
+    esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
     
     data->logger->notice(F("nowsat wait for pairing"));
     delay(1000);
     if(have_to_write_config){
+      config.channel=channel;
       if (write_local_config()){
 	data->logger->notice(F("now config file written"));
       }else{
 	data->logger->error(F("now Error writing config file"));
       }
+      have_to_write_config=false;
     }    
   }
 
@@ -566,6 +571,7 @@ void nowSatThread::Run() {
 
   // check if we have to write config
   if(have_to_write_config){
+    config.channel=channel;
     if (write_local_config()){
       data->logger->notice(F("now config file written for channel change"));
     }else{
@@ -685,20 +691,7 @@ bool nowSatThread::doRelay(mqttMessage_t mqtt_message, const bool recovery) {
 bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
 
   bool rc=false;
-  
-  if(state == STATE_SAT_PAIR_DONE) state = STATE_SAT_NONE;
     
-  if (!config.paired or error_count > 10){
-    data->logger->notice(F("nowsat paired %T  error count %d"),config.paired, error_count);
-    
-    config.channel++;
-    channelchanged=true;
-    if (config.channel >13) config.channel=1;
-    data->logger->notice("nowsat channel: %d",config.channel);
-    esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
-    if (!config.paired) delay(3000);
-  }  
-  
   if (!config.paired) return rc;
   
   if (state != STATE_SAT_NONE and state != STATE_SAT_DATA_DONE){
@@ -706,7 +699,20 @@ bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
     state != STATE_SAT_NONE;
     return rc;
   }
-  
+
+  if(state == STATE_SAT_PAIR_DONE) state = STATE_SAT_NONE;
+    
+  if (!config.paired or error_count > 10){
+    data->logger->notice(F("nowsat paired %T  error count %d"),config.paired, error_count);
+    
+    channel++;
+    channelchanged=true;
+    if (channel >13) channel=1;
+    data->logger->notice("nowsat channel: %d",channel);
+    esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+    if (!config.paired) delay(3000);
+  }  
+
   transmissionCompleted = false;    
   // Create a struct_message called Readings to hold sensor readings
   message_data_crc outgoingMessage;
