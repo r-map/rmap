@@ -176,6 +176,20 @@ dalla principale autorità mondiale in tema di salute.
 
 (*) massimo 3 giorni all’anno)
 
+**I settori più inquinanti**
+
+Il calcolo di Ispra ribalta la classifica dei settori inquinanti
+prendendo in considerazione sia il PM primario (quello direttamente
+emesso dalle sorgenti inquinanti, ad esempio dai tubi di scappamento
+delle auto) che il PM secondario (ovvero quello prodotto in atmosfera
+da reazioni chimiche che coinvolgono diversi gas precursori).
+
+.. figure:: particolato_primario_e_secondariodiviso_per_settore_di_emissione.png
+   :width: 100%
+
+   Particolato primario e secondario (PM 2,5) in Italia diviso per
+   settore di emissione
+
 **Indice di qualità dell’aria (IQA)**
 
 Negli Stati Uniti, l’agenzia per la protezione dell’ambiente (EPA)

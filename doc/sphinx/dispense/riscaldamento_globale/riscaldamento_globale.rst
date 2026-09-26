@@ -128,7 +128,6 @@ Il ciclo del carbonio
 L'effetto serra
 ---------------
 
-
 L'effetto serra è un processo naturale che regola il bilancio termico
 planetario. La radiazione emessa dal Sole passa attraverso l’atmosfera
 e arriva alla superficie terrestre, dalla quale viene in parte
@@ -182,6 +181,29 @@ base del riscaldamento globale e quindi del cambiamento climatico
 	   
    Emissioni e concentrazione atmosferica di CO2 dal 1750 al 2020 (Fonte: NOAA)
 
+
+Le misure a Monte Cimone
+........................
+
+Il Sistema Integrato di Osservazione del Carbonio, ICOS, fornisce dati
+standardizzati e aperti da quasi 180 stazioni di misura in 16 paesi
+europei. Le stazioni osservano le concentrazioni di gas serra
+nell'atmosfera così come i flussi di carbonio tra atmosfera,
+superficie terrestre e oceani. Pertanto, ICOS si basa su tre ambiti:
+Atmosfera, Ecosistema e Oceano.
+
+.. figure:: co2_monte_cimone.png
+   :width: 100%
+	   
+   https://www.isac.cnr.it/osservatorio/osservatorio-climatico-o-vittori-po-valley-mt-cimone/
+   L’Osservatorio Climatico “Ottavio Vittori”, si trova sulla vetta di
+   Monte Cimone (2.165 m a.s.l.), il picco più elevato dell’Appenino
+   settentrionale e rappresenta l’unica stazione montana per studi
+   atmosferici e climatici a Sud delle Alpi e della pianura padana.
+   Nel mese di agosto 2026, sul Monte Cimone, la media mensile della
+   concentrazione di anidride carbonica (CO2) è stata di 425.16 ppm
+   (parti per milione). Nello stesso mese del 2025 il valore è stato
+   di 422.06 ppm (parti per milione).
 
 .. raw:: html
 

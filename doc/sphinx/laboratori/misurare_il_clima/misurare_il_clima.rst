@@ -75,6 +75,7 @@ https://doc.rmap.cc/dispense/misure/misure.html#strumenti-per-misurare-l-umidita
 * `Emissioni globali di gas serra suddivise per settore economico <https://doc.rmap.cc/_images/emissioni_per_settore.png>`_
 * `Emissioni e concentrazione atmosferica di CO2 dal 1750 al 2020 <https://doc.rmap.cc/_images/emissioni_concentrazione.png>`_
 * `Global atmospheric CO₂ concentration <https://ourworldindata.org/grapher/global-co2-concentration?time=earliest..2025-08-15>`_
+* `Misure a Monte Cimone <https://doc.rmap.cc/dispense/riscaldamento_globale/riscaldamento_globale.html#le-misure-a-monte-cimone>`_
 * `Il bilancio energetico della terra <https://doc.rmap.cc/_images/earth_energy_budget_storyboard_slide_7_labels_and_numbers.png>`_
 
 `Modello effetto serra <https://phet.colorado.edu/sims/html/greenhouse-effect/latest/greenhouse-effect_all.html>`_
@@ -117,15 +118,20 @@ Guardiamo cosa cambia su TUTTI i parametri:
 `La qualità dell'aria <https://doc.rmap.cc/dispense/qualita_aria/qualita_aria.html>`_
 -------------------------------------------------------------------------------------
 
-** CO2**
+**CO2**
 
 `Un’elevata concentrazione di CO2 provoca il calo della concentrazione e sonnolenza <https://doc.rmap.cc/_images/biossidodicarbonio.png>`_
 
-** `Particelle di aerosol atmosferico <https://doc.rmap.cc/_images/pm.jpg>`_ **
+**Particelle di aerosol atmosferico**
+
+`Che dimensioni hanno <https://doc.rmap.cc/_images/pm.jpg>`_
 
 `Rischi per la salute <https://doc.rmap.cc/dispense/qualita_aria/qualita_aria.html#rischi-per-la-salute>`_
 
 `Penetrazione delle particelle di differenti dimensioni nel corpo umano <https://doc.rmap.cc/_images/Particolato-ultrafine.png>`_
+
+`Particolato primario e secondario (PM 2,5) in Italia diviso per settore di emissione <https://doc.rmap.cc/_images/particolato_primario_e_secondariodiviso_per_settore_di_emissione.png>`_
+
 
 **Relazione tra numero di particelle e massa**
 
