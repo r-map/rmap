@@ -372,7 +372,6 @@ void nowSatThread::Begin()
     }
   }else{
     data->logger->error(F("nowsat failed reading config file"));
-    return;
   }
 
   // Set device as a Wi-Fi Station
@@ -475,16 +474,17 @@ void nowSatThread::Cleanup()
 }
 
 void nowSatThread::Run() {
-  data->logger->notice(F("nowsat  Starting Thread %s %d"), GetName().c_str(), data->id);
+  data->logger->notice(F("nowsat Starting Thread %s %d"), GetName().c_str(), data->id);
 
   mqttMessage_t message;
 
   // wait for pairing
-  while(!config.paired){
+  while(!config.paired){    
     add_broadcast_peer();
     channel++;
     if (channel >13) channel=1;
     data->logger->notice("nowsat channel: %d",channel);
+    Serial.flush();
     esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
     
     data->logger->notice(F("nowsat wait for pairing"));
@@ -696,7 +696,7 @@ bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
   
   if (state != STATE_SAT_NONE and state != STATE_SAT_DATA_DONE){
     data->logger->notice(F("nowsat STATE not ready: %d, %d"),state, STATE_SAT_NONE);
-    state != STATE_SAT_NONE;
+    state = STATE_SAT_NONE;
     return rc;
   }
 

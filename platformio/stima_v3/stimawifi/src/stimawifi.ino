@@ -1201,11 +1201,11 @@ void logSuffix(Print* _logOutput) {
 
 // arduino setup routine
 void setup() {
-  setup_common_pre();
-  
+  setup_common();
   if (station.espnow){
+    setup_satellite_1();
     setup_threads();
-    setup_satellite();
+    setup_satellite_2();
   } else {
     setup_master();
     setup_threads();
@@ -1221,7 +1221,7 @@ void setup() {
 
 
 // arduino setup routine part 1
-void setup_common_pre() {
+void setup_common() {
   // put your setup code here, to run once in Arduin task:
 
   /*
@@ -1514,8 +1514,8 @@ void setup_common_pre() {
   
 }
 
-void setup_satellite() {
 
+void setup_satellite_1() {
   // initialize RTC with mutex
   frtosRTC.begin(RTC,i2cmutex);
   
@@ -1528,7 +1528,9 @@ void setup_satellite() {
       stimawifiStatus.rtc=error;
     }
   }
+}
 
+void setup_satellite_2() {
   dataRecovery();
   measureAndPublish();
 }

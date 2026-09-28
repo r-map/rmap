@@ -151,10 +151,11 @@ String FullPage();
 
 // setup routine for master snd satellite stations
 void setup();
-void setup_pre();
-void setup_satellite();
+void setup_common();
+void setup_satellite_1();
+void setup_satellite_2();
 void setup_master();
-void setup_post();
+void setup_threads();
 
 void writeconfig();
 
