@@ -4607,7 +4607,7 @@ void SensorDriverSps::prepare(bool is_test) {
   SensorDriver::printInfo();
   
   *_is_prepared =_sps30.start();
-  if (*_is_prepared){
+  if (*_is_setted){
     _error_count = 0;
     LOGT(F("SPS prepare... [ %s ]"), OK_STRING);
   }else{
@@ -4940,46 +4940,46 @@ void SensorDriverScd::resetPrepared(bool is_test) {
 void SensorDriverScd::setup() {
   SensorDriver::printInfo();
 
+  *_is_setted = false;
   _delay_ms = 0;
-  if (!*_is_setted) {
-    _scd30.begin(_address);  //This will cause readings to occur every two seconds
-
-    /*
-      Maximal I2C speed is 100 kHz and the master has to support clock
-      stretching. Clock stretching period in write- and read- frames is 12
-      ms, however, due to internal calibration processes a maximal clock
-      stretching of 150 ms may occur once per day.  For detailed information
-      to the I2C protocol, refer to NXP I2C-bus specification 1 . SCD30 does
-      not support repeated start condition. Clock stretching is necessary to
-      start the microcontroller and might occur before every ACK. I2C master
-      clock stretching needs to be implemented according to the NXP
-      specification. The boot-up time is < 2 s.
+  /*
+    Maximal I2C speed is 100 kHz and the master has to support clock
+    stretching. Clock stretching period in write- and read- frames is 12
+    ms, however, due to internal calibration processes a maximal clock
+    stretching of 150 ms may occur once per day.  For detailed information
+    to the I2C protocol, refer to NXP I2C-bus specification 1 . SCD30 does
+    not support repeated start condition. Clock stretching is necessary to
+    start the microcontroller and might occur before every ACK. I2C master
+    clock stretching needs to be implemented according to the NXP
+    specification. The boot-up time is < 2 s.
   */
-    _scd30.sendCommand(COMMAND_SOFT_RESET);
-    delay(50);  // ??? not explained in documentation
-    if(!_scd30.beginMeasuring()) { //Start continuous measurements
-      _error_count++;
-      LOGE(F("SCD beginMeasuring error"));
-      //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
-      return;
-    }
-    if(!_scd30.setMeasurementInterval(2)) { //2 seconds between measurements
-      _error_count++;
-      LOGE(F("SCD setMeasurementInterval error"));
-      //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
-      return;
-    }
-    if (!_scd30.setAutoSelfCalibration(false)) { //Enable auto-self-calibration
-      _error_count++;
-      LOGE(F("SCD setAutoSelfCalibration error"));
-      //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
-      return;
-    }	  
 
-    *_is_setted = true;
-    _error_count = 0;
-    LOGT(F("SCD setup... [ %s ]"), YES_STRING);
-  } 
+  if (_address != SCD30_ADDRESS){
+    _error_count++;
+    LOGE(F("SCD address error"));
+    return;
+  }
+  
+  _scd30.begin(Wire,false,false);  // begin(TwoWire &wirePort, bool autoCalibrate, bool measBegin)
+  if (!_scd30.isConnected()){
+    _error_count++;
+    LOGE(F("SCD setup error"));
+    return;
+  }
+
+  _scd30.reset();
+  delay(50);  // ??? not explained in documentation
+  
+  if (!_scd30.setAutoSelfCalibration(false)) { //Force disable auto-self-calibration
+    _error_count++;
+    LOGE(F("SCD setAutoSelfCalibration error"));
+    //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
+    return;
+  }
+  
+  *_is_setted = true;
+  _error_count = 0;
+  LOGT(F("SCD setup... [ %s ]"), YES_STRING); 
 }
 
 bool SensorDriverScd::setForcedRecalibrationFactor(uint16_t value) {
@@ -4989,25 +4989,30 @@ bool SensorDriverScd::setForcedRecalibrationFactor(uint16_t value) {
 void SensorDriverScd::prepare(bool is_test) {
   SensorDriver::printInfo();
   
-  // clear previous measurements
-  _scd30.getCO2();
-  _scd30.getTemperature();
-  _scd30.getHumidity();
-  
-  //_scd30->beginMeasuring();
-  *_is_prepared =true;
-  _error_count = 0;
-  LOGT(F("SCD prepare... [ %s ]"), OK_STRING);
+  if (!*_is_setted) {
+    // clear previous measurements
+    _scd30.getCO2();
+    //_scd30.getTemperature();
+    //_scd30.getHumidity();
+        
+    if(!_scd30.setMeasurementInterval(2)) { //2 seconds between measurements
+      _error_count++;
+      LOGE(F("SCD setMeasurementInterval error"));
+      //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
+      return;
+    }
 
-  /*
-  if (*_is_prepared){
+    if(!_scd30.beginMeasuring()) { //Start continuous measurements
+      _error_count++;
+      LOGE(F("SCD beginMeasuring error"));
+      //LOGE(F("SCD setup... [ %s ]"), ERROR_STRING);
+      return;
+    }
+
+    *_is_prepared =true;
     _error_count = 0;
     LOGT(F("SCD prepare... [ %s ]"), OK_STRING);
-  }else{
-    _error_count++;    
-    LOGE(F("SCD prepare... [ %s ]"), FAIL_STRING);
   }
-  */
   
   _delay_ms = 2500ul;
   _start_time_ms = millis();
@@ -5051,20 +5056,30 @@ void SensorDriverScd::get(int32_t *values, uint8_t length, bool is_test) {
 	// 1,800009 coefficiente di conversione ppm-> mg/m3   (riferito a 25°C e 760 mm Hg)
 	// quindi assumioamo 0-0.020 Kg/m3 con risoluzione 0.000002  circa
 	// in interi fattore di scala in tabella B 10**6 quindi mg/m3
-	
-	values[0] =  _scd30.getCO2()* 1.8;
+
+	uint16_t co2=_scd30.getCO2();
+	if (co2 != 0){   // 0 is missing value in library
+	  values[0] =  co2 * 1.8;
+	}
       }
 
       /* // do not use temperature and humidity from this sensor    
       
       // get temperature
+      uint16_t temp=_scd30.getTemperature();
+
       if (length >= 2) {
-	values[1] = _scd30.getTemperature()*100+27315 ;
+        if (temp != 0){
+          values[1] = temp * 100 + 27315 ;
+	}
       }
       
       // get humidity
       if (length >= 3) {
-	values[2] = _scd30.getHumidity() ;
+      	uint16_t humid = _scd30.getHumidity();
+        if (humid != 0){
+          values[2] = humid ;
+	}
       }
       */
       
@@ -5079,6 +5094,14 @@ void SensorDriverScd::get(int32_t *values, uint8_t length, bool is_test) {
       _is_success = false;
       _get_state = END;
     }
+
+    if(!_scd30.StopMeasurement()) { //Stop continuous measurements
+      _error_count++;
+      LOGE(F("SCD StopMeasurement error"));
+      //LOGE(F("SCD get... [ %s ]"), ERROR_STRING);
+      return;
+    }
+   
     _delay_ms = 0;
     _start_time_ms = millis();
     break;
