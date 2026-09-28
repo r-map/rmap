@@ -5479,7 +5479,7 @@ int SensorDriverSCDoneshot::setup(const char* driver, const int address, const i
     clock stretching needs to be implemented according to the NXP
     specification. The boot-up time is < 2 s.
   */
-   _scd->sendCommand(COMMAND_SOFT_RESET);
+   _scd->reset();
   delay(50);  // ??? not explained in documentation
   if(_scd->beginMeasuring()) { //Start continuous measurements
     IF_SDSDEBUG(SDDBGSERIAL.println(F("# scd beginMeasuring ok")));
