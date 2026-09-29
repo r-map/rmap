@@ -322,24 +322,28 @@ void SetupSystemPeripheral(void) {
 /// @brief Get Unique ID HW of CPU (SerialNumber Unique ID)
 /// @param  ptrCpuId pointer to external 12 byte buffer required (CPU_ID)
 void STM32L4GetCPUID(uint8_t *ptrCpuId) {
-  for(uint8_t uid=0; uid<12; uid++) {
-    ptrCpuId[uid++] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + uid))));
+  // STM32L4 96-bit UID @ UID_BASE (0x1FFF7590): byte access (not uint32*+cast)
+  const volatile uint8_t *uid = (const volatile uint8_t *)UID_BASE_ADDRESS;
+  for (uint8_t i = 0; i < 12; i++) {
+    ptrCpuId[i] = uid[i];
   }
 }
 
 /// @brief Get StimaV4 Serial Number from UID Cpu and Module TYPE
 /// @return Serial Number 64 BIT
 uint64_t StimaV4GetSerialNumber(void) {
+  // 64-bit: MODULE_TYPE + UID[0..6] (wafer X/Y + wafer/lot-low). Skip UID[8..11] lot ID (same on lot).
   volatile uint64_t serNumb = 0;
-  uint8_t *ptrData = (uint8_t*)&serNumb;
+  uint8_t *ptrData = (uint8_t *)&serNumb;
+  const volatile uint8_t *uid = (const volatile uint8_t *)UID_BASE_ADDRESS;
   ptrData[0] = MODULE_TYPE;
-  ptrData[1] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS))));
-  ptrData[2] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 10))));
-  ptrData[3] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 9))));
-  ptrData[4] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 7))));
-  ptrData[5] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 6))));
-  ptrData[6] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 5))));
-  ptrData[7] = (uint8_t)(READ_REG(*((uint32_t *)(UID_BASE_ADDRESS + 4))));
+  ptrData[1] = uid[0];
+  ptrData[2] = uid[1];
+  ptrData[3] = uid[2];
+  ptrData[4] = uid[3];
+  ptrData[5] = uid[4];
+  ptrData[6] = uid[5];
+  ptrData[7] = uid[6];
   return serNumb;
 }
 

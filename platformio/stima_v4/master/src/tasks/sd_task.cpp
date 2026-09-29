@@ -2211,8 +2211,26 @@ void SdTask::Run()
                   digitalWrite(PIN_SD_LED, HIGH);
                   #endif
                   len_block = entry.read(data_block, SD_FW_BLOCK_SIZE);
-                  if(len_block < 0) {
-                    is_error = true;
+                  // Exact size % 256 == 0: last useful read was 256, next is 0 (EOF) or -1
+                  // on some SdFat builds. putFlashFile closes only when count != 0x100
+                  // (UAVCAN convention: count==0 = EOF after full blocks).
+                  if (len_block < 0) {
+                    if (!bFirstBlock) {
+                      // Treat post-full-block read error as EOF close (exact multiple)
+                      if (!putFlashFile(local_file_name, true, false, data_block, 0)) {
+                        is_error = true;
+                      }
+                    } else {
+                      is_error = true;
+                    }
+                    break;
+                  }
+                  if (len_block == 0) {
+                    if (bFirstBlock) {
+                      is_error = true;  // empty file
+                    } else if (!putFlashFile(local_file_name, true, false, data_block, 0)) {
+                      is_error = true;
+                    }
                     break;
                   }
                   // Signal to LCD updating fw to flash now from SD Card (Direct or downloaded from HTTP)
@@ -2227,7 +2245,7 @@ void SdTask::Run()
                   }
                   bFirstBlock = false;
                   if(len_block != SD_FW_BLOCK_SIZE) {
-                    // EOF
+                    // Short last block already closed length in putFlashFile
                     break;
                   }
                   // WDT non blocking task (Delay basic operation)

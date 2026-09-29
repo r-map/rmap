@@ -801,6 +801,15 @@ bool SupervisorTask::loadConfiguration()
     param.configurationLock->Give();
   }
 
+  // Master SN is HW-derived (UID): never trust EEPROM copy (stale after algorithm change)
+  {
+    const uint64_t sn_hw = StimaV4GetSerialNumber();
+    if (param.configuration->board_master.serial_number != sn_hw) {
+      param.configuration->board_master.serial_number = sn_hw;
+      update_cfg = true;
+    }
+  }
+
   // Check if port isn't assigned (try with default value)
   if((param.configuration->mqtt_port == 0)||(param.configuration->mqtt_port == 0xFFFFu)) {
     param.configuration->mqtt_port = CONFIGURATION_DEFAULT_MQTT_PORT;
