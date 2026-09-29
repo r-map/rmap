@@ -258,6 +258,8 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
 	esp_now_del_peer(broadcastAddress);
 	have_to_write_config=true;
 	setTime(incomingMessage.message.datetime);
+	nowSatThread::global_data->esprtc->setTime(now());
+
       }else{
 	//nowSatThread::global_data->logger->notice("nowsat Error adding peer");
       }
@@ -301,6 +303,7 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
     }
     channelchanged=false;
     setTime(incomingMessage.message.datetime);
+    nowSatThread::global_data->esprtc->setTime(now());
     state = STATE_SAT_DATA_DONE;
   } else {
     //nowSatThread::global_data->logger->error("nowsat message type unknown");
@@ -508,14 +511,16 @@ void nowSatThread::Run() {
     message.payload[0] = NULL;
     if(nowPublish(message)){
       data->logger->notice("nowsat Setup ESP32 to sleep for %d seconds",1);
-      esp_sleep_enable_timer_wakeup(1 * S_TO_uS_FACTOR);
+      esp_sleep_enable_timer_wakeup(1ULL * S_TO_uS_FACTOR);
     }else{
       data->logger->error(F("nowsat sendig message for time sync"));
     }
   }
 
-  while(*data->state_measure != STATE_MEASURE_DONE){
-    
+  // at least one time check the queue until measure are done and the queue is empty
+  bool atleastone=true;
+  while((*data->state_measure != STATE_MEASURE_DONE) or (*data->state_db != STATE_DB_RECOVERY_DONE)  or atleastone){
+    atleastone=false;
     // if there are no enough space left on the mqtt queue send it to the DB
     while (data->mqttqueue->NumSpacesLeft() <= QUEUE_SPACELEFT_PUBLISH){
       store();
@@ -542,29 +547,6 @@ void nowSatThread::Run() {
 	  if (!doRelay(message)) break;  	// publish message
 	  data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
 	}
-      }
-    }
-  }
-
-  // at least one time check the queue
-  while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
-    if (!doRelay(message)) break;  	// publish message
-    data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
-  }
-  while (data->recoveryqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
-    if (message.sent==0 and message.topic[0] == NULL and message.payload[0] == NULL){
-      data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
-      if(!data->dbqueue->Enqueue(&message,pdMS_TO_TICKS(0))){
-	data->logger->error(F("nowsat lost SYNC message for db: %s ; %s"),  message.topic, message.payload);
-      }else{
-	data->logger->notice(F("nowsat SYNC message queued for db"));
-      }
-    }else{
-      if (!doRelay(message,true)) break; 	// publish message
-      data->recoveryqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
-      while(data->mqttqueue->Peek(&message, pdMS_TO_TICKS( 0 ))){
-	if (!doRelay(message)) break;  	// publish message
-	data->mqttqueue->Dequeue(&message, pdMS_TO_TICKS( 0 ));
       }
     }
   }
@@ -737,7 +719,7 @@ bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
     while (!transmissionCompleted) {
       delay(10);
       // Timeout di sicurezza (es. 1000ms) per evitare che l'ESP resti acceso all'infinito se il destinatario è spento
-      if (millis() - startTimeout > 1000) {
+      if (millis() - startTimeout > TRANSACTION_TIMEOUT) {
 	data->logger->notice("nowsat Transaction timeout exceded!");
 	rc=false;
 	state = STATE_SAT_NONE;

@@ -10,7 +10,6 @@
 #ifndef NOW_SAT_THREAD_H_
 #define NOW_SAT_THREAD_H_
 
-#define SAT_TRANSACTION_TIMEOUT 1000
 #define S_TO_uS_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
 
 struct now_sat_data_t {    // thread communication data
@@ -22,7 +21,9 @@ struct now_sat_data_t {    // thread communication data
   nowsatStatus_t* status;  
   station_t* station;
   state_measure_t* state_measure;
-  frtosRtc* frtosRTC;  
+  state_db_t* state_db;
+  frtosRtc* frtosRTC;
+  ESP32Time* esprtc;
 };
 
 typedef enum {

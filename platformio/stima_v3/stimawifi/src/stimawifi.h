@@ -104,6 +104,7 @@ gps_i2c_data_t gps_i2c_data={1,&frtosLog,&stimawifiStatus.gps,&georef,&frtosRTC,
 gpsI2cThread threadGpsI2c(&gps_i2c_data);
 #endif
 
+ESP32Time esprtc;
 Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));
 Queue recoveryQueue(RECOVERY_QUEUE_LEN,sizeof(mqttMessage_t));
 Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));
@@ -127,7 +128,7 @@ publishThread threadPublish(&publish_data);
 now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.now};
 nowThread threadNow(&now_data);
 
-now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat,&station,&measure_data.state,&frtosRTC};
+now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat,&station,&measure_data.state,&db_data.state,&frtosRTC,&esprtc};
 nowSatThread threadNowSat(&now_sat_data);
 
 #if defined(ARDUINO_LOLIN_C3_MINI)

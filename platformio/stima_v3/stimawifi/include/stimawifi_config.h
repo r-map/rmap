@@ -213,6 +213,12 @@
 #define IP_STACK_TIMEOUT_MS            (MQTT_TIMEOUT_MS)
 
 /*!
+\def TRANSACTION_TIMEOUT
+\brief esp-now sequence of send/ack timeout.
+*/
+#define TRANSACTION_TIMEOUT 3000
+
+/*!
 \def STATUS_SEND_S
 \brief send MQTT board status every STATUS_SEND_S.
 */
@@ -267,10 +273,10 @@
 #define TASK_PUBLISH_PRIORITY       TASK_BASE_PRIORITY
 #define TASK_PUBLISH_STACK_SIZE     3500
 
-#define TASK_NOW_PRIORITY           TASK_BASE_PRIORITY+1
+#define TASK_NOW_PRIORITY           TASK_BASE_PRIORITY+2
 #define TASK_NOW_STACK_SIZE         3000
 
-#define TASK_NOW_SAT_PRIORITY       TASK_BASE_PRIORITY+1
+#define TASK_NOW_SAT_PRIORITY       TASK_BASE_PRIORITY+2
 #define TASK_NOW_SAT_STACK_SIZE     3000
 
 #define TASK_LOOP_PRIORITY          TASK_BASE_PRIORITY

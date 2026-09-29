@@ -12,7 +12,6 @@
 #define NOW_THREAD_H_
 
 #define RESET_PAIR false
-#define TRANSACTION_TIMEOUT 1000
 
 struct now_data_t {    // thread communication data
   int id;

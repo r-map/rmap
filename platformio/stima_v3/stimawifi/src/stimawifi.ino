@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2025  Paolo Patruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2026  Paolo Patruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -1274,6 +1274,9 @@ void setup_common() {
   verbose_print_reset_reason(rtc_get_reset_reason(1));
   #endif
   */
+
+  // sync ESP RTC with time of Timelib
+  setTime(esprtc.getEpoch());
 
   // manage reset button in hardware (RESET_PIN) or in software (I2C)
   reset=digitalRead(RESET_PIN) == LOW;
