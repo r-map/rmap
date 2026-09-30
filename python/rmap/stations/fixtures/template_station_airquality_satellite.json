@@ -67,7 +67,7 @@
     "timerange": "254,0,0",
     "level": "103,2000,-,-",
     "board": [
-      "satellite",
+      "master",
       [
         "airquality-now",
         [
@@ -117,7 +117,7 @@
     "timerange": "254,0,0",
     "level": "103,2000,-,-",
     "board": [
-      "satellite",
+      "master",
       [
         "airquality-now",
         [
@@ -131,6 +131,7 @@
   "model": "stations.transportespnow",
   "fields": {
     "active": true,
+    "espnowtype": 2,
     "espnowsampletime": 30,
     "board": [
       "satellite",
@@ -152,6 +153,23 @@
     "mqttuser": "rmap",
     "mqttpassword": "none",
     "mqttpskkey": null,
+    "board": [
+      "master",
+      [
+        "airquality-now",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.transportespnow",
+  "fields": {
+    "active": true,
+    "espnowtype": 1,
+    "espnowsampletime": 0,
     "board": [
       "master",
       [

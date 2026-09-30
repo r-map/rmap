@@ -418,9 +418,20 @@ class TransportEspnowManager(models.Manager):
 class TransportEspnow(models.Model):
     """ESP now transport."""
 
+
+
+    ESPNOW_TYPE_CHOICES = (
+        ( 1,"Module type master"),
+        ( 2,"Module type satellite"),
+    )
+    
     objects = TransportEspnowManager()
-    active = models.BooleanField(_("Active"),default=False,null=False,blank=False,help_text=_("Activate this transport for measurements"))
-    espnowsampletime = models.PositiveIntegerField(default=300,null=False,blank=False,help_text=_("interval in seconds for publish"))
+    active = models.BooleanField(_("Active"),default=False,null=False,blank=False,
+                                 help_text=_("Activate this transport for measurements"))
+    espnowtype = models.PositiveIntegerField(default=1,null=False, blank=False,
+                                             choices=ESPNOW_TYPE_CHOICES,help_text=_("Stimawifi espnow type"))
+    espnowsampletime = models.PositiveIntegerField(default=300,null=False,blank=False,
+                                                   help_text=_("interval in seconds for publish"))
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):

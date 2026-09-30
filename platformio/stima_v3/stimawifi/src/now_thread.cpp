@@ -369,7 +369,7 @@ void nowThread::Begin()
   // slow down
   //setCpuFrequencyMhz(80);
 
-    data->logger->notice(F("now Started"));
+  data->logger->notice(F("now Started"));
 
   if(!read_local_config()) data->logger->error(F("now failed reading config file"));
   
@@ -436,7 +436,7 @@ void nowThread::Begin()
       }
     }
   }else{
-    add_broadcast_peer();
+      add_broadcast_peer();
   }  
 }
 

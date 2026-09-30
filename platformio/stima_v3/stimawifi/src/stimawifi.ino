@@ -820,10 +820,16 @@ int  rmap_config(const String payload){
  	  if (element["fields"]["board"][0] == station.boardslug){
 	    if (element["fields"]["active"]){
 	      frtosLog.notice(F("board transportespnow found!"));
-	      station.sampletime=element["fields"]["espnowsampletime"];
-	      frtosLog.notice(F("station.sampletime: %d"),station.sampletime);
-	      station.espnow=true;
-	      status_board_espnow = true;
+	      if(element["fields"]["espnowtype"] == 2){
+		frtosLog.notice(F("station.espnowtype: satellite"));
+		station.sampletime=element["fields"]["espnowsampletime"];
+		frtosLog.notice(F("station.sampletime: %d"),station.sampletime);
+		station.nowsat=true;
+		status_board_espnow = true;
+	      }else if (element["fields"]["espnowtype"] == 1){
+		frtosLog.notice(F("station.espnowtype: master"));
+		station.nowmas=true;
+	      }
 	    }
 	  }
 	}
@@ -1015,9 +1021,10 @@ void displayStatus()
     frtosLog.notice(F("status gps      : noheap  %d, stack    %d"),stimawifiStatus.gps.no_heap_memory,stimawifiStatus.gps.memory_collision);
     frtosLog.notice(F("status udp      : noheap  %d, stack    %d"),stimawifiStatus.udp.no_heap_memory,stimawifiStatus.udp.memory_collision);
   }
-  if (station.espnow){
+  if (station.nowsat){
     frtosLog.notice(F("status nowsat   : noheap  %d, stack    %d"),stimawifiStatus.nowsat.no_heap_memory,stimawifiStatus.nowsat.memory_collision);
-  }else{
+  }  
+  if (station.nowmas){
     frtosLog.notice(F("status nowmas   : noheap  %d, stack    %d"),stimawifiStatus.now.no_heap_memory,stimawifiStatus.now.memory_collision);
   }    
   
@@ -1202,7 +1209,7 @@ void logSuffix(Print* _logOutput) {
 // arduino setup routine
 void setup() {
   setup_common();
-  if (station.espnow){
+  if (station.nowsat){
     setup_satellite_1();
     setup_threads();
     setup_satellite_2();
@@ -1927,18 +1934,20 @@ void setup_threads() {
   threadMeasure.Begin();
   threadMeasure.Start();
   threadDb.Start();
-  if (station.espnow){
+  if (station.nowsat){
     threadNowSat.Begin();
     threadNowSat.Start();
   }else{
     threadPublish.Start();
-    threadNow.Begin();
-    threadNow.Start();
-  
+    if (station.nowmas){
+      threadNow.Begin();
+      threadNow.Start();
+    }
+    
     // start geolocation thread if mobile station or if we need to acquire time
     // (but not for satellite station)
     if ((strcmp(station.ident,"") != 0 || (timeStatus() != timeSet))
-	&& !station.espnow){
+	&& !station.nowsat){
       threadUdp.Start();
       #ifdef GPS_SERIAL
       threadGps.Start();
@@ -1959,7 +1968,7 @@ void loop() {
     loopinit=false;
   }
 
-  if (!station.espnow){
+  if (!station.nowsat){
 
     // set alarm for fixed station and when time is setted
     if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){

@@ -86,7 +86,8 @@ struct station_t
   char mqttrpcpath[10];                //!< radice del topic MQTT per le RPC
   constantdata_t constantdata[MAX_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter (metadati)
   uint8_t constantdata_count;                              //!< configured constantdata number
-  bool espnow;                         //!< enable espnow transport
+  bool nowsat;                         //!< enable espnow satellite transport
+  bool nowmas;                         //!< enable espnow master transport
   
   //define your default values here, if there are different values in config.json, they are overwritten.
   station_t() {
@@ -105,7 +106,8 @@ struct station_t
   strcpy(mqttmaintpath,"maint");
   strcpy(mqttrpcpath,"rpc");
   constantdata_count=0;
-  espnow=false;
+  nowsat=false;
+  nowmas=false;
   }
 };
 
