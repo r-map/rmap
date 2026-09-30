@@ -329,6 +329,24 @@ String Json(){
   return str;
 }
 
+// HTTP response with json Station data
+// data is a fixed selection data describing the station itself
+// key are:
+// name
+// 
+// TODO: add other characteristics as if it is a mobile or fixed station
+//       when needed
+
+String StationData(){
+
+  String str ="{"
+    "\"name\":\"";
+  str +=station.stationslug;
+  str +="\"}";
+  return str;
+}
+
+
 // HTTP response for browser in smartphone
 // The browser get a page from server, query the phone for geolocation,
 // send coordinate with an ajax request to ESP
@@ -444,6 +462,13 @@ void handle_Geo() {
   webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
   webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
   webserver.send(200, "text/plain", Geo()); 
+}
+
+// web server response callback function 
+void handle_Station() {
+  webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
+  webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
+  webserver.send(200, "text/plain", StationData()); 
 }
 
 // web server response callback function
@@ -1633,6 +1658,7 @@ void setup() {
   webserver.enableDelay(false);
   webserver.on("/", handle_FullPage);
   webserver.on("/data.json", handle_Json);
+  webserver.on("/station", handle_Station);
   webserver.on("/geo", handle_Geo);
   webserver.on("/archive.dat", handle_Archive);
   webserver.on("/info.dat", handle_Info);
