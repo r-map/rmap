@@ -147,7 +147,14 @@ void measureThread::enqueueMqttMessage(uint8_t i ) {
     strcat(mqtt_message.payload,value);
     if (timeStatus() == timeSet){
       char jsontime[30];
-      time_t messagetime=now();
+      time_t messagetime;
+      if(data->station->nowsat){
+	// if station type is espnow satellite compute report time as approximation
+	time_t counter = ((now() + (data->station->sampletime/2)) / data->station->sampletime);
+	messagetime = counter * data->station->sampletime;
+      }else{
+	messagetime=now();
+      }
       snprintf(jsontime,30,",\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"}",
 	       year(messagetime), month(messagetime), day(messagetime),
 	       hour(messagetime), minute(messagetime), second(messagetime));

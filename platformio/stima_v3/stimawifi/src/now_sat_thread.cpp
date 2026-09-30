@@ -444,25 +444,6 @@ void nowSatThread::Begin()
     }
   }
 
-  /*
-  First we configure the wake up source
-  We set our ESP32 to wake up every 5 seconds
-  */
-  data->logger->notice("nowsat Setup ESP32 to sleep for %d seconds",data->station->sampletime);
-  esp_sleep_enable_timer_wakeup(data->station->sampletime * S_TO_uS_FACTOR);
-
-  /*
-  Next we decide what all peripherals to shut down/keep on
-  By default, ESP32 will automatically power down the peripherals
-  not needed by the wakeup source, but if you want to be a poweruser
-  this is for you. Read in detail at the API docs
-  http://esp-idf.readthedocs.io/en/latest/api-reference/system/deep_sleep.html
-  Left the line commented as an example of how to configure peripherals.
-  The line below turns off all RTC peripherals in deep sleep.
-  */
-  //esp_deep_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
-  //data->logger->notice("nowsat Configured all RTC Peripherals to be powered down in sleep");
-
   //Increment boot number
   ++bootCount;  
 }
@@ -480,14 +461,14 @@ void nowSatThread::Run() {
   data->logger->notice(F("nowsat Starting Thread %s %d"), GetName().c_str(), data->id);
 
   mqttMessage_t message;
-
+  bool skip=false;
+  
   // wait for pairing
   while(!config.paired){    
     add_broadcast_peer();
     channel++;
     if (channel >13) channel=1;
     data->logger->notice("nowsat channel: %d",channel);
-    Serial.flush();
     esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
     
     data->logger->notice(F("nowsat wait for pairing"));
@@ -495,9 +476,9 @@ void nowSatThread::Run() {
     if(have_to_write_config){
       config.channel=channel;
       if (write_local_config()){
-	data->logger->notice(F("now config file written"));
+	data->logger->notice(F("nowsat config file written"));
       }else{
-	data->logger->error(F("now Error writing config file"));
+	data->logger->error(F("nowsat Error writing config file"));
       }
       have_to_write_config=false;
     }    
@@ -510,10 +491,18 @@ void nowSatThread::Run() {
     message.topic[0] = NULL;
     message.payload[0] = NULL;
     if(nowPublish(message)){
-      data->logger->notice("nowsat Setup ESP32 to sleep for %d seconds",1);
-      esp_sleep_enable_timer_wakeup(1ULL * S_TO_uS_FACTOR);
+      config.channel=channel;
+      if (write_local_config()){
+	data->logger->notice(F("nowsat config file written"));
+      }else{
+	data->logger->error(F("nowsat Error writing config file"));
+      }
     }else{
+      skip=true;
       data->logger->error(F("nowsat sendig message for time sync"));
+      channel++;
+      if (channel >13) channel=1;
+      data->logger->notice("nowsat channel: %d",channel);
     }
   }
 
@@ -555,9 +544,9 @@ void nowSatThread::Run() {
   if(have_to_write_config){
     config.channel=channel;
     if (write_local_config()){
-      data->logger->notice(F("now config file written for channel change"));
+      data->logger->notice(F("nowsat config file written for channel change"));
     }else{
-      data->logger->error(F("now Error writing config file for channel change"));
+      data->logger->error(F("nowsat Error writing config file for channel change"));
     }
     have_to_write_config=false;
   }	
@@ -583,14 +572,14 @@ void nowSatThread::Run() {
     delay(100);
   }
 
-  // we want wee here 0 meaaseges in queues
+  // here we want 0 meaaseges in queues
   data->logger->notice(F("nowsat mqtt     queue space left before sleep %d"),data->mqttqueue->NumSpacesLeft());
   data->logger->notice(F("nowsat db       queue space left before sleep %d"),data->dbqueue->NumSpacesLeft());
   
   // set RTC time
   if (timeStatus() == timeSet){  
     if (!data->frtosRTC->set(now())){
-      data->logger->error("now Setting RTC time from esp-now!");
+      data->logger->error("nowsat Setting RTC time from esp-now!");
     }
   }
 
@@ -606,22 +595,46 @@ void nowSatThread::Run() {
       data->logger->error(F("nowsat stack"));
       data->status->memory_collision=error;
   }
+
+  unsigned int sleeptime;
+  if (skip){
+    sleeptime=1;    
+  }else{
+    time_t counter = ((now() + (data->station->sampletime/2)) / data->station->sampletime);
+    time_t nextreporttime = (counter+1) * data->station->sampletime -10;
+    sleeptime = nextreporttime - now();
+  }
+  
+  /*
+  First we configure the wake up source
+  We set our ESP32 to wake up every sampletime seconds
+  */
+  data->logger->notice("nowsat Setup ESP32 to sleep for %d seconds",sleeptime);
+  esp_sleep_enable_timer_wakeup(sleeptime * S_TO_uS_FACTOR);
+
+  /*
+  Next we decide what all peripherals to shut down/keep on
+  By default, ESP32 will automatically power down the peripherals
+  not needed by the wakeup source, but if you want to be a poweruser
+  this is for you. Read in detail at the API docs
+  http://esp-idf.readthedocs.io/en/latest/api-reference/system/deep_sleep.html
+  Left the line commented as an example of how to configure peripherals.
+  The line below turns off all RTC peripherals in deep sleep.
+  */
+  //esp_deep_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
+  //data->logger->notice("nowsat Configured all RTC Peripherals to be powered down in sleep");
   
   /*
     Now that we have setup a wake cause and if needed setup the
     peripherals state in deep sleep, we can now start going to
     deep sleep.
-    In the case that no wake up sources were provided but deep
-    sleep was started, it will sleep forever unless hardware
-      reset occurs.
   */
   
   data->logger->notice("nowsat I am going to sleep now");
   Serial.flush();
   //
   esp_deep_sleep_start();
-  // delay(TIME_TO_SLEEP*1000);   // as alternative to sleep
-  data->logger->notice(F("nowsat This will never be printed in DEEP sleep mode"));    
+  data->logger->notice(F("nowsat This will never be printed"));    
 }
 
 // get one message from publish queue and send it to the queue for DB

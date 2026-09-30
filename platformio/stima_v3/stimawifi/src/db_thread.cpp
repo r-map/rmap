@@ -655,8 +655,10 @@ bool dbThread::data_recovery(void){
   bool somedata = false;
   
   // is time to run ?
-  if (!run_data_recovery) return true;
-  
+  if (!run_data_recovery){
+    data->state = STATE_DB_RECOVERY_DONE;
+    return true;
+  }
   data->logger->notice(F("db recovery from DB started"));
 
   // Retry to run the next time waiting to run for the queue go empty.
@@ -667,6 +669,7 @@ bool dbThread::data_recovery(void){
   // We use this check in any case if the transaction management fail
   if (!data->recoveryqueue->IsEmpty()){
     data->logger->warning(F("db recovery skip: queue is not empty"));
+    data->state = STATE_DB_RECOVERY_DONE;
     return true;
   }
   
