@@ -411,7 +411,7 @@ String FullPage() {
 "    #data > div {display:flex;}\n"
 "    div.data {background-color:transparent;}\n"
 
-"    #clock {position:absolute; top: 9em;}\n"
+"    #clock {position:absolute;top: 0.75em;left: 0.5em;font-size: 1.5em;}\n"
 
 "    div.palette {  position: absolute; top: 0;  width: 100%;  left: 0; display:flex; flex-direction: row; justify-content: flex-end; } \n"
 "    div.palette .sample { width: 5vw; height: 5vw; border-radius: 1vw; margin: 1em; border: 1px solid #121206; display:block;text-decoration: none;}\n"
