@@ -76,7 +76,7 @@ struct station_t
   char server[41];                     //!< server RMAP
   char ntp_server[41];                 //!< server NTP
   char mqtt_server[41];                //!< broker MQTT
-  int  sampletime;                     //!< intervallo tra le misurazioni in secondi
+  int  sampletime;                 //!< intervallo tra le misurazioni in secondi
   char user[10];                       //!< utente
   char password[31];                   //!< password
   char stationslug[31];                //!< nome sintetico della stazione
@@ -86,6 +86,8 @@ struct station_t
   char mqttrpcpath[10];                //!< radice del topic MQTT per le RPC
   constantdata_t constantdata[MAX_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter (metadati)
   uint8_t constantdata_count;                              //!< configured constantdata number
+  bool nowsat;                         //!< enable espnow satellite transport
+  bool nowmas;                         //!< enable espnow master transport
   
   //define your default values here, if there are different values in config.json, they are overwritten.
   station_t() {
@@ -104,6 +106,8 @@ struct station_t
   strcpy(mqttmaintpath,"maint");
   strcpy(mqttrpcpath,"rpc");
   constantdata_count=0;
+  nowsat=false;
+  nowmas=false;
   }
 };
 
@@ -208,6 +212,26 @@ struct dbStatus_t
 };
 
 /*!
+\def struct nowStatus_t
+\brief Stati relativi al thread di ricezione dei dati via radio (esp now).
+*/
+struct nowStatus_t
+{
+  status_e memory_collision;     //!< check collisione stack e heap
+  status_e no_heap_memory;       //!< no memory for allocation in heap
+};
+
+/*!
+\def struct nowsatStatus_t
+\brief Stati relativi al thread di invio dei dati via radio (esp now).
+*/
+struct nowsatStatus_t
+{
+  status_e memory_collision;     //!< check collisione stack e heap
+  status_e no_heap_memory;       //!< no memory for allocation in heap
+};
+
+/*!
 \def struct summaryStatus_t
 \brief Sommario degli errori di tutta la stazione.
 */
@@ -240,6 +264,8 @@ struct stimawifiStatus_t
   udpStatus_t udp;             //!< Stati relativi al thread di ricezione UDP dei dati di georeferenziazione
   gpsStatus_t gps;             //!< Stati relativi al thread di ricezione GPS (porta seriale) dei dati di georeferenziazione
   dbStatus_t db;               //!< Stati relativi al thread di gestione del DataBase
+  nowStatus_t now;             //!< Stati relativi al thread di ricezione dati via radio (esp now)
+  nowsatStatus_t nowsat;       //!< Stati relativi al thread di invio dati via radio (esp now)
   status_e rtc;                //!< Stato dell'RTC
   status_e rssi;               //!< Stato rssi dell segnale radio WiFi
   status_e memory_collision;   //!< check collisione stack e heap loop task
@@ -267,6 +293,39 @@ struct rpcCalibrate_t
 {
   char type[4];
   uint16_t value;
+};
+
+
+//Structure to send esp-now pair messages
+struct message_pair {
+  uint16_t type;
+  uint16_t seq;
+  time_t datetime;
+};
+
+struct message_pair_crc {
+  message_pair message;
+  uint8_t crc;
+};
+
+//Structure to send esp-now data messages
+// 5 + MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH + MQTT_MESSAGE_LENGTH] < 250 (max size of esp-now packet)
+
+struct message_data {
+  uint16_t type;
+  uint16_t seq;
+  mqttMessage_t mqttmessage;
+};
+
+struct message_data_crc {
+  message_data message;
+  uint8_t crc;
+};
+
+struct now_config_t {
+  bool paired = false;
+  uint8_t peerMac[6];
+  uint8_t channel = 3;
 };
 
 #endif

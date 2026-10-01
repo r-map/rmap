@@ -24,13 +24,6 @@ def load_fixture(apps, schema_editor):
     print("load fixture from file: ",fixture_file)
     load_fixture_from_file(fixture_file)
 
-    for fixture_filename in os.listdir(fixture_dir):
-        if fixture_filename[:3] == "sta" and fixture_filename[-5:] == ".json":
-            
-            fixture_file = os.path.join(fixture_dir, fixture_filename)
-            print("load fixture from file: ",fixture_file)
-            load_fixture_from_file(fixture_file)
-
     fixture_filename = "sensor_type_02.json"
     fixture_file = os.path.join(fixture_dir, fixture_filename)
     print("load fixture from file: ",fixture_file)
@@ -68,31 +61,31 @@ def load_fixture(apps, schema_editor):
 
 
     fixture_filename = "sensor_type_09.json"
-
     fixture_file = os.path.join(fixture_dir, fixture_filename)
     print("load fixture from file: ",fixture_file)
-
     fixture = open(fixture_file, 'rb')
     objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
     for obj in objects:
         obj.save()
     fixture.close()
 
+    for fixture_filename in os.listdir(fixture_dir):
+        if fixture_filename[:3] == "sta" and fixture_filename[-5:] == ".json":
+            
+            fixture_file = os.path.join(fixture_dir, fixture_filename)
+            print("load fixture from file: ",fixture_file)
+            load_fixture_from_file(fixture_file)
+
+    
     fixture_filename = "template_stations.json"
-
     fixture_file = os.path.join(fixture_dir, fixture_filename)
     print("load fixture from file: ",fixture_file)
-
     fixture = open(fixture_file, 'rb')
     objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
     for obj in objects:
         obj.save()
     fixture.close()
 
-
-
-    
-    
 
 def unload_fixture(apps, schema_editor):
     "Brutally deleting all entries for this model..."

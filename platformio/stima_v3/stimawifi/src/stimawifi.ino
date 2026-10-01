@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2025  Paolo Patruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2026  Paolo Patruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -54,6 +54,22 @@ void print_reset_reason() {
 
     default : Serial.println(F("NO_MEAN"));
     }
+}
+
+// Method to print the reason by which ESP32 has been awaken from sleep
+void print_wakeup_reason() {
+  esp_sleep_wakeup_cause_t wakeup_reason;
+
+  wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  switch (wakeup_reason) {
+  case ESP_SLEEP_WAKEUP_EXT0:     Serial.println(F("Wakeup caused by external signal using RTC_IO")); break;
+  case ESP_SLEEP_WAKEUP_EXT1:     Serial.println(F("Wakeup caused by external signal using RTC_CNTL")); break;
+  case ESP_SLEEP_WAKEUP_TIMER:    Serial.println(F("Wakeup caused by timer")); break;
+  case ESP_SLEEP_WAKEUP_TOUCHPAD: Serial.println(F("Wakeup caused by touchpad")); break;
+  case ESP_SLEEP_WAKEUP_ULP:      Serial.println(F("Wakeup caused by ULP program")); break;
+  default:                        Serial.println(F("Wakeup was not caused by deep sleep")); break;
+  }
 }
 
 void set_status_summary(void) {
@@ -671,12 +687,15 @@ bool write_local_rmap_config(const String payload) {;
 int  rmap_config(const String payload){
 
   bool status_station = false;
+  bool status_board = false;
   bool status_board_mqtt = false;
+  bool status_board_espnow = false;
   bool status_board_tcpip = false;
   bool status_sensors = false;
   int status = 0;
   measure_data.sensors_count=0;
-
+  station.constantdata_count=0;
+  
   if (! (payload == String())) {
     DynamicJsonDocument doc(4000);
     status = 3;
@@ -726,6 +745,15 @@ int  rmap_config(const String payload){
 	  }
 	}
 
+	if  (element["model"] == "stations.board"){
+	  if (element["fields"]["slug"] == station.boardslug){
+	    if (element["fields"]["active"]){
+	      frtosLog.notice(F("board found!"));
+	      status_board = true;
+	    }
+	  }
+	}
+	
 	if  (element["model"] == "stations.transportmqtt"){
 	  if (element["fields"]["board"][0] == station.boardslug){
 	    if (element["fields"]["active"]){
@@ -750,6 +778,24 @@ int  rmap_config(const String payload){
 	  }
 	}
 
+	if  (element["model"] == "stations.transportespnow"){
+ 	  if (element["fields"]["board"][0] == station.boardslug){
+	    if (element["fields"]["active"]){
+	      frtosLog.notice(F("board transportespnow found!"));
+	      if(element["fields"]["espnowtype"] == 2){
+		frtosLog.notice(F("station.espnowtype: satellite"));
+		station.sampletime=element["fields"]["espnowsampletime"];
+		frtosLog.notice(F("station.sampletime: %d"),station.sampletime);
+		station.nowsat=true;
+		status_board_espnow = true;
+	      }else if (element["fields"]["espnowtype"] == 1){
+		frtosLog.notice(F("station.espnowtype: master"));
+		station.nowmas=true;
+	      }
+	    }
+	  }
+	}
+	
 	if  (element["model"] == "stations.transporttcpip"){
 	  if (element["fields"]["board"][0] == station.boardslug){
 	    if (element["fields"]["active"]){
@@ -768,24 +814,26 @@ int  rmap_config(const String payload){
 	
 	if  (element["model"] == "stations.sensor"){
 	  if (element["fields"]["active"]){
-	    if (measure_data.sensors_count < SENSORS_MAX) {
-	      frtosLog.notice(F("station sensor found!"));
-	      strncpy (measure_data.sensors[measure_data.sensors_count].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
-	      frtosLog.notice(F("driver: %s"),measure_data.sensors[measure_data.sensors_count].driver);
-	      strncpy (measure_data.sensors[measure_data.sensors_count].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
-	      frtosLog.notice(F("type: %s"),measure_data.sensors[measure_data.sensors_count].type);
-	      strncpy (measure_data.sensors[measure_data.sensors_count].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      frtosLog.notice(F("timerange: %s"),measure_data.sensors[measure_data.sensors_count].timerange);
-	      strncpy (measure_data.sensors[measure_data.sensors_count].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
-	      frtosLog.notice(F("level: %s"),measure_data.sensors[measure_data.sensors_count].level);
-	      measure_data.sensors[measure_data.sensors_count].address = element["fields"]["address"];	    
-	      frtosLog.notice(F("address: %d"),measure_data.sensors[measure_data.sensors_count].address);
+	    if (element["fields"]["board"][0] == station.boardslug){
+	      if (measure_data.sensors_count < SENSORS_MAX) {
+		frtosLog.notice(F("station sensor found!"));
+		strncpy (measure_data.sensors[measure_data.sensors_count].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
+		frtosLog.notice(F("driver: %s"),measure_data.sensors[measure_data.sensors_count].driver);
+		strncpy (measure_data.sensors[measure_data.sensors_count].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
+		frtosLog.notice(F("type: %s"),measure_data.sensors[measure_data.sensors_count].type);
+		strncpy (measure_data.sensors[measure_data.sensors_count].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
+		frtosLog.notice(F("timerange: %s"),measure_data.sensors[measure_data.sensors_count].timerange);
+		strncpy (measure_data.sensors[measure_data.sensors_count].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
+		frtosLog.notice(F("level: %s"),measure_data.sensors[measure_data.sensors_count].level);
+		measure_data.sensors[measure_data.sensors_count].address = element["fields"]["address"];	    
+		frtosLog.notice(F("address: %d"),measure_data.sensors[measure_data.sensors_count].address);
 
-	      if (strcmp(measure_data.sensors[measure_data.sensors_count].type,"PMS")==0) pmspresent=true;
-	      
-	      measure_data.sensors_count++;
+		if (strcmp(measure_data.sensors[measure_data.sensors_count].type,"PMS")==0) pmspresent=true;
+		
+		measure_data.sensors_count++;
+	      }
+	      status_sensors = true;
 	    }
-	    status_sensors = true;
 	  }
 	}
 
@@ -807,7 +855,21 @@ int  rmap_config(const String payload){
 	  }
 	}
       }
-      status = (int)!(status_station && status_board_mqtt && status_board_tcpip && status_sensors); //Variable 'status' is reassigned a value before the old one has been used.
+
+      if (status_board_mqtt && status_board_espnow){
+	frtosLog.error(F("error in station configuration: MQTT and ESPNOW transport enabled"));
+	status = 3;
+	pixels.setPixelColor(0, pixels.Color(255, 0, 0));      
+	pixels.show();
+	delay(5000);
+      } else {
+      
+	status = (int)!(status_station && status_board
+			&& (status_board_mqtt || status_board_espnow)
+			&& (status_board_tcpip|| status_board_espnow)
+			&& status_board_espnow ? status_sensors: true);    // master board can have no sensors
+	//Variable 'status' is reassigned a value before the old one has been used.
+      }
     } else {
       frtosLog.error(F("error parsing array: %s"),error.c_str());
       //analogWrite(LED_PIN,973);
@@ -841,11 +903,13 @@ void readconfig() {
 	if (doc.containsKey("rmap_user")) strcpy(station.user, doc["rmap_user"]);
 	if (doc.containsKey("rmap_password")) strcpy(station.password, doc["rmap_password"]);
 	if (doc.containsKey("rmap_stationslug")) strcpy(station.stationslug, doc["rmap_stationslug"]);
+	if (doc.containsKey("rmap_boardslug")) strcpy(station.boardslug, doc["rmap_boardslug"]);
 	
 	frtosLog.notice(F("loaded config parameter:"));
 	frtosLog.notice(F("server: %s"),station.server);
 	frtosLog.notice(F("user: %s"),station.user);
 	frtosLog.notice(F("stationslug: %s"),station.stationslug);
+	frtosLog.notice(F("boardslug: %s"),station.boardslug);
 	
       } else {
 	frtosLog.error(F("failed to deserialize json config %s"),error.c_str());
@@ -872,6 +936,7 @@ void writeconfig() {;
   json["rmap_user"] = station.user;
   json["rmap_password"] = station.password;
   json["rmap_stationslug"] = station.stationslug;
+  json["rmap_boardslug"] = station.boardslug;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
@@ -909,7 +974,7 @@ void displayStatus()
     frtosLog.notice(F("status gps      : receive %d" ),stimawifiStatus.gps.receive);
     frtosLog.notice(F("status udp      : receive %d" ),stimawifiStatus.udp.receive);
   }
-
+  
   frtosLog.notice(F("status measure  : noheap  %d, stack    %d"),stimawifiStatus.measure.no_heap_memory,stimawifiStatus.measure.memory_collision);
   frtosLog.notice(F("status publish  : noheap  %d, stack    %d"),stimawifiStatus.publish.no_heap_memory,stimawifiStatus.publish.memory_collision);
   frtosLog.notice(F("status db       : noheap  %d, stack    %d"),stimawifiStatus.db.no_heap_memory,stimawifiStatus.db.memory_collision);
@@ -918,6 +983,12 @@ void displayStatus()
     frtosLog.notice(F("status gps      : noheap  %d, stack    %d"),stimawifiStatus.gps.no_heap_memory,stimawifiStatus.gps.memory_collision);
     frtosLog.notice(F("status udp      : noheap  %d, stack    %d"),stimawifiStatus.udp.no_heap_memory,stimawifiStatus.udp.memory_collision);
   }
+  if (station.nowsat){
+    frtosLog.notice(F("status nowsat   : noheap  %d, stack    %d"),stimawifiStatus.nowsat.no_heap_memory,stimawifiStatus.nowsat.memory_collision);
+  }  
+  if (station.nowmas){
+    frtosLog.notice(F("status nowmas   : noheap  %d, stack    %d"),stimawifiStatus.now.no_heap_memory,stimawifiStatus.now.memory_collision);
+  }    
   
   // collect error in summary  
   //  data.status.summary.err_power_on= false;	
@@ -938,6 +1009,8 @@ void displayStatus()
                                                    stimawifiStatus.measure.memory_collision == error || stimawifiStatus.measure.no_heap_memory == error ||
                                                    stimawifiStatus.udp.memory_collision == error || stimawifiStatus.udp.no_heap_memory == error ||
                                                    stimawifiStatus.gps.memory_collision == error || stimawifiStatus.gps.no_heap_memory == error ||
+                                                   stimawifiStatus.now.memory_collision == error || stimawifiStatus.now.no_heap_memory == error ||
+                                                   stimawifiStatus.nowsat.memory_collision == error || stimawifiStatus.nowsat.no_heap_memory == error ||
                                                    stimawifiStatus.memory_collision == error || stimawifiStatus.no_heap_memory == error ;
   stimawifiStatus.summary.err_rssi |=              stimawifiStatus.rssi == error;
     
@@ -1094,8 +1167,30 @@ void logSuffix(Print* _logOutput) {
   _logOutput->flush();  // we use this to flush every log message
 }
 
+
 // arduino setup routine
 void setup() {
+  setup_common();
+  if (station.nowsat){
+    setup_satellite_1();
+    setup_threads();
+    setup_satellite_2();
+  } else {
+    setup_master();
+    setup_threads();
+  }
+  
+  //esp_task_wdt_init(60, true);
+  //enableLoopWDT();
+  //disableLoopWDT();
+  //rtc_wdt_protect_off();
+  //rtc_wdt_disable();
+  //wdt_hal_disable();  
+}
+
+
+// arduino setup routine part 1
+void setup_common() {
   // put your setup code here, to run once in Arduin task:
 
   /*
@@ -1125,7 +1220,6 @@ void setup() {
   //Serial.setDebugOutput(true);
 
   // set summary status from one CPU only
-  //set_status_summary(rtc_get_reset_reason(0));
   set_status_summary();
 
   stimawifiStatus.rtc=unknown;
@@ -1133,9 +1227,10 @@ void setup() {
   stimawifiStatus.no_heap_memory=ok;
   stimawifiStatus.memory_collision=ok;
 
-  // print esp reset reason
+  // print esp reset and wakeup reason
   print_reset_reason();
-
+  print_wakeup_reason();
+  
   /*
   Serial.println("CPU0 reset reason:");
   print_reset_reason(rtc_get_reset_reason(0));
@@ -1147,9 +1242,14 @@ void setup() {
   verbose_print_reset_reason(rtc_get_reset_reason(1));
   #endif
   */
+  
+  if (esprtc.getYear() > 2020){
+    // sync ESP RTC with time of Timelib
+    setTime(esprtc.getEpoch());
+  }
 
   // manage reset button in hardware (RESET_PIN) or in software (I2C)
-  bool reset=digitalRead(RESET_PIN) == LOW;
+  reset=digitalRead(RESET_PIN) == LOW;
   if (button.get() == 0)
   {
     if (button.BUTTON_A)
@@ -1264,6 +1364,9 @@ void setup() {
   frtosLog.notice(F("Started"));
   frtosLog.notice(F("Version: " SOFTWARE_VERSION));
   frtosLog.notice(F("Total PSRAM: %d"), ESP.getPsramSize());
+  uintptr_t start = (uintptr_t)&_rtc_data_start;
+  uintptr_t end   = (uintptr_t)&_rtc_data_end;
+  frtosLog.notice(F("RTC used data: %d bytes on 8192 total"), (unsigned)(end - start));
   
   // two different display with different dimension are managed with two different I2C address
   // check return value of
@@ -1376,6 +1479,41 @@ void setup() {
       delay(3000);
     }
   }
+  
+  String local_config  = read_local_rmap_config();
+  rmap_config(local_config);
+
+  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
+  
+}
+
+
+void setup_satellite_1() {
+
+  pixels.clear();            // Turn OFF all pixels ASAP
+  pixels.show();
+
+  // initialize RTC with mutex
+  frtosRTC.begin(RTC,i2cmutex);
+  
+  if (timeStatus() != timeSet) {
+    if (frtosRTC.isRunning() && (year(frtosRTC.get()) > 2020)){
+      frtosLog.notice(F("Getted time from RTC"));
+      stimawifiStatus.rtc=ok;
+      setSyncProvider(rtc_set_time);   // the function to get the time from the RTC
+    }else{
+      stimawifiStatus.rtc=error;
+    }
+  }
+}
+
+void setup_satellite_2() {
+  dataRecovery();
+  measureAndPublish();
+}
+
+// arduino setup routine for master station
+void setup_master() {
 
   String local_config  = read_local_rmap_config();
 
@@ -1386,7 +1524,7 @@ void setup() {
     frtosLog.notice(F("no station conf; Reset wifi configuration"));
     wifiManager.resetSettings();
   }
-
+  
   // initialize RTC with mutex
   frtosRTC.begin(RTC,i2cmutex);
   
@@ -1413,13 +1551,15 @@ void setup() {
   WiFiManagerParameter custom_rmap_server("server", "rmap server", station.server, 41);
   WiFiManagerParameter custom_rmap_user("user", "rmap user", station.user, 10);
   WiFiManagerParameter custom_rmap_password("password", "station password", station.password, 31, "type = \"password\"");
-  WiFiManagerParameter custom_rmap_stationslug("slug", "station slug", station.stationslug, 31);
+  WiFiManagerParameter custom_rmap_stationslug("stationslug", "station slug", station.stationslug, 31);
+  WiFiManagerParameter custom_rmap_boardslug("boardslug", "board slug", station.boardslug, 31);
 
   //add all your parameters here
   wifiManager.addParameter(&custom_rmap_server);
   wifiManager.addParameter(&custom_rmap_user);
   wifiManager.addParameter(&custom_rmap_password);
   wifiManager.addParameter(&custom_rmap_stationslug);
+  wifiManager.addParameter(&custom_rmap_boardslug);
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
@@ -1485,25 +1625,25 @@ void setup() {
     //if you get here you have connected to the WiFi
     //WiFi.setAutoReconnect(true);
     wifiManager.setDisableConfigPortal(true);
-  frtosLog.notice(F("connected... good!"));
-  frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
-  frtosLog.notice(F("WiFi tx power: %d"),WiFi.getTxPower());
-  pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-  pixels.show();
-  delay(3000);
-  
-  if (oledpresent) {
-    LockGuard guard(i2cmutex);
-    u8g2->clearBuffer();
-    u8g2->setCursor(0, 1*CH); 
-    u8g2->print(F("WIFI OK"));
-    u8g2->sendBuffer();
-    u8g2->setCursor(0, 4*CH); 
-    u8g2->print(F("IP:"));
-    //u8g2->setFont(u8g2_font_u8glib_4_tf);
-    u8g2->print(WiFi.localIP().toString().c_str());
-    //u8g2->setFont(u8g2_font_5x7_tf);
-    u8g2->sendBuffer();
+    frtosLog.notice(F("connected... good!"));
+    frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
+    frtosLog.notice(F("WiFi tx power: %d"),WiFi.getTxPower());
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+    pixels.show();
+    delay(3000);
+    
+    if (oledpresent) {
+      LockGuard guard(i2cmutex);
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("WIFI OK"));
+      u8g2->sendBuffer();
+      u8g2->setCursor(0, 4*CH); 
+      u8g2->print(F("IP:"));
+      //u8g2->setFont(u8g2_font_u8glib_4_tf);
+      u8g2->print(WiFi.localIP().toString().c_str());
+      //u8g2->setFont(u8g2_font_5x7_tf);
+      u8g2->sendBuffer();
     }    
   }    
 
@@ -1515,6 +1655,7 @@ void setup() {
     strcpy(station.user, custom_rmap_user.getValue());
     strcpy(station.password, custom_rmap_password.getValue());
     strcpy(station.stationslug, custom_rmap_stationslug.getValue());
+    strcpy(station.boardslug, custom_rmap_boardslug.getValue());
 
     writeconfig();
     if (oledpresent) {
@@ -1743,37 +1884,45 @@ void setup() {
   }
 
   frtosLog.notice(F("mqtt server: %s"),station.mqtt_server);
-  
-  Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
-  Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
-  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
 
     // Add http service to MDNS-SD
-  MDNS.addService("http", "tcp", STIMAHTTP_PORT);
+  MDNS.addService("http", "tcp", STIMAHTTP_PORT);  
 
-  // if mobile station start geolocation thread or if we need to acquire time
-  if (strcmp(station.ident,"") != 0 || (timeStatus() != timeSet)){
-    threadUdp.Start();
-    #ifdef GPS_SERIAL
-    threadGps.Start();
-    #endif
-    #ifdef GPS_I2C
-    threadGpsI2c.Start();
-    #endif
-  }
+  Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
+  Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
+  
+}
 
+// arduino setup routine part 2
+void setup_threads() {
+  
   // start other thread
-  threadDb.Start();
-  threadPublish.Start();
   threadMeasure.Begin();
   threadMeasure.Start();
-  
-  //esp_task_wdt_init(60, true);
-  //enableLoopWDT();
-  //disableLoopWDT();
-  //rtc_wdt_protect_off();
-  //rtc_wdt_disable();
-  //wdt_hal_disable();
+  threadDb.Start();
+  if (station.nowsat){
+    threadNowSat.Begin();
+    threadNowSat.Start();
+  }else{
+    threadPublish.Start();
+    if (station.nowmas){
+      threadNow.Begin();
+      threadNow.Start();
+    }
+    
+    // start geolocation thread if mobile station or if we need to acquire time
+    // (but not for satellite station)
+    if ((strcmp(station.ident,"") != 0 || (timeStatus() != timeSet))
+	&& !station.nowsat){
+      threadUdp.Start();
+      #ifdef GPS_SERIAL
+      threadGps.Start();
+      #endif
+      #ifdef GPS_I2C
+      threadGpsI2c.Start();
+      #endif
+    }
+  }
 }
 
 // arduino loop routine
@@ -1785,29 +1934,32 @@ void loop() {
     loopinit=false;
   }
 
-  // set alarm for fixed station and when time is setted
-  if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){
-    time_t reboottime;
-    periodic_work_setted=true;
-    
-    if (pmspresent){
-      reboottime=3600*24;                                        // pms stall sometime, we reboot more
-    }else{
-      reboottime=3600*24*7;                                      // we reset everythings one time a week
+  if (!station.nowsat){
+
+    // set alarm for fixed station and when time is setted
+    if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){
+      time_t reboottime;
+      periodic_work_setted=true;
+      
+      if (pmspresent){
+	reboottime=3600*24;                                        // pms stall sometime, we reboot more
+      }else{
+	reboottime=3600*24*7;                                      // we reset everythings one time a week
+      }
+      frtosLog.notice(F("reboot every: %l"),reboottime);
+      Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
+      
+      // update firmware
+      //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
+      Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
     }
-    frtosLog.notice(F("reboot every: %l"),reboottime);
-    Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
     
-    // update firmware
-    //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
-    Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
+    webserver.handleClient();
+    //MDNS.update(); 
   }
   
-  webserver.handleClient();
-  //MDNS.update();
   Alarm.delay(0);       // check for alarms
   delay(100);
-
 
   // check heap and stack
   //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

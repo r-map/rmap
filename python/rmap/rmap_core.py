@@ -1690,6 +1690,11 @@ def dumpstation(user, station_slug, board_slug=None, without_password=False,dump
             except ObjectDoesNotExist:
                 pass
             try:
+                transport=board.transportespnow
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            try:
                 transport=board.transportamqp
                 if without_password:
                     transport.amqppassword=None   # use make_password to generate sha

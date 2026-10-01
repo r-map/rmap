@@ -655,8 +655,10 @@ bool dbThread::data_recovery(void){
   bool somedata = false;
   
   // is time to run ?
-  if (!run_data_recovery) return true;
-  
+  if (!run_data_recovery){
+    data->state = STATE_DB_RECOVERY_DONE;
+    return true;
+  }
   data->logger->notice(F("db recovery from DB started"));
 
   // Retry to run the next time waiting to run for the queue go empty.
@@ -667,6 +669,7 @@ bool dbThread::data_recovery(void){
   // We use this check in any case if the transaction management fail
   if (!data->recoveryqueue->IsEmpty()){
     data->logger->warning(F("db recovery skip: queue is not empty"));
+    data->state = STATE_DB_RECOVERY_DONE;
     return true;
   }
   
@@ -748,7 +751,8 @@ bool dbThread::data_recovery(void){
     }
   }
   
-  data->logger->notice(F("db End recovery from DB"));        
+  data->logger->notice(F("db End recovery from DB"));
+  data->state = STATE_DB_RECOVERY_DONE;
   return rc == SQLITE_OK;
 }
 
@@ -952,6 +956,8 @@ dbThread::dbThread(db_data_t* db_data)
   db_recovery_state = DB_RECOVERY_NONE;
   run_data_recovery=false;
   status_data_recovery=false;
+  data->state = STATE_DB_NONE;
+
   //Start();
 };
 
@@ -976,6 +982,8 @@ void dbThread::Cleanup()
 void dbThread::Run() {
   data->logger->notice("Starting Thread %s %d", GetName().c_str(), data->id);
 
+  data->state = STATE_DB_SDCARD;
+  
   # if portNUM_PROCESSORS > 1  
   //data->logger->notice(F("db largest free block %l"),heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
   sqlite_memory= ps_malloc(SQLITE_MEMORY);
@@ -1030,6 +1038,8 @@ void dbThread::Run() {
     data->status->archive=ok;
   }
 
+  data->state = STATE_DB_SQLITE;
+  
   // sqlite use sqlite_memory pre allocated memory
   if (sqlite3_config(SQLITE_CONFIG_HEAP, sqlite_memory, SQLITE_MEMORY, 32)!=SQLITE_OK){
     data->logger->error(F("db sqlite3_config: %s"),sqlite3_errmsg(db));
@@ -1200,7 +1210,10 @@ void dbThread::Run() {
   //  uint8_t basePriority = GetPriority();
   //  SetPriority(basePriority-1);
   //  SetPriority(basePriority);
-  
+
+
+  data->state = STATE_DB_QUEUE_START;
+    
   for(;;){
 
     while (data->dbqueue->Peek(&message, pdMS_TO_TICKS( 1000 ))){ // peek one message

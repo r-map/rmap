@@ -57,6 +57,9 @@ File logFile;
 WriteLoggingStream loggingStream(logFile,Serial);
 #endif
 
+// if reset is requested by user
+bool reset;
+
 //flag for saving data
 bool shouldSaveConfig = false;
 bool pmspresent =  false;
@@ -101,6 +104,7 @@ gps_i2c_data_t gps_i2c_data={1,&frtosLog,&stimawifiStatus.gps,&georef,&frtosRTC,
 gpsI2cThread threadGpsI2c(&gps_i2c_data);
 #endif
 
+ESP32Time esprtc;
 Queue dbQueue(DB_QUEUE_LEN,sizeof(mqttMessage_t));
 Queue recoveryQueue(RECOVERY_QUEUE_LEN,sizeof(mqttMessage_t));
 Queue mqttQueue(MQTT_QUEUE_LEN,sizeof(mqttMessage_t));
@@ -121,6 +125,12 @@ measureThread threadMeasure(&measure_data);
 publish_data_t publish_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&rpcRecoveryQueue,&rpcCalibrateQueue,&stimawifiStatus,&station};
 publishThread threadPublish(&publish_data);
 
+now_data_t now_data={1,&frtosLog,&mqttQueue,&dbQueue,&stimawifiStatus.now};
+nowThread threadNow(&now_data);
+
+now_sat_data_t now_sat_data={1,&frtosLog,&mqttQueue,&dbQueue,&recoveryQueue,&stimawifiStatus.nowsat,&station,&measure_data.state,&db_data.state,&frtosRTC,&esprtc};
+nowSatThread threadNowSat(&now_sat_data);
+
 #if defined(ARDUINO_LOLIN_C3_MINI)
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 #else
@@ -139,6 +149,15 @@ time_t rtc_set_time();
 String Json();
 String Data();
 String FullPage();
+
+// setup routine for master snd satellite stations
+void setup();
+void setup_common();
+void setup_satellite_1();
+void setup_satellite_2();
+void setup_master();
+void setup_threads();
+
 void writeconfig();
 
 // web server response function

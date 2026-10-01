@@ -33,12 +33,14 @@ def params2record(p):
     #leveltype2=MISSING_INT-1 o leveltype2="-", per significare "il
     #valore nel database deve essere "mancante" invece di "qualunque"
 
-    # solo per sistemi a 64 bit 
-    REQUIRED_MISSING_INT = 2147483646
-    
-    for tl2 in ("leveltype2","l2"):
-        if (tl2 in q):
-            if (q[tl2] is None):
-                q[tl2]= REQUIRED_MISSING_INT
+    ##  ATTENTION uncomment when issue will be resolved 
+    #
+    ## solo per sistemi a 64 bit 
+    #REQUIRED_MISSING_INT = 2147483646
+    #
+    #for tl2 in ("leveltype2","l2"):
+    #    if (tl2 in q):
+    #        if (q[tl2] is None):
+    #            q[tl2]= REQUIRED_MISSING_INT
 
     return q

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (StationMetadata,Board,Sensor,SensorType,Bcode,
-TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportCan,TransportAmqp,TransportBluetooth,
+                     TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportCan,TransportAmqp,TransportBluetooth,TransportEspnow,
 StationConstantData,BoardFirmwareMetadata,StationMaintStatus,StationImage,BoardMaintStatus)
 from django import forms
 from django.utils.translation import ugettext_lazy
@@ -16,6 +16,9 @@ class TransportBluetoothInline(admin.TabularInline):
 class TransportTcpipInline(admin.TabularInline):
     model = TransportTcpip
 
+class TransportEspnowInline(admin.TabularInline):
+    model = TransportEspnow
+    
 class TransportRF24NetworkInline(admin.TabularInline):
     model = TransportRF24Network
 
@@ -102,6 +105,7 @@ class BoardAdmin(admin.ModelAdmin):
         TransportSerialInline,
         TransportBluetoothInline,
         TransportTcpipInline,
+        TransportEspnowInline,
         TransportRF24NetworkInline,
         TransportAmqpInline,
         TransportMqttInline,

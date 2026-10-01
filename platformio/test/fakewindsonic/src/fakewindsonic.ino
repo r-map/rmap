@@ -131,11 +131,11 @@ V    -                        NMEA data Void
   HardwareTimer Tim2 = HardwareTimer(TIM2);      
 
   #if defined (STM32L452xx)
-    HardwareSerial MYSERIAL0(PC11, PC10);
+    Uart MYSERIAL0(PC11, PC10);
   #elif defined (STM32L476xx)
-    HardwareSerial MYSERIAL0(PC11, PC10);
+    Uart MYSERIAL0(PC11, PC10);
   #else
-    HardwareSerial MYSERIAL0(D0, D1);
+    Uart MYSERIAL0(D0, D1);
   #endif
 #endif
 

@@ -147,7 +147,14 @@ void measureThread::enqueueMqttMessage(uint8_t i ) {
     strcat(mqtt_message.payload,value);
     if (timeStatus() == timeSet){
       char jsontime[30];
-      time_t messagetime=now();
+      time_t messagetime;
+      if(data->station->nowsat){
+	// if station type is espnow satellite compute report time as approximation
+	time_t counter = ((now() + (data->station->sampletime/2)) / data->station->sampletime);
+	messagetime = counter * data->station->sampletime;
+      }else{
+	messagetime=now();
+      }
       snprintf(jsontime,30,",\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"}",
 	       year(messagetime), month(messagetime), day(messagetime),
 	       hour(messagetime), minute(messagetime), second(messagetime));
@@ -190,7 +197,7 @@ void measureThread::doMeasure() {
   data->status->sensor=unknown;  
   data->status->novalue=unknown;
   data->status->geodef=unknown;
-  
+
   // sensorm (sensor Manager) is a finite state machine
   // here we can execute measure in parallel starting one state machine (sensorm) for each sensor
   // each sensor can do one or more measure
@@ -273,7 +280,6 @@ void measureThread::doMeasure() {
 
 }
 
-
 measureThread::measureThread(measure_data_t* measure_data)
   : Thread{"measure", TASK_MEASURE_STACK_SIZE, TASK_MEASURE_PRIORITY
            # if portNUM_PROCESSORS > 1
@@ -300,6 +306,7 @@ measureThread::~measureThread()
 
 void measureThread::Begin()
 {
+  data->state = STATE_MEASURE_NONE;
   // create one driver for each sensor
   uint8_t tmp_count=0;
   for (uint8_t i = 0; i < data->sensors_count; i++) {
@@ -336,7 +343,10 @@ void measureThread::Run() {
   for(;;){
     // wait for notification from the main task; start when we have to do measurements
     WaitForNotification();
+    
+    data->state = STATE_MEASURE_STARTED;
     if (timeStatus() == timeSet) doMeasure();  // measure il we can use a timestamp
+    data->state = STATE_MEASURE_DONE;
 
     // check heap and stack
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

@@ -2,6 +2,14 @@
 #ifndef DB_THREAD_H_
 #define DB_THREAD_H_
 
+typedef enum {
+  STATE_DB_NONE,
+  STATE_DB_SDCARD,
+  STATE_DB_SQLITE,
+  STATE_DB_QUEUE_START,
+  STATE_DB_RECOVERY_DONE
+} state_db_t;
+
 struct db_data_t {
   int id;
   frtosLogging* logger;
@@ -12,6 +20,7 @@ struct db_data_t {
   dbStatus_t* status;
   station_t* station;
   File* logFile;
+  state_db_t state;
 };
 
 typedef enum {

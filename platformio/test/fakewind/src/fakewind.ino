@@ -325,7 +325,7 @@ void setup() {
   IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_address));
 
   //Start I2C communication routines
-  Wire.begin(i2c_writabledataset1->i2c_address);
+  Wire.begin((int)i2c_writabledataset1->i2c_address);
   
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()

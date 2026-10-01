@@ -15,7 +15,7 @@
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 #include <Wire.h>
 #include <U8g2lib.h>
-#include "time.h"
+#include <ESP32Time.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WebServer.h>
@@ -38,6 +38,8 @@
 #include "measure_thread.h"
 #include "publish_thread.h"
 #include "db_thread.h"
+#include "now_thread.h"
+#include "now_sat_thread.h"
 #include "critical.hpp"
 #include "semaphore.hpp"
 #include "SD.h"
