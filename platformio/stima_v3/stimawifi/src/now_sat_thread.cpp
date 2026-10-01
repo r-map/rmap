@@ -621,7 +621,7 @@ void nowSatThread::Run() {
     data->status->no_heap_memory=error;
   }
   
-  //data->logger->notice(F("stack gps: %d"),uxTaskGetStackHighWaterMark(NULL));
+  //data->logger->notice(F("stack nowsat: %d"),uxTaskGetStackHighWaterMark(NULL));
   if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
       data->logger->error(F("nowsat stack"));
       data->status->memory_collision=error;
