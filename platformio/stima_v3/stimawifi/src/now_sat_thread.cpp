@@ -8,15 +8,15 @@ static bool have_to_write_config=false;
 //***********************************************************************************************
 
 /*
-// Definisci la PMK globale (esattamente 16 byte)
-// Deve essere IDENTICA su tutti i dispositivi che comunicano tra loro.
+// Define global key PMK ( 16 byte long)
+// Have to be the same on all devices wants inter communicate.
 const uint8_t mia_pmk[16] = {
     0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x08,
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11
 };
 
-// Definisci la chiave LMK (esattamente 16 byte)
-// Puoi usare valori esadecimali a tua scelta. Entrambi i dispositivi devono avere la stessa chiave.
+// Define local key LMK ( 16 byte long)
+// you can choose any value.Two communicate device have to have the same key.
 const uint8_t mio_lmk[16] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
@@ -131,6 +131,8 @@ static bool read_local_config() {
 }
 
 // Callback when data is sent
+// this is called by an other thread with other priority level and on CPU 0
+// logging do not work: mutex do not work on bi-processor MCU
 static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
   //nowSatThread::global_data->logger->notice(F("nowsat OnDataSent"));
   //nowSatThread::global_data->logger->notice(F("nowsat State: %d"),state);
@@ -149,7 +151,34 @@ static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
   //nowSatThread::global_data->logger->notice(F("nowsat State: %d"),state);
 }
 
-// Callback when data is received
+/*
+ Callback when data is received
+ this is called by an other thread with other priority level and on CPU 0
+ logging do not work: mutex do not work on bi-processor MCU
+ a packet is defined by:
+ 1 byte  type of packet
+
+ Sequence for pairing:
+ master    : type 0  : pair request  : struct message_pair_crc
+ satellite : type 1  : pair response : struct message_pair_crc
+ master    : type 2  : pair ACK      : struct message_pair_crc
+
+ Sequence for data:
+ satellite : type 99 : data send     : struct message_data_crc
+ master    : type 3  : data ACK      : struct message_pair_crc
+ master    : type 10 : data NACK     : struct message_pair_crc      not managed by satellite
+
+ any packey have a squence number incremented by one any transmission
+ and a CRC computed for error checking
+
+ The send receive machine have a "state" defined by state_t
+ Any change of state have rules for permitted or deny change of state
+
+ Paired state is an addition acondition to take in account for discrimine action to take
+
+ Any message have a datetime time stamp used by satellite to sync system time
+ A special packet with sent=1 topic and payload NULL is a packet used to make a sync request
+*/
 static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
   // Create a struct_message to hold incoming sensor readings
   //nowSatThread::global_data->logger->notice(F("nowsat Pacchetto ricevuto da MAC: : %X:%X:%X:%X:%X:%X"),
@@ -244,7 +273,7 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
       esp_now_peer_info_t peerInfo = {};
       memcpy(peerInfo.peer_addr, esp_now_info->src_addr, 6);
       peerInfo.channel = 0;
-      //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
+      //peerInfo.ifidx = WIFI_IF_STA;  // Interface used (Station o AP)
       peerInfo.encrypt = false;        // enable with pioarduino only! tasmota configurated with no encryption
       //memcpy(peerInfo.lmk, mio_lmk, 16);
       
@@ -311,6 +340,7 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
   }
 }
 
+// add broadcast address to the list of peers
 static void add_broadcast_peer(){
   // Register peer
   esp_now_peer_info_t peerInfo = {};
@@ -329,6 +359,7 @@ static void add_broadcast_peer(){
   }
 }
 
+// The thread
 nowSatThread::nowSatThread(now_sat_data_t* now_sat_data)
   : Thread{"now sat", TASK_NOW_SAT_STACK_SIZE, TASK_NOW_SAT_PRIORITY
            # if portNUM_PROCESSORS > 1
@@ -434,8 +465,8 @@ void nowSatThread::Begin()
       data->logger->notice("nowsat boot peer broadcast già registrato");
     }else{    
       if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-	data->logger->notice("nowsat boot Master registrato come peer fisso.");      
-	data->logger->notice("nowsat boot Accoppiamento riuscito!");
+	data->logger->notice("nowsat boot Master registered as fixed peer");      
+	data->logger->notice("nowsat boot Pairing done!");
 	config.paired=true;
       }else{
 	data->logger->error("nowsat boot Error adding peer");
@@ -683,6 +714,9 @@ bool nowSatThread::doRelay(mqttMessage_t mqtt_message, const bool recovery) {
   return rc;
 }
 
+// publish the message by radio with esp-now protocol
+// is a blocking function waiting for the end of trasaction with a timeout control
+// return the status of transmission
 bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
 
   bool rc=false;
@@ -733,7 +767,7 @@ bool nowSatThread::nowPublish(mqttMessage_t mqtt_message) {
       delay(10);
       // Timeout di sicurezza (es. 1000ms) per evitare che l'ESP resti acceso all'infinito se il destinatario è spento
       if (millis() - startTimeout > TRANSACTION_TIMEOUT) {
-	data->logger->notice("nowsat Transaction timeout exceded!");
+	data->logger->error("nowsat Transaction timeout exceded!");
 	rc=false;
 	state = STATE_SAT_NONE;
 	break;

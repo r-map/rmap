@@ -16,23 +16,22 @@ volatile uint16_t seq=0;
 
 
 /*
-// Definisci la PMK globale (esattamente 16 byte)
-// Deve essere IDENTICA su tutti i dispositivi che comunicano tra loro.
+// Define global key PMK ( 16 byte long)
+// Have to be the same on all devices wants inter communicate.
 const uint8_t mia_pmk[16] = {
     0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x08,
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11
 };
 
-// Definisci la chiave LMK (esattamente 16 byte)
-// Puoi usare valori esadecimali a tua scelta. Entrambi i dispositivi devono avere la stessa chiave.
+// Define local key LMK ( 16 byte long)
+// you can choose any value.Two communicate device have to have the same key.
 const uint8_t mio_lmk[16] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10
 };
 */
 
-
-// read configuration from EEPROM
+// read esp-now master configuration from EEPROM
 static bool read_local_config() {
 
   if (LittleFS.exists("/master.json")) {
@@ -49,7 +48,7 @@ static bool read_local_config() {
       String content = configFile.readString();
       configFile.close();
       
-      DynamicJsonDocument doc(256);
+      DynamicJsonDocument doc(256);   // size computed by on line utils
       DeserializationError error = deserializeJson(doc,content);
       if (!error){
 	const char* ver = doc["ver"]; // "1.0"
@@ -85,7 +84,7 @@ static bool read_local_config() {
   return false;
 }
 
-// write configuration to EEPROM
+// write esp-now master configuration to EEPROM
 static bool write_local_config() {
 
   //save the custom parameters to FS
@@ -97,7 +96,7 @@ static bool write_local_config() {
     return false;
   }
 
-  DynamicJsonDocument doc(256); 
+  DynamicJsonDocument doc(256); // size computed by on line utils 
   doc[F("ver")] = F(SOFTWARE_VERSION);
   doc[F("paired")] = config.paired;
 
@@ -128,6 +127,7 @@ static bool write_local_config() {
   return true;
 }
 
+// add broadcast address to the list of peers
 void nowThread::add_broadcast_peer(){
   // Register peer
   esp_now_peer_info_t peerInfo = {};
@@ -148,6 +148,8 @@ void nowThread::add_broadcast_peer(){
 
 
 // Callback when data is sent
+// this is called by an other thread with other priority level and on CPU 0
+// logging do not work: mutex do not work on bi-processor MCU
 static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
   //nowThread::global_data->logger->notice(F("now OnDataSent"));
   //nowThread::global_data->logger->notice(F("now State: %d"),state);
@@ -163,9 +165,36 @@ static void OnDataSent(const  uint8_t *des_addr, esp_now_send_status_t status) {
   //nowThread::global_data->logger->notice(F("State: %d"),state);
 }
 
-// Callback when data is received
+/*
+ Callback when data is received
+ this is called by an other thread with other priority level and on CPU 0
+ logging do not work: mutex do not work on bi-processor MCU
+ a packet is defined by:
+ 1 byte  type of packet
+
+ Sequence for pairing:
+ master    : type 0  : pair request  : struct message_pair_crc
+ satellite : type 1  : pair response : struct message_pair_crc
+ master    : type 2  : pair ACK      : struct message_pair_crc
+
+ Sequence for data:
+ satellite : type 99 : data send     : struct message_data_crc
+ master    : type 3  : data ACK      : struct message_pair_crc
+ master    : type 10 : data NACK     : struct message_pair_crc      not managed by satellite
+
+ any packey have a squence number incremented by one any transmission
+ and a CRC computed for error checking
+
+ The send receive machine have a "state" defined by state_t
+ Any change of state have rules for permitted or deny change of state
+
+ Paired state is an addition acondition to take in account for discrimine action to take
+
+ Any message have a datetime time stamp used by satellite to sync system time
+ A special packet with sent=1 topic and payload NULL is a packet used to make a sync request
+*/
+
 static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
-  // Create a message_pair to hold incoming sensor readings
   //nowThread::global_data->logger->notice(F("now Packed received from MAC: : %X:%X:%X:%X:%X:%X"),
   //		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
   //		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
@@ -309,6 +338,7 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
 }
 
 // encode and enqueue in a proper queue one message
+// sendig to  mqttqueue and  when require to dbqueue
 static bool enqueueMqttMessage(const mqttMessage_t mqtt_message) {
   
   bool rc=true;
@@ -341,6 +371,7 @@ static bool enqueueMqttMessage(const mqttMessage_t mqtt_message) {
   return rc;
 }
 
+// The thread
 nowThread::nowThread(now_data_t* now_data)
   : Thread{"now", TASK_NOW_STACK_SIZE, TASK_NOW_PRIORITY
            # if portNUM_PROCESSORS > 1
@@ -414,9 +445,7 @@ void nowThread::Begin()
 
   if (config.paired){
 
-    esp_wifi_set_channel(config.channel, WIFI_SECOND_CHAN_NONE);
-    // Aggiunge il master come peer specifico
-    
+    // Aggiunge il master come peer specifico    
     esp_now_peer_info_t peerInfo = {};
     memcpy(peerInfo.peer_addr, config.peerMac, 6);
     peerInfo.channel = 0;

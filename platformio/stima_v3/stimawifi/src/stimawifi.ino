@@ -1258,7 +1258,6 @@ void setup_common() {
   //Serial.setDebugOutput(true);
 
   // set summary status from one CPU only
-  //set_status_summary(rtc_get_reset_reason(0));
   set_status_summary();
 
   stimawifiStatus.rtc=unknown;
@@ -1528,6 +1527,10 @@ void setup_common() {
 
 
 void setup_satellite_1() {
+
+  pixels.clear();            // Turn OFF all pixels ASAP
+  pixels.show();
+
   // initialize RTC with mutex
   frtosRTC.begin(RTC,i2cmutex);
   
@@ -1660,25 +1663,25 @@ void setup_master() {
     //if you get here you have connected to the WiFi
     //WiFi.setAutoReconnect(true);
     wifiManager.setDisableConfigPortal(true);
-  frtosLog.notice(F("connected... good!"));
-  frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
-  frtosLog.notice(F("WiFi tx power: %d"),WiFi.getTxPower());
-  pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-  pixels.show();
-  delay(3000);
-  
-  if (oledpresent) {
-    LockGuard guard(i2cmutex);
-    u8g2->clearBuffer();
-    u8g2->setCursor(0, 1*CH); 
-    u8g2->print(F("WIFI OK"));
-    u8g2->sendBuffer();
-    u8g2->setCursor(0, 4*CH); 
-    u8g2->print(F("IP:"));
-    //u8g2->setFont(u8g2_font_u8glib_4_tf);
-    u8g2->print(WiFi.localIP().toString().c_str());
-    //u8g2->setFont(u8g2_font_5x7_tf);
-    u8g2->sendBuffer();
+    frtosLog.notice(F("connected... good!"));
+    frtosLog.notice(F("local ip: %s"),WiFi.localIP().toString().c_str());
+    frtosLog.notice(F("WiFi tx power: %d"),WiFi.getTxPower());
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+    pixels.show();
+    delay(3000);
+    
+    if (oledpresent) {
+      LockGuard guard(i2cmutex);
+      u8g2->clearBuffer();
+      u8g2->setCursor(0, 1*CH); 
+      u8g2->print(F("WIFI OK"));
+      u8g2->sendBuffer();
+      u8g2->setCursor(0, 4*CH); 
+      u8g2->print(F("IP:"));
+      //u8g2->setFont(u8g2_font_u8glib_4_tf);
+      u8g2->print(WiFi.localIP().toString().c_str());
+      //u8g2->setFont(u8g2_font_5x7_tf);
+      u8g2->sendBuffer();
     }    
   }    
 
