@@ -54,11 +54,9 @@ percorsi significativi.
 Schema a blocchi
 ----------------
 
-.. image:: stimawifi_blocchi.png
-
 Caratteristiche del progetto:
 
-* Precisione delle misure;
+* Precisione delle misure
 * Economicità dell’hardware
 * Facilità di assemblaggio
 * Possibilità di personalizzazione
@@ -68,6 +66,43 @@ continua evoluzione e così la stazione di monitoraggio ha vissuto
 diverse incarnazioni, variando la sua conﬁgurazione in base
 all’hardware via via disponibile.
 
+.. figure:: schema_blocchi/stazione.png
+   :width: 100%
+
+   Schema a blocchi delle componenti hardware della stazione.
+
+.. figure:: schema_blocchi/comunicazioni.png
+   :width: 100%
+
+   Schema a blocchi delle comunicazioni di una stazione Stimawifi.
+
+In questa configurazione la stazione si connette a un access point WiFi per scaricare la sua configurazione e inviare i dati.
+
+.. figure:: schema_blocchi/esp-now.png
+   :width: 100%
+
+   Schema a blocchi delle comunicazioni in una configurazione
+   master-satellite con ESP-NOW.
+   
+In questa ultima configurazione sono previste due stazioni stimawifi;
+la prima in configurazione "master" e la seconda in configurazione
+"satellite".
+
+Master aggiunge a una stazione StimaWifi la capacità di ricevere i
+dati da una Stimawifi satellite e aggiungerli al proprio flusso dati
+verso il server RMAP.
+
+Satellite comunica solo con master via radio sempre sulla stessa
+frequenza e hardware utilizzato per il WiFi ma con uno specifico
+protocollo radio chiamato ESP-NOW. Anche la modalità di funzionamento
+di satellite è alterata per permettere il massimo di risparmio
+energwetico in quanto la stazione è pensata per un funzionamento a
+batteria. La stazione in questa modalità dovrà infatti rimanere spenta
+per la maggior parte del tempo e attivarsi solo per effettuare le
+misure e l'invio via radio.  L'intervallo tra le misure è pensato
+quindi per essere dell'ordine di grandezza di svariati minuti fino
+all'ora o più.
+   
 BUS I2C
 -------
 
@@ -602,6 +637,255 @@ Sensirion SHT85 (Sensore Umidità & Temperatura)
 
 
 
+Assemblaggio datalogger
+-----------------------
+
+La prima fase della messa in opera presuppone l’assemblaggio del
+data logger, la parte della stazione che si occupa di consultare
+periodicamente i sensori installati e di inviare i campionamenti al
+server centrale.
+
+E' necessario utilizzare un saldatore a stagno per installare i
+connettori a pettine necessari a collegare tra loro i vari componenti
+ed assemblare i cavi di connessione.
+
+Sono disponibili due tipi di connettori a pettine per impilare i
+moduli: è consigliato l'uso di quelli di migliore qualità per i moduli
+MCU ESP32 S3 e RTC and Microsd Data Logger e gli altri connettori per
+gli altri moduli.
+
+Una volta saldati i connettori su tutti i moduli facendo molta
+attenzione al verso : la parte femmina del connettore va sempre verso
+l'alto mantenendo i moduli posizionati in questo modo:
+
+* modulo ESP32 con lato  MCU e connettore in alto
+* modulo RTC and Microsd Data Logger con SDcard in alto e batteria in basso
+* modulo Power con connettori in alto
+* modulo TFT&I2C con connettori in alto
+
+Procedere poi alla saldatura dei connettori sul modulo BASE secondo lo
+schema in fotografia:
+
+.. image:: hub_assemblata.jpg
+   :width: 50%
+  
+I diversi moduli dovranno essere collegati impilati tra di loro
+rispettando la polarità e rispettando anche l'ordine dal basso verso
+l'alto riportato appena qui sopra.
+
+.. image:: pila.jpg
+   :width: 50%
+
+Collegare la pila dei moduli al modulo BASE:
+
+.. image:: pila_hub.jpg
+   :width: 50%
+	   
+Strumentazione necessaria
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* saldatore a stagno*
+
+Dotazione Software
+^^^^^^^^^^^^^^^^^^
+
+* Nessuna
+
+  
+Collegamento dei sensori e altri dispositivi
+--------------------------------------------
+
+Connettere i device necessari è semplice se fatto con attenzione:
+
+- assicurarsi che la stazione non sia alimentata
+- selezionare appropriato voltaggio alimentazione per ogni sensore
+- assicurarsi che i collegamenti siano corretti (SCl -> SCl, SDA->SDA, GND -> GND, Vcc ->Vcc)
+  
+NOTE
+
+- Alcuni device hanno più dei quattro pin necessari alla connessione
+  al bus I2C
+- VCC, Vcc, Vdd e VDD sono denominazioni equivalenti
+	   
+Prima di procedere con questa fase, disalimentare la stazione di
+monitoraggio.
+
+Per collegare i sensori al datalogger tramite la BASE BOARD e
+verificarne il funzionamento bisogna assemblare i cavi di collegamento
+secondo gli schemi forniti dal produttore dei sensori facendo in modo
+che corrispondono alla piedinatura dei connettori presenti sulla
+stazione Stima WiFi.
+
+Collegamento modulo Display:
+
+.. image:: cavo_display.jpg
+   :width: 50%
+
+Collegamento BASE BOARD per SPS30:
+
+.. image:: cavo_sps30.jpg
+   :width: 50%
+
+Per il sensore SHT85 utilizzare il cavo di prolunga per Ebike
+tagliandolo in modo asimmetrico a una lunghezza di 20 cm. dal lato
+della femmina collegando sempre la parte più corta alla BASE BOARD:
+	   
+.. image:: cavo_sht85.jpg
+   :width: 50%
+	   
+Complessivo collegamenti:
+
+.. image:: assemblata.jpg
+   :width: 50%
+
+	   
+Dopo aver messo a punto la cavetteria bisogna collegare i sensori
+ognuno secondo lo standard facendo attenzione alla polarità ed al
+voltaggio (il sensore di polveri sottili ha bisogno di essere
+alimentato a 5v mentre gli altri sensori a 3,3v)
+
+Collegamento SPS30: usare l'apposito cavo con connettore.
+
+Collegamento SCD30: è preferibile non andare a saldare direttamente i
+cavi sl PCB, ma utilizzare possibilmente una connessione con dupont
+connectors 2.54 mm rispettando ordine e colori.
+
+.. image:: collegamento_scd30.jpg
+   :width: 50%
+
+Usare la prolunga 4 4 poli per E-bike tagliando il cavo a una distanza
+di circa 25 cm. dal connettore femmina. Collegare quindi la parte di
+cavo collegato al connettore femmina alla morsettiera della board base.
+	   
+Per il collegamento dell'SHT85 usare l'apposito connettore a crimpare;
+pelare il cavo della parte restante della prolunga per E-bike portata
+a misura solo per la guaina esterna, aprire il connettore per
+l'accesso dei cavi rispettando con attenzione la colorazione e poi
+premere con molta attenzione a crimpare aiutandosi eventualmente con
+una piccola pinza:
+
+.. image:: collegamento_sht85.jpg
+   :width: 50%
+
+Inserire il sensore nel connettore con il lato sensore come da
+fotografia.
+
+Appena prima in installare la stazione nella sua destinazione finale
+ricordarsi di RIMUOVERE la PELLICOLA di protezione deò sensore SHT85;
+è una pellicola di plastica bianca che va rimossa con il delicato
+aiuto di una pinzetta o un cutter.
+
+
+La prima installazione ed il collaudo dei sensori è una fase critica,
+errori possono rendere un sensore, la scheda o entrambi
+inutilizzabili. Prima di alimentare ancora una volta la stazione, è
+buona norma controllare la connessione con un multimetro che disponga
+della modalità test di continuità.
+
+Dopo le opportune verifiche bisogna collegare l’alimentazione esterna,
+usando l’alimentatore esterno in dotazione, e verificare che la
+stazione si avvii regolarmente.
+
+Dovrebbe comparire sullo schermo un messaggio che invita a collegarsi
+alla rete wireless attivata per le operazioni di configurazione
+iniziale. Prima di procedere, però, è necessario censire la stazione
+presso il server centrale.
+
+NOTA: Anche se operano in condizioni ideali, i sensori di rilevamento
+hanno, al netto di malfunzionamenti, una vita attesa non
+illimitata. Si stima che passino circa due anni prima che i sensori,
+in special modo quello per il particolato, comincino a perdere di
+precisione.
+
+Strumentazione necessaria
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Cacciavite a taglio: circa 1,5–2,0 mm
+* Multimetro (opzionale)
+
+
+Preparazione del guscio
+-----------------------
+
+Una volta completata l'assemblaggio, la configurazione ed il collaudo
+della parte elettronica della stazione, bisognerà procedere ad
+installarla, insieme ad alcuni sensori, all’interno del suo guscio
+protettivo. Il sensore di temperatura, per non essere influenzato
+nelle sue misurazioni dal funzionamento della stazione, viene
+installato in un involucro separato denominato schermo solare passivo.
+
+Deve essere divisa in due sezioni principali, una ospita i componenti
+elettronici, l’altra (divisa a sua volta in due camere separate) il
+sensore per le polveri sottili e quello per la rilevazione della
+concentrazione di CO2
+
+.. image:: scatola_interno.png
+   :width: 50%
+
+Nella parte alta della foto si nota l’alloggiamento
+delle componenti elettroniche principali.
+
+.. image:: scatola_elettronica.png
+   :width: 50%
+
+La parte bassa è divisa in due sezioni e queste sezioni sono aperte
+verso l’esterno a differenza di quella superiore
+
+.. image:: scatola_inferiore.png
+   :width: 50%
+
+I cavi per i sensori passano attraverso piccole incisioni del
+polietilene per mantere il più possibile la camera superiore stagna
+
+
+La ﬁnestra per il monitor è ricavata incollando un riquadro di
+policarbonato con della colla a caldo.
+
+.. image:: scatola_display.png
+   :width: 30%
+
+
+Con delle forbici o un taglierino, bisognerà tagliare da un foglio di
+schiuma per imballaggi, che può essere riciclato, dei riquadri che
+permettano separare l’interno della scatola di derivazione usata come
+guscio della stazione, in tre compartimenti, uno per l’elettronica,
+uno per l’ingresso dell’aria da analizzare e un altro alloggiamento
+che permetterà a sensore di polveri sottili, che andrà installato a
+cavallo delle due sezioni, di emettere l’aria analizzata senza
+influenzare il flusso in ingresso.
+
+Il foglio di schiuma andrà fissato alla scatola di derivazione con
+nastro biadesivo o colla a caldo, a seconda se la parete debba essere
+rimovibile, insieme ai sensori. Utilizzeremo un cacciavite per
+praticare dei piccoli tagli nel foglio di schiuma per far passare i
+cavi di collegamento dei sensori.  Per poter controllare lo schermo
+della stazione dall’esterno, andrà rimosso un passacavi
+laterale. L’apertura andrà chiusa con un piccolo, 4x4cm, riquadro in
+plexiglas fissato con la colla a caldo all’interno della scatola di
+derivazione.
+
+Altri due passacavi laterali dovranno essere intagliati per permettere
+l’ingresso di cavo di alimentazione e cavo dati del sensore di
+temperatura.
+
+Infine andranno rimossi i passacavi posti sul lato inferiore per permettere il ricircolo d’aria.
+
+Strumentazione necessaria
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Forbici o taglierino
+* Colla a caldo
+* Nastro biadesivo
+* Un foglio di Foam a celle chiuse (schiuma per imballaggi)
+* Multimetro
+* Cacciavite
+* Plexiglas
+
+Dotazione Software
+^^^^^^^^^^^^^^^^^^
+
+* Nessuna
+
 Software
 --------
 
@@ -662,12 +946,12 @@ collegando a massa il pin RESET_PIN  o premendo il pulsante A della
 board del display, alimentare la stazione e dopo 10 secondi scollegare il
 RESET_PIN o rilasciare il pulsante. Il reset della configurazione effettua:
 
-* rimozione delle configurazioni del wifi
+* rimozione delle configurazioni del WiFi
 * rimozione delle configurazioni stazione (utente slug password)
 * completa formattazione dell'SD card con rimozione definitiva di 
   tutti i dati presenti
 
-Il frusso dei dati nelle code è il seguente:
+Il flusso dei dati nelle code è il seguente:
 
 i dati e metadati sono generati da threadMeasure e accodati nella coda
 mqttqueue per la pubblicazione, ricevuti da threadPublish per la 
@@ -816,6 +1100,67 @@ GPS avviene tramite BUS I2C.
 La scelta tra threadGpsI2c e threadGps avviene al momento della
 compilazione tramite il file di configurazione include/stimawifi_config.h
 
+threadNow
+^^^^^^^^^
+
+Attivato da una stazione di tipo master.
+Il thread viene attivato per la comunicazione via radio esp-now un
+protocollo di comunicazione wireless definito da Espressif, che
+consente il controllo diretto, rapido e a basso consumo di dispositivi
+smart.
+Un pacchetto è definito da:
+
+::
+   
+   1 byte  type of packet
+   
+   Sequenza per l'accoppiamento:
+   master    : type 0  : pair request  : struct message_pair_crc
+   satellite : type 1  : pair response : struct message_pair_crc
+   master    : type 2  : pair ACK      : struct message_pair_crc
+   
+   Sequence for data:
+   satellite : type 99 : data send     : struct message_data_crc
+   master    : type 3  : data ACK      : struct message_pair_crc
+   master    : type 10 : data NACK     : struct message_pair_crc   non gestito da satelliye
+
+Ogni pacchetto ha un numero di sequenza, incrementato di uno ogni
+trasmissione e un CRC calcolato per rilevare errori di trasmissione
+ 
+La ricezione e l'invio dei dati mantengono uno "state" definito da
+state_t.  Ogni cambio di stato ha regole che permettono o vietano il
+cambio di stato.
+
+Lo stato di accoppiamento è la condizione per discriminare tra la fase
+per l'invio di pacchetti per l'accoppiamento e quelle di invio dei
+dati.
+
+Ogni messaggio ha una marca temporale usata dal satellite per
+sincronizzare l'ora di sistema.  Un pacchetto speciale con sent=1
+topic e payload NULL è utilizzato per effettuare una richiesta di
+sincronizzazione.
+
+
+threadNowSat
+^^^^^^^^^^^^
+
+Attivato da una stazione di tipo satellite.  Pensato per ridurre al
+massimo i consumi energetici utilizzando la modalità deep sleep di
+ESP32.  Quando ESP32 entra in questa modalità i consumi sono
+estremamente ridotti ma ogni funzionalità è disattivata e tutta la
+memoria cancellata ad esclusione di una porzaione di circa 8Kbyte
+associata all'RTC interno.  Bisogna quindi effettuare un ciclo di
+accensione, inizializzazione di tutte le periferiche, attivare un
+ciclo di misurazione, un ciclo di recovery dei dati su SDcard,
+attendere il loro completamento e l'invio dei dati per poi attendere
+lo svuotamento delle code per poi andare in modalità deep sleep.
+Bisogna anche gestire la sintonizzazione del canale radio; il canale
+di lavoro è determinato dall'AP WiFi sul quale si sintonizza Stimawifi
+master; è sullo stesso canale sul quale si deve sintonizzare satellite
+tenendo conto che l'access point può decidere di cambiare canale di
+lavoro e stimawifi si deve risintonizzare.
+
+
 
 Remote Procedure Call
 ^^^^^^^^^^^^^^^^^^^^^
@@ -871,61 +1216,7 @@ I dati per la ritrasmissione (vedi RPC recovery) quindi presenti in
 archivio vengono sempre inviati al thread per la pubblicazione con la
 flag di "inviato" attiva per evitare duplicati in archivio
 
-
-Assemblaggio datalogger
------------------------
-
-La prima fase della messa in opera presuppone l’assemblaggio del
-data logger, la parte della stazione che si occupa di consultare
-periodicamente i sensori installati e di inviare i campionamenti al
-server centrale.
-
-E' necessario utilizzare un saldatore a stagno per installare i
-connettori a pettine necessari a collegare tra loro i vari componenti
-ed assemblare i cavi di connessione.
-
-Sono disponibili due tipi di connettori a pettine per impilare i
-moduli: è consigliato l'uso di quelli di migliore qualità per i moduli
-MCU ESP32 S3 e RTC and Microsd Data Logger e gli altri connettori per
-gli altri moduli.
-
-Una volta saldati i connettori su tutti i moduli facendo molta
-attenzione al verso : la parte femmina del connettore va sempre verso
-l'alto mantenendo i moduli posizionati in questo modo:
-
-* modulo ESP32 con lato  MCU e connettore in alto
-* modulo RTC and Microsd Data Logger con SDcard in alto e batteria in basso
-* modulo Power con connettori in alto
-* modulo TFT&I2C con connettori in alto
-
-Procedere poi alla saldatura dei connettori sul modulo BASE secondo lo
-schema in fotografia:
-
-.. image:: hub_assemblata.jpg
-   :width: 50%
   
-I diversi moduli dovranno essere collegati impilati tra di loro
-rispettando la polarità e rispettando anche l'ordine dal basso verso
-l'alto riportato appena qui sopra.
-
-.. image:: pila.jpg
-   :width: 50%
-
-Collegare la pila dei moduli al modulo BASE:
-
-.. image:: pila_hub.jpg
-   :width: 50%
-	   
-Strumentazione necessaria
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* saldatore a stagno*
-
-Dotazione Software
-^^^^^^^^^^^^^^^^^^
-
-* Nessuna
-
 Compilazione firmware
 ---------------------
 
@@ -948,25 +1239,31 @@ dotazioni software adottabili successivamente per lo sviluppo di
 programmi che interagiscano con la stazione di monitoraggio dopo la
 sua installazione.
 
-TODO clone repository; compilazione
+* platformio a linea di comando
+* platformio come plugin di VScodium
 
-Upload del firmware
-^^^^^^^^^^^^^^^^^^^
+TODO Da documentare: clone repository; compilazione
+
+Upload del firmware dopo aver compilato il firmware
+---------------------------------------------------
 
 Prima di procedere bisognerà controllare che tutti i collegamenti
 fatti siano corretti perchè da ora i moduli saranno alimentati e
 collegamenti errati possono cmportare oltre che a malfunzionamenti
 anche la rottura irreversibile dei componenti.
 
-Questa fase della messa in opera è necessaria per il funzionamento
-della stazione.  Dopo la prima attivazione può rendersi nuovamente
-necessario in caso si voglia modificare l’utilizzo della stazione,
-personalizzarne le funzionalità o cogliere l’occasione di
-impratichirsi con questa operazione fondamentale nel ciclo di vita del
-software per microcontrollori,
+Se sul microcontrollore non è mai stato caricato un firmware o in
+altre casistiche può essere necessario avviare il microcontrollore
+ESP32 in modalità programmazione con la seguente procedura:
 
+* premere e tenere premuto il pulsante O
+* premere e rilasciare il pulsante RST
+* rilasciare il pulsante O
 
-TODO
+* platformio a linea di comando
+* platformio come plugin di VScodium
+
+TODO Da documentare.
 
 
 L’apparizione sul piccolo schermo oled in dotazione della scritta
@@ -1016,6 +1313,14 @@ dopo aver collegato al PC il datalogger tramite cavo USB impartire il comando:
    esptool --chip esp32s3 --port "/dev/ttyACM0" --baud 460800 --before default-reset --after hard-reset write-flash -z --flash-mode dio --flash-freq 80m --flash-size detect 0x0000 bootloader.bin 0x8000 partitions.bin 0xe000 boot_app0.bin 0x10000 firmware.bin
 
 eventualmente sostituendo a ttyACM0 la porta seriale effettivamente in uso.
+
+Se sul microcontrollore non è mai stato caricato un firmware o in
+altre casistiche può essere necessario avviare il microcontrollore
+ESP32 in modalità programmazione con la seguente procedura:
+
+* premere e tenere premuto il pulsante O
+* premere e rilasciare il pulsante RST
+* rilasciare il pulsante O
 
 Dotazione Software
 ^^^^^^^^^^^^^^^^^^
@@ -1105,7 +1410,9 @@ e configurarla come indicato qui:
 collegare l'adattatore OTG al telefono e il cavo USB collegandolo al
 datalogger (modulo wemos ESP32-S3)
 
-Avviare il microcontrollore ESP32 in modalità programmazione con la seguente procedura:
+Se sul microcontrollore non è mai stato caricato un firmware o in
+altre casistiche può essere necessario avviare il microcontrollore
+ESP32 in modalità programmazione con la seguente procedura:
 
 * premere e tenere premuto il pulsante O
 * premere e rilasciare il pulsante RST
@@ -1143,124 +1450,6 @@ Dotazione Software
 
 * android app ESP32_Flash https://play.google.com/store/apps/details?id=com.esp_flash.esp_flash_app
   
-  
-Collegamento dei sensori e altri dispositivi
---------------------------------------------
-
-Connettere i device necessari è semplice se fatto con attenzione:
-
-- assicurarsi che la stazione non sia alimentata
-- selezionare appropriato voltaggio alimentazione per ogni sensore
-- assicurarsi che i collegamenti siano corretti (SCl -> SCl, SDA->SDA, GND -> GND, Vcc ->Vcc)
-  
-NOTE
-
-- Alcuni device hanno più dei quattro pin necessari alla connessione
-  al bus I2C
-- VCC, Vcc, Vdd e VDD sono denominazioni equivalenti
-	   
-Prima di procedere con questa fase, disalimentare la stazione di
-monitoraggio.
-
-Per collegare i sensori al datalogger tramite la BASE BOARD e
-verificarne il funzionamento bisogna assemblare i cavi di collegamento
-secondo gli schemi forniti dal produttore dei sensori facendo in modo
-che corrispondono alla piedinatura dei connettori presenti sulla
-stazione Stima WiFi.
-
-Collegamento modulo Display:
-
-.. image:: cavo_display.jpg
-   :width: 50%
-
-Collegamento BASE BOARD per SPS30:
-
-.. image:: cavo_sps30.jpg
-   :width: 50%
-
-Per il sensore SHT85 utilizzare il cavo di prolunga per Ebike
-tagliandolo in modo asimmetrico a una lunghezza di 20 cm. dal lato
-della femmina collegando sempre la parte più corta alla BASE BOARD:
-	   
-.. image:: cavo_sht85.jpg
-   :width: 50%
-	   
-Complessivo collegamenti:
-
-.. image:: assemblata.jpg
-   :width: 50%
-
-	   
-Dopo aver messo a punto la cavetteria bisogna collegare i sensori
-ognuno secondo lo standard facendo attenzione alla polarità ed al
-voltaggio (il sensore di polveri sottili ha bisogno di essere
-alimentato a 5v mentre gli altri sensori a 3,3v)
-
-Collegamento SPS30: usare l'apposito cavo con connettore.
-
-Collegamento SCD30: è preferibile non andare a saldare direttamente i
-cavi sl PCB, ma utilizzare possibilmente una connessione con dupont
-connectors 2.54 mm rispettando ordine e colori.
-
-.. image:: collegamento_scd30.jpg
-   :width: 50%
-
-Usare la prolunga 4 4 poli per E-bike tagliando il cavo a una distanza
-di circa 25 cm. dal connettore femmina. Collegare quindi la parte di
-cavo collegato al connettore femmina alla morsettiera della board base.
-	   
-Per il collegamento dell'SHT85 usare l'apposito connettore a crimpare;
-pelare il cavo della parte restante della prolunga per E-bike portata
-a misura solo per la guaina esterna, aprire il connettore per
-l'accesso dei cavi rispettando con attenzione la colorazione e poi
-premere con molta attenzione a crimpare aiutandosi eventualmente con
-una piccola pinza:
-
-.. image:: collegamento_sht85.jpg
-   :width: 50%
-
-Inserire il sensore nel connettore con il lato sensore come da
-fotografia.
-
-Appena prima in installare la stazione nella sua destinazione finale
-ricordarsi di RIMUOVERE la PELLICOLA di protezione deò sensore SHT85;
-è una pellicola di plastica bianca che va rimossa con il delicato
-aiuto di una pinzetta o un cutter.
-
-
-La prima installazione ed il collaudo dei sensori è una fase critica,
-errori possono rendere un sensore, la scheda o entrambi
-inutilizzabili. Prima di alimentare ancora una volta la stazione, è
-buona norma controllare la connessione con un multimetro che disponga
-della modalità test di continuità.
-
-Dopo le opportune verifiche bisogna collegare l’alimentazione esterna,
-usando l’alimentatore esterno in dotazione, e verificare che la
-stazione si avvii regolarmente.
-
-Dovrebbe comparire sullo schermo un messaggio che invita a collegarsi
-alla rete wireless attivata per le operazioni di configurazione
-iniziale. Prima di procedere, però, è necessario censire la stazione
-presso il server centrale.
-
-NOTA: Anche se operano in condizioni ideali, i sensori di rilevamento
-hanno, al netto di malfunzionamenti, una vita attesa non
-illimitata. Si stima che passino circa due anni prima che i sensori,
-in special modo quello per il particolato, comincino a perdere di
-precisione.
-
-Strumentazione necessaria
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* Multimetro
-* Computer, tablet o smartphone con connettività Wi-Fi
-
-Dotazione Software
-^^^^^^^^^^^^^^^^^^
-
-* Un qualunque browser web
-* Accesso alla rete Wi-Fi
-
 Censimento stazione
 -------------------
 
@@ -1280,23 +1469,44 @@ stazione. Non è prevista, al momento, una procedura automatizzata per
 gestire la migrazione, da effettuarsi una tantum.
 
 Prima di procedere al censimento vero e proprio, il gestore della
-stazione deve registrare un nuovo utente, nel caso disponga già di un
-profilo.
+stazione deve registrare un nuovo utente, nel caso non disponga già di
+un profilo. Questo lo si effettua sulla piattaforma alla voce il mio
+RMAP ->Entra -> Non sei iscritto Registrazione fornendo un proprio
+identificativo (al massimo 9 caratteri alfanumerici in minuscolo) la
+propria email e una password di accesso.
 
 Una volta effettuato l’accesso al sito con nome utente e password,
 sarà possibile censire una o più stazioni.
 
-Censire una stazione consiste nel dichiararne le caratteristiche:  
+Censire una stazione consiste nel dichiararne le caratteristiche sulla piattaforma alla voce Partecipa -> Registra una nuova stazione :  
 
-* Coordinate
 * Identificativo di stazione 
+* Coordinate
 * Altezza dal livello del suolo
+* Il modello di stazione che si possiede che in generale potrà essere
+  selezionato tra:
+
+  * "airquality-sps-sht-scd" per una stazione stimawifi normale
+  * "airquality-mobile" per una stazione stimawifi in modalità mobile
+  * "airquality-now" per una stazione stimawifi con i due moduli
+    master e satellite che comunicano via radio con esp-now.
+
+Alla richiesta (se corretta) il server risponde fornendo un gruppo di
+dati che saranno necessari per la successiva configurazione stazione e
+quindi da annotare.
+
+* Utente
+* Nome Stazione (station slug)
+* Nome Board (board slug)
+* password stazione (mqtt password)
+
+I dati saranno recuperabili anche successivamente dal server a NomeUtente -> 
+La tua pagina personale ,  selezionare dall'elenco la propria stazione e i dati si troveranno alla voce Informazioni riservate.
+Alla stessa pagina sarà possibile inserire ulteriori informazioni sulla stazione quali:
+
 * Classificazione del sito dal punto di vista qualità dell’aria
 * Alcune fotografie (5): una della stazione e 4 con le spalle alla
   stazione verso i 4 punti cardinali
-
-L’identificativo di stazione non è altro che il nome che dovrà essere
-usato in fase di configurazione iniziale.
 
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1308,9 +1518,8 @@ Dotazione Software
 
 * Un qualunque browser web
 
-
-Collaudo Stazione
------------------
+Configurazione Stazione
+-----------------------
 
 Dopo aver censito la stazione è possibile configurarla. A sensori
 collegati, si può accendere la stazione di monitoraggio.
@@ -1326,19 +1535,39 @@ dovesse funzionare, è sempre possibile visitare con un browser l’url
 http://192.168.4.1 per iniziare la procedura di configurazione.
 
 Una volta raggiunta la pagina di configurazione, bisognerà inserire i
-dati necessari alla connessione al sito rmap, l’url dell’istanza
-prescelta e le credenziali per l’accesso alla rete Wi-Fi attraverso la
-quale la stazione avrà accesso ad internet.
+dati necessari:
+* accesso al WiFi
+
+  * SSID
+  * password del wifi
+
+* dati di accesso a RMAP
+
+  * proprio utente RMAP
+  * nome stazione (station slug)
+  * password Stazione
+  * nome board (board slug)
 
 Se tutto andrà per il meglio e la stazione configurata correttamente,
-sullo schermo cominceranno a scorrere le misure dei diversi sensori;
-misure che saranno visibili, dopo un lasso di tempo, anche sul sito
-preposto alla raccolta dei campionamenti.
+dopo l'opportuno tempo di attesa, sullo schermo cominceranno a
+scorrere le misure dei diversi sensori; misure che saranno visibili,
+dopo un lasso di tempo, anche sulla piattaforma RMAP.
 
 NOTA: Non è previsto l’uso di proxy con autenticazione per accedere ad
-internet. In caso l’istituto preveda questa modalità di navigazione
-sarà necessario derogare in base al mac address della stazione o
-creando una sottorete Wi-Fi dedicata.
+internet. In caso la configurazione di rete preveda questa modalità di
+navigazione sarà necessario derogare in base al mac address della
+stazione o creando una sottorete Wi-Fi dedicata.
+
+
+Configurazione StimaWifi versioni master/satellite
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Si procede come con una normale stazione Stimawifi configurando prima
+master e poi satellite separatamente inserendo i rispettivi nomi board
+per l'una e l'altra. Una volta configurate si accendono entrambe e
+automaticamente procederanno all'accoppiamento. Volendo ripetere
+l'operazione bisognerà procedere al reset di entrambe le stazioni.
+
 
 Reset della configurazione
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1351,7 +1580,7 @@ Attenzione che questa procedura cancella tutti i dati presenti su
 SDcard e ogni precedente configurazione.
 
 A stazione non alimentata collegare il pin C di J5 della BASE BOARD a
-massa (negativo) ad esempio con il pin di J8. poi alimentare la
+massa (negativo) ad esempio con il pin RST di J8. poi alimentare la
 stazione.  E' possibile anche procedere a stazione alimentata
 collegando il pin C di J5 della BASE BOARD a massa e procedendo a
 premere il pulsante RST del modulo MCU EPS32.
@@ -1360,9 +1589,12 @@ Il display (e i messaggi su porta seriale) dovrebbe indicare le fasi
 del clear delle configurazione e la formattazione dei supporti di
 memoria permanente.
 
-Quando richiesto da display e quando il LED bianco lampeggia
-permanentemente procedere a rimuovere il ponticello e scollegare
-l'alimentazione della stazione.
+A questo punto bisogna procedere come indicato alla voce
+"configurazione stazione" con la differenza che alla fine della
+configurazione, quando richiesto da display e quando il LED bianco
+lampeggia permanentemente, procedere a rimuovere il ponticello e
+scollegare l'alimentazione della stazione.
+
 
 Strumentazione necessaria
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1374,88 +1606,6 @@ Dotazione Software
 ^^^^^^^^^^^^^^^^^^
 
 * nessuna
-
-Preparazione del guscio
------------------------
-
-Una volta completata l'assemblaggio, la configurazione ed il collaudo
-della parte elettronica della stazione, bisognerà procedere ad
-installarla, insieme ad alcuni sensori, all’interno del suo guscio
-protettivo. Il sensore di temperatura, per non essere influenzato
-nelle sue misurazioni dal funzionamento della stazione, viene
-installato in un involucro separato denominato schermo solare passivo.
-
-Deve essere divisa in due sezioni principali, una ospita i componenti
-elettronici, l’altra (divisa a sua volta in due camere separate) il
-sensore per le polveri sottili e quello per la rilevazione della
-concentrazione di CO2
-
-.. image:: scatola_interno.png
-   :width: 50%
-
-Nella parte alta della foto si nota l’alloggiamento
-delle componenti elettroniche principali.
-
-.. image:: scatola_elettronica.png
-   :width: 50%
-
-La parte bassa è divisa in due sezioni e queste sezioni sono aperte
-verso l’esterno a differenza di quella superiore
-
-.. image:: scatola_inferiore.png
-   :width: 50%
-
-I cavi per i sensori passano attraverso piccole incisioni del
-polietilene per mantere il più possibile la camera superiore stagna
-
-
-La ﬁnestra per il monitor è ricavata incollando un riquadro di
-policarbonato con della colla a caldo.
-
-.. image:: scatola_display.png
-   :width: 30%
-
-
-Con delle forbici o un taglierino, bisognerà tagliare da un foglio di
-schiuma per imballaggi, che può essere riciclato, dei riquadri che
-permettano separare l’interno della scatola di derivazione usata come
-guscio della stazione, in tre compartimenti, uno per l’elettronica,
-uno per l’ingresso dell’aria da analizzare e un altro alloggiamento
-che permetterà a sensore di polveri sottili, che andrà installato a
-cavallo delle due sezioni, di emettere l’aria analizzata senza
-influenzare il flusso in ingresso.
-
-Il foglio di schiuma andrà fissato alla scatola di derivazione con
-nastro biadesivo o colla a caldo, a seconda se la parete debba essere
-rimovibile, insieme ai sensori. Utilizzeremo un cacciavite per
-praticare dei piccoli tagli nel foglio di schiuma per far passare i
-cavi di collegamento dei sensori.  Per poter controllare lo schermo
-della stazione dall’esterno, andrà rimosso un passacavi
-laterale. L’apertura andrà chiusa con un piccolo, 4x4cm, riquadro in
-plexiglas fissato con la colla a caldo all’interno della scatola di
-derivazione.
-
-Altri due passacavi laterali dovranno essere intagliati per permettere
-l’ingresso di cavo di alimentazione e cavo dati del sensore di
-temperatura.
-
-Infine andranno rimossi i passacavi posti sul lato inferiore per permettere il ricircolo d’aria.
-
-Strumentazione necessaria
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* Forbici o taglierino
-* Colla a caldo
-* Nastro biadesivo
-* Un foglio di Foam a celle chiuse (schiuma per imballaggi)
-* Multimetro
-* Cacciavite
-* Plexiglas
-
-Dotazione Software
-^^^^^^^^^^^^^^^^^^
-
-* Nessuna
 
   
 Installazione in loco
