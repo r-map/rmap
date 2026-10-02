@@ -27,16 +27,16 @@
 <div class="alert alert-warning" role="alert">
   {% trans 'Station insert completed successfully' %}:<br>
   {% trans 'User' %}: {{ station.user.username }}<br>
-  {% trans 'Station name' %}: {{ station.slug }}<br>
+  {% trans 'Station name (station slug)' %}: {{ station.slug }}<br>
   <br>
   {% trans 'Save this private information and keep it confidential' %}<br>
   <br>
   {% for board in station.board_set.all %}
     {% if board.active %}
-      {% trans 'Board' %}: {{ board }}<br>
+      {% trans 'Board name (board slug)' %}: {{ board }}<br>
       {% if board.transportmqtt %}
-        {% trans 'mqtt password' %}: {{ board.transportmqtt.mqttpassword }}<br>
-        {% trans 'mqtt pskkey' %}: {{ board.transportmqtt.mqttpskkey }}<br>
+        {% trans 'station password (mqtt password)' %}: {{ board.transportmqtt.mqttpassword }}<br>
+        {% trans 'pskkey (mqtt pskkey)' %}: {{ board.transportmqtt.mqttpskkey }}<br>
       {% endif %}
     {% endif %}
   {% endfor %}

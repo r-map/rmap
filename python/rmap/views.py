@@ -670,9 +670,9 @@ def profile_details(request,mystation_slug):
             if ( myboard.active ):
                 try:
                     if ( myboard.transportmqtt.active):
-                        reserved["Board slug"]=myboard.slug
-                        reserved["Password"]=myboard.transportmqtt.mqttpassword
-                        reserved["PSKkey"]=myboard.transportmqtt.mqttpskkey
+                        reserved["Board name (Board slug)"]=myboard.slug
+                        reserved["Station password (mqtt Password)"]=myboard.transportmqtt.mqttpassword
+                        reserved["PSKkey (mqtt PSKkey)"]=myboard.transportmqtt.mqttpskkey
 
                 except ObjectDoesNotExist:
                     pass
