@@ -549,10 +549,11 @@ String  get_remote_rmap_config(){
 // check and execute firmware update from server
 void firmwareUpdate() {
 
-  DynamicJsonDocument doc(200); 
+  DynamicJsonDocument doc(200);     // 128 is the minimum computed by ArduinoJson Assistant
   doc["ver"] = SOFTWARE_VERSION;
   doc["user"] = station.user;
   doc["slug"] = station.stationslug;
+  doc["bslug"] = station.boardslug;
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
 

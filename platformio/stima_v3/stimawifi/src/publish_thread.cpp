@@ -474,11 +474,11 @@ bool publishThread::publish_maint() {
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,"B01213");
   
-  strcpy(mqtt_message.payload,"{\"v\":\"conn\",\"s\":");
+  strcpy(mqtt_message.payload,"{\"v\":\"conn\",\"s\":\"");
   strcat(mqtt_message.payload,MAJOR_VERSION);
-  strcat(mqtt_message.payload,",\"m\":");
+  strcat(mqtt_message.payload,"\",\"m\":\"");
   strcat(mqtt_message.payload,MINOR_VERSION);
-  strcat(mqtt_message.payload,"}   ");
+  strcat(mqtt_message.payload,"\"} ");
   
   return mqttPublish(mqtt_message, false); 
 }
