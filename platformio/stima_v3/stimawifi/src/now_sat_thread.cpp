@@ -485,13 +485,13 @@ bool nowSatThread::publish_status_summary() {
 	   , data->status->summary.err_rssi
 	   , data->status->summary.err_power_on
 	   , data->status->summary.err_reboot	   
-	   # , data->status->summary.err_georef	   
+	   // , data->status->summary.err_georef	   
 	   , data->status->summary.err_sdcard	   
 	   , data->status->summary.err_db	   
 	   , data->status->summary.err_archive
-	   #, data->status->summary.err_mqtt_publish 
-	   #, data->status->summary.err_mqtt_connect 
-	   #, data->status->summary.err_geodef	   
+	   //, data->status->summary.err_mqtt_publish 
+	   //, data->status->summary.err_mqtt_connect 
+	   //, data->status->summary.err_geodef	   
 	   , data->status->summary.err_sensor	   
 	   , data->status->summary.err_novalue
 	   , data->status->summary.err_rtc
