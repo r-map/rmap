@@ -867,6 +867,7 @@ statusb_explain_matrix[28]=["OFF LINE","Firmware ready","Maintenance",   "regula
 statusb_explain_matrix[29]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[30]=["OFF LINE","Firmware ready","Maintenance",   "ADC error", "ADC over range",  "None",    "None",    "None",     "None",     "None","None","None","None","None","None","None"]
 statusb_explain_matrix[101]=["Memory error", "RTC error", "Sensor with no value","Sensor error","Mobile station measure with no georeference",   "MQTT connect error", "MQTT publish error", "SDcard archive error", "SDcard Data Base error", "SD card error", "no georeference from GPS/UDP", "Reboot for some problem", "Reboot for power on",  "Low RSSI WiFi radio signal","None","None"]
+statusb_explain_matrix[102]=["Memory error", "RTC error", "Sensor with no value","Sensor error","SDcard archive error", "SDcard Data Base error", "SD card error", "Reboot for some problem", "Reboot for power on",  "Low RSSI WiFi radio signal","None","None","None","None","None","None"]
 
 # status v
 statusv_explain_matrix={}
@@ -881,6 +882,7 @@ statusv_explain_matrix[28]= ["ERR_CAN %",  "Number reboot",  "Number reboot watc
 statusv_explain_matrix[29]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 statusv_explain_matrix[30]= ["ERR_CAN %",  "Number reboot",  "Number reboot watchdog",  "None",  "None"]
 statusv_explain_matrix[101]= ["None",  "None",  "None",  "None",  "None"]
+statusv_explain_matrix[102]= ["None",  "None",  "None",  "None",  "None"]
 
 
 class BoardMaintStatus(models.Model):
