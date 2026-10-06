@@ -386,11 +386,11 @@ void nowSatThread::set_status_summary(void) {
 
   data->status->summary.err_power_on=false;
   data->status->summary.err_reboot=false;
-  data->status->summary.err_georef=false;
+  data->status->summary.err_georef=false;         // not used
   data->status->summary.err_db=false;
-  data->status->summary.err_mqtt_publish=false;
-  data->status->summary.err_mqtt_connect=false;
-  data->status->summary.err_geodef=false;
+  data->status->summary.err_mqtt_publish=false;   // not used
+  data->status->summary.err_mqtt_connect=false;   // not used
+  data->status->summary.err_geodef=false;         // not used
   data->status->summary.err_sensor=false;
   data->status->summary.err_novalue=false;
   data->status->summary.err_rtc = false;
@@ -413,14 +413,14 @@ void nowSatThread::compute_status_summary(void) {
   // collect error in summary  
   //  data.status.summary.err_power_on= false;	
   //  data.status.summary.err_reboot=	false;
-  data->status->summary.err_georef |= 	   ((strcmp(data->station->ident,"") != 0) && (data->status->gps.receive == error && data->status->udp.receive == error));
+  data->status->summary.err_georef |= 	   ((strcmp(data->station->ident,"") != 0) && (data->status->gps.receive == error && data->status->udp.receive == error));  // not used
 
   data->status->summary.err_sdcard |=  	           data->status->db.sdcard == error;  
   data->status->summary.err_db |=  	           data->status->db.database == error;
   data->status->summary.err_archive |=  	   data->status->db.archive == error;  
-  data->status->summary.err_mqtt_publish |=        data->status->publish.publish == error;
-  data->status->summary.err_mqtt_connect |=        data->status->publish.connect == error;
-  data->status->summary.err_geodef |=	           data->status->measure.geodef  == error;
+  data->status->summary.err_mqtt_publish |=        data->status->publish.publish == error;  // not used
+  data->status->summary.err_mqtt_connect |=        data->status->publish.connect == error;  // not used
+  data->status->summary.err_geodef |=	           data->status->measure.geodef  == error;  // not used
   data->status->summary.err_sensor |=	           data->status->measure.sensor  == error;
   data->status->summary.err_novalue |=             data->status->measure.novalue == error;
   data->status->summary.err_rtc |=  	           data->status->rtc == error;  
@@ -478,20 +478,20 @@ bool nowSatThread::publish_status_summary() {
   // "c" array is omitted by now
     
   // take in account error status only
-  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d%d%d%d%d\"}"
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d\"}"
 	   //, jsontime
 	   , data->station->boardslug
 
 	   , data->status->summary.err_rssi
-	   , data->status->summary.err_power_on	   
+	   , data->status->summary.err_power_on
 	   , data->status->summary.err_reboot	   
-	   , data->status->summary.err_georef	   
+	   # , data->status->summary.err_georef	   
 	   , data->status->summary.err_sdcard	   
 	   , data->status->summary.err_db	   
 	   , data->status->summary.err_archive
-	   , data->status->summary.err_mqtt_publish 
-	   , data->status->summary.err_mqtt_connect 
-	   , data->status->summary.err_geodef	   
+	   #, data->status->summary.err_mqtt_publish 
+	   #, data->status->summary.err_mqtt_connect 
+	   #, data->status->summary.err_geodef	   
 	   , data->status->summary.err_sensor	   
 	   , data->status->summary.err_novalue
 	   , data->status->summary.err_rtc
