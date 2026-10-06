@@ -191,7 +191,8 @@ void set_status_summary(int reason) {
 void display_summary_data() {
   
   frtosLog.notice(F("display_values"));
-
+  if (!oledpresent) return;
+  
   uint8_t displaypos=1;
 
   LockGuard guard(i2cmutex);
@@ -1116,9 +1117,8 @@ void displayStatus()
     status_mobile=error;
   }
 
-  if (oledpresent) { // message on display
-    display_summary_data();
-  }
+  // message on display
+  display_summary_data();
 
   if (light){   // set neopixel
     pixels.setPixelColor(0, color);
@@ -1484,15 +1484,10 @@ void setup_common() {
   String local_config  = read_local_rmap_config();
   rmap_config(local_config);
 
-  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds
-  
 }
 
 
 void setup_satellite_1() {
-
-  pixels.clear();            // Turn OFF all pixels ASAP
-  pixels.show();
 
   // initialize RTC with mutex
   frtosRTC.begin(RTC,i2cmutex);
@@ -1889,6 +1884,7 @@ void setup_master() {
     // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);  
 
+  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds  
   Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
   
@@ -1926,7 +1922,52 @@ void setup_threads() {
   }
 }
 
+// loop for standard, mobile, master station
+void loop_master(){
+
+  // set alarm for fixed station and when time is setted
+  if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){
+    time_t reboottime;
+    periodic_work_setted=true;
+    
+    if (pmspresent){
+      reboottime=3600*24;                                        // pms stall sometime, we reboot more
+    }else{
+      reboottime=3600*24*7;                                      // we reset everythings one time a week
+    }
+    frtosLog.notice(F("reboot every: %l"),reboottime);
+    Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
+    
+    // update firmware
+    //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
+    Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
+  }
+  
+  webserver.handleClient();
+  //MDNS.update(); 
+  
+  Alarm.delay(0);       // check for alarms
+  delay(100);
+}
+
+// loop for satellite station
+void loop_satellite(){
+  //displayStatus();
+  //delay(1000);
+  pixels.clear();            // Turn OFF all pixels
+  pixels.show();
+
+  if (oledpresent){
+    u8g2->clearBuffer();
+    LockGuard guard(i2cmutex);
+    u8g2->sendBuffer();
+  }
+  
+  delay(60000);
+}
+
 // arduino loop routine
+// run only for non satellite station
 void loop() {
   if (loopinit){
     // set the priority of this thread
@@ -1935,32 +1976,11 @@ void loop() {
     loopinit=false;
   }
 
-  if (!station.nowsat){
-
-    // set alarm for fixed station and when time is setted
-    if (!periodic_work_setted and strcmp(station.ident,"") == 0 and timeStatus() == timeSet){
-      time_t reboottime;
-      periodic_work_setted=true;
-      
-      if (pmspresent){
-	reboottime=3600*24;                                        // pms stall sometime, we reboot more
-      }else{
-	reboottime=3600*24*7;                                      // we reset everythings one time a week
-      }
-      frtosLog.notice(F("reboot every: %l"),reboottime);
-      Alarm.timerRepeat(reboottime,protectedReboot);               // timer for reboot
-      
-      // update firmware
-      //Alarm.alarmRepeat(4,0,0,protectedFirmwareUpdate);                  // 4:00:00 every day  
-      Alarm.timerRepeat(3600*24,protectedFirmwareUpdate);                  // check for firmware update every day  
-    }
-    
-    webserver.handleClient();
-    //MDNS.update(); 
+  if (station.nowsat){
+    loop_satellite();
+  }else{
+    loop_master();
   }
-  
-  Alarm.delay(0);       // check for alarms
-  delay(100);
 
   // check heap and stack
   //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());

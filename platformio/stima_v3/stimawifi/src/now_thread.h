@@ -18,7 +18,7 @@ struct now_data_t {    // thread communication data
   frtosLogging* logger;
   Queue* mqttqueue;
   Queue* dbqueue;
-  nowStatus_t* status;  
+  stimawifiStatus_t* status;  
 };
 
 typedef enum {

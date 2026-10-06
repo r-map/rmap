@@ -18,7 +18,7 @@ struct now_sat_data_t {    // thread communication data
   Queue* mqttqueue;
   Queue* dbqueue;
   Queue* recoveryqueue;
-  nowsatStatus_t* status;  
+  stimawifiStatus_t* status;  
   station_t* station;
   state_measure_t* state_measure;
   state_db_t* state_db;
@@ -68,7 +68,9 @@ private:
   void store();
   bool doRelay(mqttMessage_t mqtt_message, const bool recovery=false);
   bool nowPublish(mqttMessage_t mqtt_message);
-
+  bool publish_status_summary();
+  void set_status_summary();
+  void compute_status_summary();  
 };
 
 #endif

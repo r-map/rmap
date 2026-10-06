@@ -381,8 +381,8 @@ nowThread::nowThread(now_data_t* now_data)
     data{now_data}
 {
   //data->logger->notice("Create Thread %s %d", GetName().c_str(), data->id);
-  data->status->memory_collision=ok;
-  data->status->no_heap_memory=ok;
+  data->status->now.memory_collision=ok;
+  data->status->now.no_heap_memory=ok;
 
   global_data=data;
   
@@ -473,8 +473,8 @@ void nowThread::Cleanup()
 {
   data->logger->notice(F("now Delete Thread %s %d"), GetName().c_str(), data->id);
   // todo disconnect and others
-  data->status->memory_collision=unknown;
-  data->status->no_heap_memory=unknown;
+  data->status->now.memory_collision=unknown;
+  data->status->now.no_heap_memory=unknown;
   delete this;
 }
 
@@ -518,13 +518,13 @@ void nowThread::Run() {
     //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
     if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
       data->logger->error(F("free HEAP: %l"),esp_get_minimum_free_heap_size());
-      data->status->no_heap_memory=error;
+      data->status->now.no_heap_memory=error;
     }
     
     //data->logger->notice(F("stack now: %d"),uxTaskGetStackHighWaterMark(NULL));
     if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
       data->logger->error(F("now stack"));
-      data->status->memory_collision=error;
+      data->status->now.memory_collision=error;
     }
   }
 };

@@ -369,8 +369,8 @@ nowSatThread::nowSatThread(now_sat_data_t* now_sat_data)
     data{now_sat_data}
 {
   //data->logger->notice("nowsat Create Thread %s %d", GetName().c_str(), data->id);
-  data->status->memory_collision=ok;
-  data->status->no_heap_memory=ok;
+  data->status->nowsat.memory_collision=ok;
+  data->status->nowsat.no_heap_memory=ok;
 
   global_data=data;
   
@@ -382,8 +382,135 @@ nowSatThread::~nowSatThread()
 {
 }
 
+void nowSatThread::set_status_summary(void) {
+
+  data->status->summary.err_power_on=false;
+  data->status->summary.err_reboot=false;
+  data->status->summary.err_georef=false;
+  data->status->summary.err_db=false;
+  data->status->summary.err_mqtt_publish=false;
+  data->status->summary.err_mqtt_connect=false;
+  data->status->summary.err_geodef=false;
+  data->status->summary.err_sensor=false;
+  data->status->summary.err_novalue=false;
+  data->status->summary.err_rtc = false;
+  data->status->summary.err_memory = false;
+  data->status->summary.err_rssi=false;
+  data->status->summary.err_reboot=false;;
+
+  if (bootCount == 0 ){
+    esp_reset_reason_t reason=esp_reset_reason();  
+    switch (reason) {
+      case ESP_RST_POWERON:  data->status->summary.err_power_on=true; break;
+      case ESP_RST_SW:  break;       // skip software restart due to this firmware 
+      default: data->status->summary.err_reboot=true;
+    }
+  }
+}
+
+void nowSatThread::compute_status_summary(void) {
+
+  // collect error in summary  
+  //  data.status.summary.err_power_on= false;	
+  //  data.status.summary.err_reboot=	false;
+  data->status->summary.err_georef |= 	   ((strcmp(data->station->ident,"") != 0) && (data->status->gps.receive == error && data->status->udp.receive == error));
+
+  data->status->summary.err_sdcard |=  	           data->status->db.sdcard == error;  
+  data->status->summary.err_db |=  	           data->status->db.database == error;
+  data->status->summary.err_archive |=  	   data->status->db.archive == error;  
+  data->status->summary.err_mqtt_publish |=        data->status->publish.publish == error;
+  data->status->summary.err_mqtt_connect |=        data->status->publish.connect == error;
+  data->status->summary.err_geodef |=	           data->status->measure.geodef  == error;
+  data->status->summary.err_sensor |=	           data->status->measure.sensor  == error;
+  data->status->summary.err_novalue |=             data->status->measure.novalue == error;
+  data->status->summary.err_rtc |=  	           data->status->rtc == error;  
+  data->status->summary.err_memory |=  	           data->status->db.memory_collision == error || data->status->db.no_heap_memory == error ||
+                                                   data->status->publish.memory_collision == error || data->status->publish.no_heap_memory == error ||
+                                                   data->status->measure.memory_collision == error || data->status->measure.no_heap_memory == error ||
+                                                   data->status->udp.memory_collision == error || data->status->udp.no_heap_memory == error ||
+                                                   data->status->gps.memory_collision == error || data->status->gps.no_heap_memory == error ||
+                                                   data->status->now.memory_collision == error || data->status->now.no_heap_memory == error ||
+                                                   data->status->nowsat.memory_collision == error || data->status->nowsat.no_heap_memory == error ||
+                                                   data->status->memory_collision == error || data->status->no_heap_memory == error ;
+  data->status->summary.err_rssi |=                data->status->rssi == error;
+}
+
+// publish maint messages (support messages)
+// connection message with station version
+bool nowSatThread::publish_status_summary() {
+  
+  mqttMessage_t mqtt_message;
+  strcpy(mqtt_message.topic,"1/");
+  strcat(mqtt_message.topic,data->station->mqttmaintpath);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->user);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->ident);
+  strcat(mqtt_message.topic,"/");
+  if (strcmp(data->station->ident,"") == 0){
+    strcat(mqtt_message.topic,data->station->longitude);
+    strcat(mqtt_message.topic,",");
+    strcat(mqtt_message.topic,data->station->latitude);
+  }
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,data->station->network);
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"254,0,0");
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"265,0,-,-");
+  strcat(mqtt_message.topic,"/");
+  strcat(mqtt_message.topic,"B01213");
+  
+  // payload full example
+  //Topic: 1/maint/simcv4//1198190,4404111/agrmet/254,0,0/265,0,-,-/B01213 Payload: {"t":"2025-05-04T14:45:00", "bs":"masterv4", "b":"0b0000000000000001", "c":[0,0,0,0]}
+
+  // timestamp will be added by rmap server
+  //
+  //  if (timeStatus() == timeSet){
+  //    char jsontime[30];
+  //    time_t messagetime=now();
+  //    snprintf(jsontime,28,"\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"",
+  //         year(messagetime), month(messagetime), day(messagetime),
+  //	     hour(messagetime), minute(messagetime), second(messagetime));
+  //    strcat(mqtt_message.payload,jsontime);
+  //  }
+  
+  // "c" array is omitted by now
+    
+  // take in account error status only
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d%d%d%d%d\"}"
+	   //, jsontime
+	   , data->station->boardslug
+
+	   , data->status->summary.err_rssi
+	   , data->status->summary.err_power_on	   
+	   , data->status->summary.err_reboot	   
+	   , data->status->summary.err_georef	   
+	   , data->status->summary.err_sdcard	   
+	   , data->status->summary.err_db	   
+	   , data->status->summary.err_archive
+	   , data->status->summary.err_mqtt_publish 
+	   , data->status->summary.err_mqtt_connect 
+	   , data->status->summary.err_geodef	   
+	   , data->status->summary.err_sensor	   
+	   , data->status->summary.err_novalue
+	   , data->status->summary.err_rtc
+	   , data->status->summary.err_memory
+	   );
+
+  bool rc=nowPublish(mqtt_message);
+  // return true if queued
+  if (!rc){
+    data->logger->notice("nowsat publish status summary");
+  }
+  return rc;
+}
+
 void nowSatThread::Begin()
 {
+
+  set_status_summary();
+
   if (bootCount == 0 ){
 
     config.channel=0;
@@ -483,8 +610,8 @@ void nowSatThread::Cleanup()
 {
   data->logger->notice(F("nowsat Delete Thread %s %d"), GetName().c_str(), data->id);
   // todo disconnect and others
-  data->status->memory_collision=unknown;
-  data->status->no_heap_memory=unknown;
+  data->status->nowsat.memory_collision=unknown;
+  data->status->nowsat.no_heap_memory=unknown;
   delete this;
 }
 
@@ -570,7 +697,14 @@ void nowSatThread::Run() {
       }
     }
   }
-
+  
+  compute_status_summary();
+  if (publish_status_summary()){
+    set_status_summary();
+  }else{
+    data->logger->error(F("nowsat publish_status_summary"));
+  }
+  
   // check if we have to write config
   if(have_to_write_config){
     config.channel=channel;
@@ -618,13 +752,13 @@ void nowSatThread::Run() {
   //data->logger->notice(F("HEAP: %l"),esp_get_minimum_free_heap_size());
   if( esp_get_minimum_free_heap_size() < HEAP_MIN_WARNING){
     data->logger->error(F("free HEAP: %l"),esp_get_minimum_free_heap_size());
-    data->status->no_heap_memory=error;
+    data->status->nowsat.no_heap_memory=error;
   }
   
   //data->logger->notice(F("stack nowsat: %d"),uxTaskGetStackHighWaterMark(NULL));
   if(uxTaskGetStackHighWaterMark(NULL) < STACK_MIN_WARNING){
       data->logger->error(F("nowsat stack"));
-      data->status->memory_collision=error;
+      data->status->nowsat.memory_collision=error;
   }
 
   unsigned int sleeptime;

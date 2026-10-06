@@ -974,6 +974,8 @@ void dbThread::Cleanup()
   data->status->database=unknown;
   data->status->memory_collision=unknown;
   data->status->no_heap_memory=unknown;
+  data->state = STATE_DB_RECOVERY_DONE;     // needed by now_sat thread
+  
   sqlite3_close(db);
   archiveFile.close();
   delete this;
