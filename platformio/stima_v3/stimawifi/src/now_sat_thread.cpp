@@ -483,7 +483,7 @@ bool nowSatThread::publish_status_summary() {
   }
   */
   // take in account error status only
-  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d\"%s}"
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d\"}"
 	   //, jsontime
 	   , data->station->boardslug
 
