@@ -440,6 +440,11 @@ void nowSatThread::compute_status_summary(void) {
 bool nowSatThread::publish_status_summary() {
   
   mqttMessage_t mqtt_message;
+  mqtt_message.sent=true;
+
+  // topic example
+  //Topic: 1/maint/simcv4//1198190,4404111/agrmet/254,0,0/265,0,-,-/B01213
+  
   strcpy(mqtt_message.topic,"1/");
   strcat(mqtt_message.topic,data->station->mqttmaintpath);
   strcat(mqtt_message.topic,"/");
@@ -461,24 +466,24 @@ bool nowSatThread::publish_status_summary() {
   strcat(mqtt_message.topic,"/");
   strcat(mqtt_message.topic,"B01213");
   
-  // payload full example
-  //Topic: 1/maint/simcv4//1198190,4404111/agrmet/254,0,0/265,0,-,-/B01213 Payload: {"t":"2025-05-04T14:45:00", "bs":"masterv4", "b":"0b0000000000000001", "c":[0,0,0,0]}
+  // payload
+  //Payload: {"t":"2025-05-04T14:45:00", "bs":"satellite", "b":"0b0000000000000001", "c":[0,0,0,0]}
+  // "c" array is omitted at this time
 
-  // timestamp will be added by rmap server
-  //
-  //  if (timeStatus() == timeSet){
-  //    char jsontime[30];
-  //    time_t messagetime=now();
-  //    snprintf(jsontime,28,"\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"",
-  //         year(messagetime), month(messagetime), day(messagetime),
-  //	     hour(messagetime), minute(messagetime), second(messagetime));
-  //    strcat(mqtt_message.payload,jsontime);
-  //  }
-  
-  // "c" array is omitted by now
-    
+  /*
+  // timestamp can be added by rmap server
+  // to add timestamp we need to enlarge payload by 13 bytes
+  char jsontime[30];
+  jsontime[0]=0;
+  if (timeStatus() == timeSet){
+    time_t messagetime=now();
+    snprintf(jsontime,29,",\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"",
+	     year(messagetime), month(messagetime), day(messagetime),
+  	     hour(messagetime), minute(messagetime), second(messagetime));
+  }
+  */
   // take in account error status only
-  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d\"}"
+  snprintf(mqtt_message.payload,MQTT_MESSAGE_LENGTH,"{\"bs\":\"%s\",\"b\":\"0b%d%d%d%d%d%d%d%d%d%d\"%s}"
 	   //, jsontime
 	   , data->station->boardslug
 
@@ -496,6 +501,7 @@ bool nowSatThread::publish_status_summary() {
 	   , data->status->summary.err_novalue
 	   , data->status->summary.err_rtc
 	   , data->status->summary.err_memory
+	   //,jsontime                            // omitted (payload too small)
 	   );
 
   bool rc=nowPublish(mqtt_message);

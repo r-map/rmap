@@ -127,26 +127,6 @@ static bool write_local_config() {
   return true;
 }
 
-// add broadcast address to the list of peers
-void nowThread::add_broadcast_peer(){
-  // Register peer
-  esp_now_peer_info_t peerInfo = {};
-  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-  //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
-  peerInfo.channel = 0;  
-  peerInfo.encrypt = false;
-
-  if (esp_now_is_peer_exist(peerInfo.peer_addr)){
-    //data->logger->notice(F("now peer broadcast already registered"));
-  }else{    
-    // Add peer        
-    if (esp_now_add_peer(&peerInfo) != ESP_OK){
-      //data->logger->error(F("now Failed to add broadcast peer"));
-    }
-  }
-}
-
-
 // Callback when data is sent
 // this is called by an other thread with other priority level and on CPU 0
 // logging do not work: mutex do not work on bi-processor MCU
@@ -397,7 +377,7 @@ nowThread::~nowThread()
 
 void nowThread::Begin()
 {
-  // slow down
+  // slow down to save energy
   //setCpuFrequencyMhz(80);
 
   data->logger->notice(F("now Started"));
@@ -529,3 +509,23 @@ void nowThread::Run() {
   }
 };
   
+
+// add broadcast address to the list of peers
+void nowThread::add_broadcast_peer(){
+  // Register peer
+  esp_now_peer_info_t peerInfo = {};
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  //peerInfo.ifidx = WIFI_IF_STA;  // Interfaccia usata (Station o AP)
+  peerInfo.channel = 0;  
+  peerInfo.encrypt = false;
+
+  if (esp_now_is_peer_exist(peerInfo.peer_addr)){
+    //data->logger->notice(F("now peer broadcast already registered"));
+  }else{    
+    // Add peer        
+    if (esp_now_add_peer(&peerInfo) != ESP_OK){
+      data->logger->error(F("now Failed to add broadcast peer"));
+    }
+  }
+}
+

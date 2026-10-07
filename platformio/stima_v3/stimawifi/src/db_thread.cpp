@@ -887,14 +887,14 @@ bool dbThread::doDb(const mqttMessage_t& message) {
     if (doc.containsKey("t")){
       strncpy(dt, doc["t"],20);
     }else{
-      data->logger->error(F("db datetime missed in payload"));
-      data->status->database=error;
-      return false;
+      data->logger->error(F("db datetime missed in payload"));    // status messages from satellite do not have time
+      //data->status->database=error;
+      return true;
     }
   } else {
     data->logger->error(F("db failed to deserialize payload json %s"),jserror.c_str());
     data->status->database=error;
-    return false;
+    return true;
   }
   
   sqlite3_bind_int(
@@ -925,14 +925,13 @@ bool dbThread::doDb(const mqttMessage_t& message) {
 
     sqlite3_finalize(stmt);
     sqlite_status=false;
-    return true;   // go for retry
+    return false;   // go for retry
   }
 
   sqlite3_finalize(stmt);
   sqlite_status=true;
   data->status->database=ok;  
   data->logger->notice(F("db Data saved on SD %s:%s"),message.topic,message.payload);       
-    
   return true;
 }    
 
