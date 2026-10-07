@@ -23,33 +23,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "frtosRtc.h"
 
 void frtosRtc::begin(DS1307RTC &ds1307rtc, MutexStandard &semaphore){
-  _semaphore = semaphore;
-  _ds1307rtc = ds1307rtc;
+  _semaphore = &semaphore;
+  _ds1307rtc = &ds1307rtc;
 }
 
 time_t frtosRtc::get(){
-  LockGuard guard(_semaphore);
-  return _ds1307rtc.get();
+  LockGuard guard(*_semaphore);
+  return _ds1307rtc->get();
 }
 
 uint8_t frtosRtc::set(time_t t){
-  LockGuard guard(_semaphore);
-  return _ds1307rtc.set(t);
+  LockGuard guard(*_semaphore);
+  return _ds1307rtc->set(t);
 }
 
 uint8_t frtosRtc::read(tmElements_t &tm){
-  LockGuard guard(_semaphore);
-  return _ds1307rtc.read(tm);
+  LockGuard guard(*_semaphore);
+  return _ds1307rtc->read(tm);
 }
 
 uint8_t frtosRtc::write(tmElements_t &tm){
-  LockGuard guard(_semaphore);
-  return _ds1307rtc.write(tm);
+  LockGuard guard(*_semaphore);
+  return _ds1307rtc->write(tm);
 }
 
 unsigned char frtosRtc::isRunning(){
-  LockGuard guard(_semaphore);
-  return _ds1307rtc.isRunning();
+  LockGuard guard(*_semaphore);
+  return _ds1307rtc->isRunning();
 }
 
 

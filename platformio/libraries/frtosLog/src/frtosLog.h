@@ -98,7 +98,7 @@ using namespace cpp_freertos;
 class frtosLogging {
 private:
   Logging _logging;
-  MutexStandard _semaphore;
+  MutexStandard* _semaphore;
 
 public:
   /*!
@@ -143,7 +143,7 @@ public:
    */
   template <class T, typename... Args> void fatal(T msg, Args... args){
 #ifndef DISABLE_LOGGING
-    LockGuard guard(_semaphore);
+    LockGuard guard(*_semaphore);
     _logging.fatal( msg, args...);
 #endif
   }
@@ -160,7 +160,7 @@ public:
    */
   template <class T, typename... Args> void error(T msg, Args... args){
 #ifndef DISABLE_LOGGING
-    LockGuard guard(_semaphore);
+    LockGuard guard(*_semaphore);
     _logging.error( msg, args...);
 #endif
   }
@@ -177,7 +177,7 @@ public:
   
   template <class T, typename... Args> void warning(T msg, Args...args){
 #ifndef DISABLE_LOGGING
-    LockGuard guard(_semaphore);
+    LockGuard guard(*_semaphore);
     _logging.warning( msg, args...);
 #endif
   }
@@ -194,7 +194,7 @@ public:
   
   template <class T, typename... Args> void notice(T msg, Args...args){
 #ifndef DISABLE_LOGGING
-    LockGuard guard(_semaphore);
+    LockGuard guard(*_semaphore);
     _logging.notice( msg, args...);
 #endif
   }
@@ -210,7 +210,7 @@ public:
    */
   template <class T, typename... Args> void trace(T msg, Args... args){
 #ifndef DISABLE_LOGGING
-    LockGuard guard(_semaphore);
+    LockGuard guard(*_semaphore);
     _logging.trace( msg, args...);
 #endif
   }
@@ -227,7 +227,7 @@ public:
    */
   template <class T, typename... Args> void verbose(T msg, Args... args){
 #ifndef DISABLE_LOGGING
-    LockGuard guard(_semaphore);
+    LockGuard guard(*_semaphore);
     _logging.verbose( msg, args...);
 #endif
   }

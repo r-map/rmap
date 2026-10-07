@@ -45,8 +45,8 @@ using namespace cpp_freertos;
 
 class frtosRtc {
 private:
-  DS1307RTC _ds1307rtc;
-  MutexStandard _semaphore;
+  DS1307RTC* _ds1307rtc;
+  MutexStandard* _semaphore;
 
 public:
   /*!
