@@ -976,6 +976,9 @@ void displayStatus()
     frtosLog.notice(F("status gps      : receive %d" ),stimawifiStatus.gps.receive);
     frtosLog.notice(F("status udp      : receive %d" ),stimawifiStatus.udp.receive);
   }
+  if (station.nowsat){
+    frtosLog.notice(F("status nowsat   : rssi    %d"),stimawifiStatus.nowsat.rssi);
+  }  
   
   frtosLog.notice(F("status measure  : noheap  %d, stack    %d"),stimawifiStatus.measure.no_heap_memory,stimawifiStatus.measure.memory_collision);
   frtosLog.notice(F("status publish  : noheap  %d, stack    %d"),stimawifiStatus.publish.no_heap_memory,stimawifiStatus.publish.memory_collision);

@@ -227,6 +227,7 @@ struct nowStatus_t
 */
 struct nowsatStatus_t
 {
+  status_e rssi;                 //!< Stato rssi dell segnale radio esp-now
   status_e memory_collision;     //!< check collisione stack e heap
   status_e no_heap_memory;       //!< no memory for allocation in heap
 };

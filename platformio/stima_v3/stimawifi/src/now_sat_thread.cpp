@@ -185,6 +185,18 @@ static void OnDataRecv(const esp_now_recv_info_t *esp_now_info, const uint8_t *i
   //		  esp_now_info->src_addr[0], esp_now_info->src_addr[1], esp_now_info->src_addr[2],
   //		  esp_now_info->src_addr[3], esp_now_info->src_addr[4], esp_now_info->src_addr[5]);
   //nowSatThread::global_data->logger->notice(F("nowsat Bytes received: %d"),len);
+
+ 
+  int rssi=esp_now_info->rx_ctrl->rssi;
+  frtosLog.notice(F("WiFi signal strength (RSSI): %d dBm"),rssi);
+
+  if (rssi < 0 ) {
+    if (nowSatThread::global_data->status->nowsat.rssi != ok && rssi > RSSILIMIT + 5) {
+      nowSatThread::global_data->status->nowsat.rssi == ok;
+    } else if (nowSatThread::global_data->status->nowsat.rssi != error && rssi < RSSILIMIT -5) {
+      nowSatThread::global_data->status->nowsat.rssi = error;
+    }
+  }
   
   // Controlla se è una richiesta di Pairing
   uint16_t type;
@@ -371,6 +383,7 @@ nowSatThread::nowSatThread(now_sat_data_t* now_sat_data)
   //data->logger->notice("nowsat Create Thread %s %d", GetName().c_str(), data->id);
   data->status->nowsat.memory_collision=ok;
   data->status->nowsat.no_heap_memory=ok;
+  data->status->nowsat.rssi=ok;
 
   global_data=data;
   
@@ -432,7 +445,7 @@ void nowSatThread::compute_status_summary(void) {
                                                    data->status->now.memory_collision == error || data->status->now.no_heap_memory == error ||
                                                    data->status->nowsat.memory_collision == error || data->status->nowsat.no_heap_memory == error ||
                                                    data->status->memory_collision == error || data->status->no_heap_memory == error ;
-  data->status->summary.err_rssi |=                data->status->rssi == error;
+  data->status->summary.err_rssi |=                data->status->nowsat.rssi == error;
 }
 
 // publish maint messages (support messages)
