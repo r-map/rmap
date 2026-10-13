@@ -87,6 +87,7 @@ class dbThread : public Thread {
   #endif
   
   bool sqlite_status;
+  uint8_t count_insert_retry;
   rpcRecovery_t rpcrecovery;         // payload recovery RPC on db
   time_t db_recovery_start;
   time_t db_recovery_end;

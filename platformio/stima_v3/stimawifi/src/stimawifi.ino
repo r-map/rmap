@@ -1887,8 +1887,8 @@ void setup_master() {
     // Add http service to MDNS-SD
   MDNS.addService("http", "tcp", STIMAHTTP_PORT);  
 
-  Alarm.timerRepeat(3,displayStatus);                          // display status every 3 seconds  
-  Alarm.timerRepeat(10, dataRecovery);                         // timer for data recovery from DB
+  Alarm.timerRepeat(DISPLAY_PERIOD,displayStatus);                          // timer for display status every
+  Alarm.timerRepeat(RECOVERY_PERIOD, dataRecovery);                         // timer for data recovery data from DB
   Alarm.timerRepeat(station.sampletime, measureAndPublish);    // timer for measure every SAMPLETIME seconds
   
 }

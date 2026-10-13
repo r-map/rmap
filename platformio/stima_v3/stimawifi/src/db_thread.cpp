@@ -288,7 +288,7 @@ bool dbThread::data_purge(const bool flush=false, int nmessages=100){
   sqlite3_finalize(stmt);
 
   if (flush) {
-    if(!db_remove()) data->logger->error("db removing old DB");
+    if(!db_remove()) data->logger->error(F("db removing old DB"));
   }
   
   data->logger->notice(F("db purge values in DB Ended"));        
@@ -925,6 +925,27 @@ bool dbThread::doDb(const mqttMessage_t& message) {
 
     sqlite3_finalize(stmt);
     sqlite_status=false;
+    count_insert_retry++;
+    if (count_insert_retry > 3){
+      count_insert_retry=0;
+
+      // we can filter by error code
+      //switch (sqlite3_errcode(db)) {
+      //case SQLITE_ERROR:   // Generic SQL error or missing database
+      //case SQLITE_INTERNAL // Internal logic error in SQLite
+      //case SQLITE_IOERR    // Some kind of disk I/O error occurred
+      //case SQLITE_CORRUPT  // The database disk image is malformed
+
+      // reset not usable db; should be corrupted; we lost messages in DB but for a working station we try to restart
+      data->logger->error(F("db remove not usable DB"));
+      sqlite_status=db_remove();
+      if(!sqlite_status) data->logger->error(F("db removing not usable DB"));
+
+      //break;
+      //}
+   
+    }
+    delay(DISPLAY_PERIOD*1000+1000);    // make space for other threads before retry and time to notify error in summary
     return false;   // go for retry
   }
 
@@ -951,6 +972,7 @@ dbThread::dbThread(db_data_t* db_data)
   data->status->memory_collision=ok;
   data->status->no_heap_memory=ok;
   sqlite_status=false;
+  count_insert_retry=0;
   archive_recovery_state = ARCHIVE_RECOVERY_NONE;  
   db_recovery_state = DB_RECOVERY_NONE;
   run_data_recovery=false;
@@ -966,7 +988,7 @@ dbThread::~dbThread()
   free(sqlite_memory);
   #endif  
 }
-  
+
 void dbThread::Cleanup()
 {
   data->logger->notice("Delete Thread %s %d", GetName().c_str(), data->id);
@@ -1207,6 +1229,7 @@ void dbThread::Run() {
   
   data->status->database=ok;
   sqlite_status=true;
+  count_insert_retry=0;
   
   //  uint8_t basePriority = GetPriority();
   //  SetPriority(basePriority-1);
