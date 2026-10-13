@@ -2,9 +2,9 @@
 #define STIMAWIFI_CONFIG_H_
 
 // increment on change
-#define SOFTWARE_VERSION "2026-10-08T12:00"    // date and time iso format
-#define MAJOR_VERSION    "20261008"            // date  YYYYMMDD
-#define MINOR_VERSION    "1200"                // time  HHMM without leading 0
+#define SOFTWARE_VERSION "2026-10-13T00:00"    // date and time iso format
+#define MAJOR_VERSION    "20261013"            // date  YYYYMMDD
+#define MINOR_VERSION    "0000"                // time  HHMM without leading 0
 
 // SSID and password of WiFi for setup
 #define WIFI_SSED "STIMA-config"
@@ -33,6 +33,12 @@
 
 // defaul sample time to get measure from sensors
 #define DEFAULT_SAMPLETIME 30
+
+// timing for display summary report in sec
+#define DISPLAY_PERIOD 3
+
+// timing for recovery data in sec
+#define RECOVERY_PERIOD 10
 
 // udp port to use for communicate with androd gps_forwarder app
 #define UDP_PORT 8888
