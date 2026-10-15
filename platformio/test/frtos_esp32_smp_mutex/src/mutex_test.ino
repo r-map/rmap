@@ -8,29 +8,37 @@
   be included in all copies or substantial portions of the Software.
 */
 
+/*
+  COREID_TASK1 1 COREID_TASK2 1   Work
+  COREID_TASK1 0 COREID_TASK2 1   Do not work
+  COREID_TASK1 0 COREID_TASK2 0   Do not work
+
+  check with:
+  pio device monitor |grep -v 123456789012345678901234567890
+*/
+
+#define COREID_TASK1 0
+#define COREID_TASK2 1
+
 #include "mutex.hpp"
 #include <frtosLog.h>
 
-
 using namespace cpp_freertos;
-
-
-#define MUTEX_TIMEOUT 5000  // 5s timeout
 
 SemaphoreHandle_t serialMutex = NULL;
 MutexStandard mutex;
 
 void Task1_frtoslog(void *parameter) {
   for (;;) {
-    frtosLog.notice("Task1: Logging from Task    1\n");
-    delay(10);
+    frtosLog.notice("123456789012345678901234567890\n");
+    delay(random(0,5));
   }
 }
 
 void Task2_frtoslog(void *parameter) {
   for (;;) {
-    frtosLog.notice("Task2: Logging from Task       2\n");
-    delay(1);
+    frtosLog.notice("123456789012345678901234567890\n");
+    delay(random(0,5));
   }
 }
 
@@ -38,9 +46,9 @@ void Task1_frtos(void *parameter) {
   for (;;) {
     {
       LockGuard guard(mutex);
-      Serial.print("Task1: Logging from Task    1\n");
+      Serial.print("123456789012345678901234567890\n");
     }
-    delay(10);
+    delay(random(0,5));
   }
 }
 
@@ -48,76 +56,73 @@ void Task2_frtos(void *parameter) {
   for (;;) {
     {
       LockGuard guard(mutex);
-      Serial.print("Task2: Logging from Task       2\n");
+      Serial.print("123456789012345678901234567890\n");
     }
-    delay(1);
+    delay(random(0,5));
   }
 }
 
 void Task1(void *parameter) {
   for (;;) {
-    if (xSemaphoreTake(serialMutex, MUTEX_TIMEOUT)) {
-      Serial.println("Task1: Logging from Task    1");
+    if (xSemaphoreTake(serialMutex,portMAX_DELAY)) {
+      Serial.print("123456789012345678901234567890\n");
+    }else{
+      Serial.println("error");
     }
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    Serial.println("Task1: End of log from Task  1");
     xSemaphoreGive(serialMutex);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(random(0,5) / portTICK_PERIOD_MS);
   }
 }
 
 void Task2(void *parameter) {
   for (;;) {
-    if (xSemaphoreTake(serialMutex, MUTEX_TIMEOUT)) {
-      Serial.println("Task2: Logging from Task        2");
+    if (xSemaphoreTake(serialMutex,portMAX_DELAY)) {
+      Serial.print("123456789012345678901234567890\n");
+    }else{
+      Serial.println("error");
     }
-    vTaskDelay(80 / portTICK_PERIOD_MS);
-    LockGuard guard(mutex);
-    Serial.println("Task2: End of log from Task      2");
     xSemaphoreGive(serialMutex);
-    vTaskDelay(300 / portTICK_PERIOD_MS);
+    vTaskDelay(random(0,5) / portTICK_PERIOD_MS);
   }
 }
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  delay(5000);
   Serial.println("Starting FreeRTOS");
   frtosLog.begin(LOG_LEVEL_NOTICE, &Serial,mutex);
 
-  frtosLog.notice("ciao ciao");
+  frtosLog.notice("ciao ciao\n");
 
-  /*
   serialMutex = xSemaphoreCreateMutex();
   if (serialMutex == NULL) {
     Serial.println("Failed to create mutex!");
     while (1);
   }
-  */
   
   xTaskCreatePinnedToCore(
-    Task1_frtoslog,         // Task function
-    //Task1_frtos,         // Task function
-    //Task1,                  // Task function
-    "Task1",                // Task name
-    3000,                   // Stack size
-    NULL,                   // Task parameters
-    1,                      // Priority
-    NULL,                   // Task handle
-    0                       // Core ID
-  );
-
+			  //Task1_frtoslog,         // Task function
+			  //Task1_frtos,            // Task function
+			  Task1,                  // Task function
+			  "Task1",                // Task name
+			  10000,                  // Stack size
+			  NULL,                   // Task parameters
+			  1,                      // Priority
+			  NULL,                   // Task handle
+			  COREID_TASK1            // Core ID
+			  );
+  
   xTaskCreatePinnedToCore(
-    Task2_frtoslog,         // Task function
-    //Task2_frtos,         // Task function
-    //Task2,                  // Task function
-    "Task2",                // Task name
-    3000,                   // Stack size
-    NULL,                   // Task parameters
-    2,                      // Higher priority
-    NULL,                   // Task handle
-    1                       // Core ID
-  );
+			  //Task2_frtoslog,         // Task function
+			  //Task2_frtos,            // Task function
+			  Task2,                  // Task function
+			  "Task2",                // Task name
+			  10000,                  // Stack size
+			  NULL,                   // Task parameters
+			  1,                      // Priority
+			  NULL,                   // Task handle
+			  COREID_TASK2            // Core ID
+			  );
 }
 
 void loop() {
