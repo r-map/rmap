@@ -485,7 +485,8 @@ delle altre stazioni di monitoraggio in città.
 
 Partecipazione alla Fiera delle Idee a Bologna in Via Casarini 19,
 evento di apertura del Festival delle Cultura Tecnica 2026 presso il
-Dumbo. Hanno presentato il progetto l'istituti scolastico superiore Aldini Valeriani di Bologna.
+Dumbo. Ha presentato il progetto l'istituti scolastico superiore
+Aldini Valeriani di Bologna.
 
 .. image:: fieradelleidee_26/photo_1_2026-10-27_10-45-56.jpg
 .. image:: fieradelleidee_26/photo_2_2026-10-27_10-45-56.jpg
