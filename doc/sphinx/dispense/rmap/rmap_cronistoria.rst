@@ -461,6 +461,43 @@ Dipartimento di Ingegneria dell'Energia Elettrica e dell'Informazione
 Cipressi Matilde, Masseurs Mattia Enrique, Tolomelli Ivan, Younas
 Athar, Zerbini Alessandro
 
+27/09/2026
+----------
+
+TICO Piazza XX Settembre Bologna ore 17-19
+  
+LABORATORIO: Citizen  Science – l’importanza della scienza aperta e la
+partecipazione dei cittadini per la transizione.
+
+Rete di monitoraggio ambientale partecipativo RMAP :  scienza e
+tecnologia aperte per misurare  le concentrazioni di CO2 e polveri
+sottili oltre a temperatura e umidità utilizzando un data logger open
+source hardware. Faremo varie misure dell’ambiente simulando anche
+differenti situazioni all’interno di una campana di vetro analizzando
+il funzionamento dei sensori, visualizzando i dati locali e quelli
+delle altre stazioni di monitoraggio in città.
+
+.. image:: tico/photo_1_2026-10-27_10-56-34.jpg
+.. image:: tico/photo_2_2026-10-27_10-56-34.jpg
+
+20/10/2026
+----------
+
+Partecipazione alla Fiera delle Idee a Bologna in Via Casarini 19,
+evento di apertura del Festival delle Cultura Tecnica 2026 presso il
+Dumbo. Hanno presentato il progetto l'istituti scolastico superiore Aldini Valeriani di Bologna.
+
+.. image:: fieradelleidee_26/photo_1_2026-10-27_10-45-56.jpg
+.. image:: fieradelleidee_26/photo_2_2026-10-27_10-45-56.jpg
+.. image:: fieradelleidee_26/photo_3_2026-10-27_10-45-56.jpg
+
+	  
+24/10/2026
+----------
+
+Festa della biblioteca Natalia Ginzburg Via Genova 10, Bologna ore 15-18
+Laboratorio: presentazione attività associative e di scienza partecipata
+
 	   
 Stato dell'arte su GitHub
 -------------------------
@@ -526,5 +563,3 @@ Grossomodo possiamo elencare:
 * MeteoHub
 * Open data qualità dell'aria ARPAE
 * dati da stazioni di reti private
-
-  
