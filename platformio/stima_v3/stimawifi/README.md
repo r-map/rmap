@@ -5,14 +5,14 @@ con la stazione di monitoraggio ambientale Stimawifi.
 
 Tutta la documentazione la trovate:
 
-<https://doc.rmap.cc/stima_wifi/stima_wifi_howto.html>
+<https://doc.rmap.cc>
 
 Nello specifico
 - La documentazione per configurare la stazione e pubblicare i dati:
 
-  [server](https://doc.rmap.cc/stima_wifi/stima_wifi_howto.html#configurazioni-sul-server)
+  [server](https://doc.rmap.cc/server_rmap/server_rmap.html)
 
-  [stazione](https://doc.rmap.cc/stima_wifi/stima_wifi_howto.html#configurazione-stazione)
+  [stazione](https://doc.rmap.cc/server_rmap/server_rmap.html)
 
 - non dimenticate i nostri [videotutorial]( https://doc.rmap.cc/videotutorial/stimawifi/stimawifi.html#manuale-utente)
 
